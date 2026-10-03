@@ -39,3 +39,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# originali asset non compressi
+/_assets_originali
+
+# --- Muri Parlanti: build e artefatti generati ---
+# Capacitor / Android (tengo il progetto nativo, escludo solo gli output di build)
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/.idea/
+/android/app/release/
+/android/app/debug/
+
+# Copia web generata da Capacitor (rigenerabile con "npx cap sync")
+/www/
+
+# Pacchetti Android
+*.apk
+*.aab
+*.keystore
+
+# Deliverable di stampa rigenerabili
+sticker-*.png
+sticker-*.pdf

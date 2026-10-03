@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-scritta: var(--font-caveat);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #0c0a09; /* stone-950 */
+  color: #f5f5f4; /* stone-100 */
+}
+
+::selection {
+  background-color: #fde68a; /* amber-300 */
+  color: #1c1917; /* stone-900 */
+}
+
+/* ===== Post-it ===== */
+.postit {
+  rotate: var(--rot, 0deg);
+  transition:
+    rotate 0.2s ease,
+    scale 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (hover: hover) {
+  .postit:hover {
+    rotate: 0deg;
+    scale: 1.04;
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ===== Animazioni ===== */
+@keyframes attacca {
+  0% {
+    translate: 0 -70px;
+    rotate: -12deg;
+    scale: 1.06;
+    opacity: 0;
+  }
+  55% {
+    translate: 0 4px;
+  }
+  100% {
+    translate: 0 0;
+    rotate: var(--rot, 0deg);
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.animate-attacca {
+  animation: attacca 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes comparsa {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.animate-comparsa {
+  animation: comparsa 0.5s ease both;
 }
