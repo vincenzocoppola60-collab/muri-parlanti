@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ScannerQR from "@/components/ScannerQR";
+import Testo from "@/components/Testo";
 
 export default function ScansionaPage() {
   return (
@@ -15,7 +16,7 @@ export default function ScansionaPage() {
       />
       <header className="px-4 pb-2 pt-16 text-center sm:pt-20">
         <h1 className="font-scritta text-5xl leading-tight text-amber-100 drop-shadow-md sm:text-6xl">
-          Scansiona un muro
+          <Testo chiave="scansiona.titolo" />
         </h1>
       </header>
       <ScannerQR />
@@ -24,7 +25,7 @@ export default function ScansionaPage() {
           href="/"
           className="text-sm text-amber-100/80 underline-offset-4 hover:underline"
         >
-          ← Torna alla home
+          <Testo chiave="comune.tornaHomeFreccia" />
         </Link>
       </footer>
     </main>

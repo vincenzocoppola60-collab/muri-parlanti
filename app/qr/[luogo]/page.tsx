@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { notFound } from "next/navigation";
 import { normalizzaLuogo, nomeLuogo } from "@/lib/luoghi";
 import PulsanteStampa from "./PulsanteStampa";
+import Testo from "@/components/Testo";
 
 export const dynamic = "force-dynamic";
 
@@ -53,17 +54,17 @@ export default async function PaginaQr({
           href="/"
           className="rounded-full border border-amber-100/30 px-4 py-2 text-sm text-amber-100 transition hover:bg-amber-100/10"
         >
-          ← Home
+          <Testo chiave="comune.homeFreccia" />
         </a>
         <PulsanteStampa />
       </div>
 
       <section className="qr-card w-full max-w-lg rounded-xl border border-stone-700/50 bg-white p-8 text-center shadow-2xl">
         <h1 className="font-scritta text-5xl leading-snug text-stone-900">
-          Muro di {nomeLuogo(slug)}
+          <Testo chiave="qr.muroDi" valori={{ nome: nomeLuogo(slug) }} />
         </h1>
         <p className="mt-1 text-sm text-stone-500">
-          Inquadra il codice per lasciare un pensiero su questo muro.
+          <Testo chiave="qr.inquadra" />
         </p>
         <img
           src={qr}
@@ -74,8 +75,7 @@ export default async function PaginaQr({
       </section>
 
       <p className="qr-no-print mt-6 max-w-lg text-center text-xs text-stone-500">
-        Stampare: usa il pulsante qui sopra o Cmd/Ctrl+P. Il QR punta al muro
-        pubblico, quindi funziona anche dopo aggiornamenti del sito.
+        <Testo chiave="qr.stampaNota" />
       </p>
 
       <style>{`

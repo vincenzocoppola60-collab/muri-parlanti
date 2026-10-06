@@ -3,6 +3,7 @@ import { caricaPostit, contaPostit } from "@/lib/postit";
 import { normalizzaLuogo, nomeLuogo } from "@/lib/luoghi";
 import { caricaMuro } from "@/lib/muri";
 import Wall from "@/components/Wall";
+import Testo from "@/components/Testo";
 
 export const dynamic = "force-dynamic";
 
@@ -56,16 +57,17 @@ function ErroreCaricamento() {
         style={{ backgroundImage: "url(/images/brain.webp)" }}
       />
       <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
-      <h1 className="font-scritta text-4xl text-amber-100">Muri Parlanti</h1>
+      <h1 className="font-scritta text-4xl text-amber-100">
+        <Testo chiave="errore.titolo" />
+      </h1>
       <p className="max-w-md text-stone-300">
-        Non sono riuscito a raggiungere il muro in questo momento. Il database
-        potrebbe non essere configurato: riprova tra poco.
+        <Testo chiave="errore.muroTesto" />
       </p>
       <a
         href="/"
         className="rounded-full bg-amber-300 px-6 py-3 font-bold text-stone-900 shadow-xl transition hover:scale-105"
       >
-        Torna alla home
+        <Testo chiave="comune.tornaHome" />
       </a>
     </main>
   );

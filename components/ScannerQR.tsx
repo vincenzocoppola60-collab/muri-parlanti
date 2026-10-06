@@ -5,6 +5,9 @@ import Link from "next/link";
 import jsQR from "jsqr";
 import { nomeLuogo, slugDaTesto } from "@/lib/luoghi";
 import { salvaMuro } from "@/lib/mieiMuri";
+import { useLingua } from "@/lib/i18n";
+
+type T = (chiave: string, valori?: Record<string, string | number>) => string;
 
 type Stato = "inattivo" | "avvio" | "attivo" | "trovato" | "errore";
 
@@ -26,30 +29,29 @@ function browserIntegrato(): string | null {
 }
 
 /** Traduce gli errori della fotocamera in frasi capite da tutti. */
-function messaggioErrore(e: unknown): string {
+function messaggioErrore(e: unknown, t: T): string {
   const nome = e instanceof DOMException ? e.name : "";
   switch (nome) {
     case "NotAllowedError":
     case "PermissionDeniedError":
-      return "Permesso fotocamera negato. Apri il sito in Chrome, tocca l'icona del lucchetto accanto all'indirizzo e consenti la fotocamera, poi riprova. In alternativa usa \"Scatta una foto del QR\".";
+      return t("scan.errPermesso");
     case "NotFoundError":
     case "DevicesNotFoundError":
-      return "Nessuna fotocamera trovata su questo dispositivo. Usa \"Scatta una foto del QR\".";
+      return t("scan.errNessunaCam");
     case "NotReadableError":
     case "TrackStartError":
-      return "La fotocamera è già in uso da un'altra app. Chiudila e riprova.";
+      return t("scan.errInUso");
     case "OverconstrainedError":
-      return "La fotocamera di questo dispositivo non supporta la modalità richiesta.";
+      return t("scan.errNoModalita");
     case "SecurityError":
-      return "La fotocamera richiede una connessione sicura (https).";
+      return t("scan.errSicura");
     default:
-      return e instanceof Error && e.message
-        ? e.message
-        : "Non sono riuscito ad avviare la fotocamera.";
+      return e instanceof Error && e.message ? e.message : t("scan.errAvvio");
   }
 }
 
 export default function ScannerQR() {
+  const { t } = useLingua();
   const [stato, setStato] = useState<Stato>("inattivo");
   const [errore, setErrore] = useState("");
   const [slugTrovato, setSlugTrovato] = useState("");
@@ -81,13 +83,13 @@ export default function ScannerQR() {
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error(
           window.isSecureContext
-            ? "Questo dispositivo non espone la fotocamera al browser."
-            : "La fotocamera richiede una connessione sicura (https)."
+            ? t("scan.errNoEspone")
+            : t("scan.errSicura")
         );
       }
       // Il video è sempre montato in pagina: il riferimento esiste subito.
       const video = videoRef.current;
-      if (!video) throw new Error("Elemento video non trovato.");
+      if (!video) throw new Error(t("scan.errNoVideo"));
       // getUserMedia chiamata subito nel click: preserva l'attivazione utente
       // (richiesta da iOS Safari e da alcuni browser Android).
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -105,7 +107,7 @@ export default function ScannerQR() {
       loop();
     } catch (e) {
       ferma();
-      setErrore(messaggioErrore(e));
+      setErrore(messaggioErrore(e, t));
       setStato("errore");
     }
   }
@@ -160,14 +162,14 @@ export default function ScannerQR() {
       const img = new Image();
       await new Promise<void>((risolvi, rifiuta) => {
         img.onload = () => risolvi();
-        img.onerror = () => rifiuta(new Error("Foto non leggibile."));
+        img.onerror = () => rifiuta(new Error(t("scan.fotoNonLeggibile")));
         img.src = url;
       });
       const canvas = document.createElement("canvas");
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) throw new Error("Foto non leggibile.");
+      if (!ctx) throw new Error(t("scan.fotoNonLeggibile"));
       ctx.drawImage(img, 0, 0);
       const dati = ctx.getImageData(0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
@@ -176,16 +178,14 @@ export default function ScannerQR() {
       });
       const s = codice?.data ? slugDaTesto(codice.data) : "";
       if (!s) {
-        setErrore(
-          "Nessun QR riconosciuto nella foto. Riprova facendo una foto più vicina e dritta al QR code."
-        );
+        setErrore(t("scan.noQrFoto"));
         return;
       }
       salvaMuro(s, nomeLuogo(s));
       setSlugTrovato(s);
       setStato("trovato");
     } catch (e) {
-      setErrore(e instanceof Error ? e.message : "Errore sconosciuto.");
+      setErrore(e instanceof Error ? e.message : t("scan.erroreSconosciuto"));
     }
   }
 
@@ -193,9 +193,7 @@ export default function ScannerQR() {
     ev.preventDefault();
     const s = slugDaTesto(testo.trim());
     if (!s) {
-      setErrore(
-        "Non riconosco questo testo. Incolla un link /muro/… oppure uno slug tipo piazza-del-mercato."
-      );
+      setErrore(t("scan.testoNonRiconosciuto"));
       return;
     }
     salvaMuro(s, nomeLuogo(s));
@@ -208,14 +206,14 @@ export default function ScannerQR() {
       {stato === "inattivo" && (
         <div className="rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
           <p className="mx-auto max-w-xs text-sm text-stone-300">
-            Inquadra il QR code affisso sul muro per salvarlo tra i tuoi muri.
+            {t("scan.invito")}
           </p>
           <button
             type="button"
             onClick={avvia}
             className="mt-5 rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95"
           >
-            📷 Avvia la fotocamera
+            {t("scan.avvia")}
           </button>
         </div>
       )}
@@ -237,7 +235,7 @@ export default function ScannerQR() {
         />
         {stato === "avvio" && (
           <p className="absolute inset-x-0 bottom-3 text-center text-xs text-stone-300">
-            Avvio della fotocamera… (consenti l'accesso se richiesto)
+            {t("scan.avvio")}
           </p>
         )}
         {stato === "attivo" && (
@@ -250,7 +248,7 @@ export default function ScannerQR() {
       {stato === "attivo" && (
         <>
           <p className="mt-4 text-center text-sm text-stone-300">
-            Inquadra il QR code del muro.
+            {t("scan.inquadra")}
           </p>
           <button
             type="button"
@@ -260,7 +258,7 @@ export default function ScannerQR() {
             }}
             className="mt-3 w-full rounded-full border border-amber-100/30 px-6 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
           >
-            Ferma la fotocamera
+            {t("scan.ferma")}
           </button>
         </>
       )}
@@ -274,7 +272,7 @@ export default function ScannerQR() {
               onClick={avvia}
               className="mt-3 rounded-full bg-red-300 px-5 py-2 text-sm font-bold text-red-950 transition hover:scale-105"
             >
-              Riprova
+              {t("scan.riprova")}
             </button>
           )}
         </div>
@@ -282,16 +280,14 @@ export default function ScannerQR() {
 
       {browserApp && (stato === "inattivo" || stato === "errore") && (
         <div className="mt-4 rounded-lg border border-amber-100/30 bg-amber-950/30 p-4 text-sm text-amber-100">
-          Stai usando il browser integrato di {browserApp}: a volte blocca la
-          fotocamera. Apri il link in <strong>Chrome</strong> oppure usa{" "}
-          <strong>Scatta una foto del QR</strong> qui sotto.
+          {t("scan.browserIntegrato", { nome: browserApp })}
         </div>
       )}
 
       {(stato === "inattivo" || stato === "errore") && (
         <div className="mt-3 flex flex-col gap-2">
           <label className="flex cursor-pointer items-center justify-center gap-1 rounded-full border border-amber-100/30 px-6 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50">
-            📸 Scatta una foto del QR
+            {t("scan.scatta")}
             <input
               type="file"
               accept="image/*"
@@ -301,7 +297,7 @@ export default function ScannerQR() {
             />
           </label>
           <label className="flex cursor-pointer items-center justify-center gap-1 text-center text-sm text-stone-300 underline underline-offset-4 transition hover:text-amber-100">
-            🖼️ Oppure scegli una foto del QR code
+            {t("scan.scegliFoto")}
             <input
               type="file"
               accept="image/*"
@@ -319,14 +315,14 @@ export default function ScannerQR() {
             {nomeLuogo(slugTrovato)}
           </h2>
           <p className="mt-2 text-sm text-stone-300">
-            Muro salvato tra i tuoi muri.
+            {t("scan.muroSalvato")}
           </p>
           <div className="mt-5 flex flex-col gap-2">
             <Link
               href={`/muro/${slugTrovato}`}
               className="rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105"
             >
-              Vai al muro
+              {t("scan.vaiMuro")}
             </Link>
             <button
               type="button"
@@ -336,7 +332,7 @@ export default function ScannerQR() {
               }}
               className="rounded-full border border-amber-100/30 px-6 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
             >
-              Scansiona un altro muro
+              {t("scan.scansionaAltro")}
             </button>
           </div>
         </div>
@@ -351,7 +347,7 @@ export default function ScannerQR() {
             htmlFor="testo"
             className="block text-sm font-medium text-stone-300"
           >
-            Niente fotocamera? Incolla lo slug o il link del muro:
+            {t("scan.manualeLabel")}
           </label>
           <div className="mt-2 flex gap-2">
             <input
@@ -359,14 +355,14 @@ export default function ScannerQR() {
               type="text"
               value={testo}
               onChange={(e) => setTesto(e.target.value)}
-              placeholder="es. piazza-del-mercato"
+              placeholder={t("scan.manualePh")}
               className="min-w-0 flex-1 rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
             />
             <button
               type="submit"
               className="shrink-0 rounded-full bg-amber-300 px-5 py-2 text-sm font-bold text-stone-900 transition hover:scale-105"
             >
-              Salva
+              {t("scan.salva")}
             </button>
           </div>
         </form>

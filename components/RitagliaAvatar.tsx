@@ -6,6 +6,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useLingua } from "@/lib/i18n";
 
 const USCITA = 512; // lato in pixel dell'immagine finale caricata su Supabase
 const ZOOM_MIN = 1;
@@ -25,6 +26,7 @@ export default function RitagliaAvatar({
   onAnnulla: () => void;
   onConferma: (blob: Blob) => void;
 }) {
+  const { t } = useLingua();
   const [url, setUrl] = useState<string | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [lato, setLato] = useState(320); // lato reale dell'area di ritaglio a schermo
@@ -85,13 +87,13 @@ export default function RitagliaAvatar({
   }
 
   function trascina(e: ReactPointerEvent<HTMLDivElement>) {
-    const t = trascinoRef.current;
-    if (!t || !img) return;
+    const tr = trascinoRef.current;
+    if (!tr || !img) return;
     const mezzoX = (img.naturalWidth * scalaBase * zoom - lato) / 2;
     const mezzoY = (img.naturalHeight * scalaBase * zoom - lato) / 2;
     setOffset({
-      x: Math.min(mezzoX, Math.max(-mezzoX, t.ox + (e.clientX - t.px))),
-      y: Math.min(mezzoY, Math.max(-mezzoY, t.oy + (e.clientY - t.py))),
+      x: Math.min(mezzoX, Math.max(-mezzoX, tr.ox + (e.clientX - tr.px))),
+      y: Math.min(mezzoY, Math.max(-mezzoY, tr.oy + (e.clientY - tr.py))),
     });
   }
 
@@ -111,7 +113,7 @@ export default function RitagliaAvatar({
     canvas.height = USCITA;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      setErrore("Il browser non supporta il ritaglio. Prova con un'altra foto.");
+      setErrore(t("ritaglia.noSupporto"));
       return;
     }
     ctx.fillStyle = "#ffffff";
@@ -130,7 +132,7 @@ export default function RitagliaAvatar({
     canvas.toBlob(
       (blob) => {
         if (blob) onConferma(blob);
-        else setErrore("Ritaglio non riuscito. Riprova.");
+        else setErrore(t("ritaglia.fallito"));
       },
       "image/jpeg",
       0.85
@@ -146,11 +148,10 @@ export default function RitagliaAvatar({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border border-amber-100/20 bg-stone-900 p-4 shadow-2xl">
-        <h3 className="font-scritta text-2xl text-amber-100">Inquadra la foto</h3>
-        <p className="mt-1 text-xs text-stone-400">
-          Trascina l&apos;immagine e regola lo zoom: dentro il cerchio va la
-          parte che vuoi come foto profilo.
-        </p>
+        <h3 className="font-scritta text-2xl text-amber-100">
+          {t("ritaglia.titolo")}
+        </h3>
+        <p className="mt-1 text-xs text-stone-400">{t("ritaglia.testo")}</p>
 
         <div
           ref={areaRef}
@@ -163,7 +164,7 @@ export default function RitagliaAvatar({
           {url && (
             <img
               src={url}
-              alt="Foto da ritagliare"
+              alt={t("ritaglia.alt")}
               draggable={false}
               onLoad={(e) => setImg(e.currentTarget)}
               className="pointer-events-none absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2"
@@ -172,7 +173,7 @@ export default function RitagliaAvatar({
           )}
           {!img && (
             <p className="absolute inset-0 flex items-center justify-center text-sm text-stone-400">
-              Carico l&apos;immagine…
+              {t("ritaglia.carico")}
             </p>
           )}
           {/* Cerchio di anteprima: scurisce tutto ciò che resta fuori */}
@@ -191,7 +192,7 @@ export default function RitagliaAvatar({
           <button
             type="button"
             onClick={() => cambiaZoom(-0.1)}
-            aria-label="Riduci zoom"
+            aria-label={t("ritaglia.riduciZoom")}
             className="h-9 w-9 shrink-0 rounded-full bg-stone-800 text-lg font-bold text-amber-100 transition hover:bg-stone-700"
           >
             −
@@ -203,13 +204,13 @@ export default function RitagliaAvatar({
             step={0.01}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            aria-label="Zoom immagine"
+            aria-label={t("ritaglia.zoomImmagine")}
             className="w-full accent-amber-300"
           />
           <button
             type="button"
             onClick={() => cambiaZoom(0.1)}
-            aria-label="Aumenta zoom"
+            aria-label={t("ritaglia.aumentaZoom")}
             className="h-9 w-9 shrink-0 rounded-full bg-stone-800 text-lg font-bold text-amber-100 transition hover:bg-stone-700"
           >
             +
@@ -228,7 +229,7 @@ export default function RitagliaAvatar({
             onClick={onAnnulla}
             className="rounded-full px-4 py-2 text-sm font-bold text-stone-300 transition hover:bg-stone-950/60"
           >
-            ✕ Annulla
+            {t("ritaglia.annulla")}
           </button>
           <button
             type="button"
@@ -236,7 +237,7 @@ export default function RitagliaAvatar({
             disabled={!img}
             className="rounded-full bg-amber-300 px-5 py-2 text-sm font-bold text-stone-900 shadow-xl transition hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            ✓ Usa questa foto
+            {t("ritaglia.usa")}
           </button>
         </div>
       </div>

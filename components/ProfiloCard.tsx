@@ -17,8 +17,10 @@ import {
   urlAvatar,
   type Profilo,
 } from "@/lib/profili";
+import { useLingua } from "@/lib/i18n";
 
 export default function ProfiloCard() {
+  const { t } = useLingua();
   const { utente, caricamento, nickname, esci } = useAuth();
   const [totaleXp, setTotaleXp] = useState(0);
   const [muriVisita, setMuriVisita] = useState(0);
@@ -70,10 +72,11 @@ export default function ProfiloCard() {
   if (!utente) {
     return (
       <div className="mx-auto w-full max-w-md">
-        <h2 className="font-scritta text-3xl text-amber-100">Il tuo profilo</h2>
+        <h2 className="font-scritta text-3xl text-amber-100">
+          {t("profilo.noAccountTitolo")}
+        </h2>
         <p className="mb-4 mt-2 max-w-md text-sm text-stone-300">
-          Con un account salvi i muri che visiti, i post-it preferiti e
-          guadagni punti: ogni livello raggiunto ti regala un bonus.
+          {t("profilo.noAccountTesto")}
         </p>
         <AccessoForm />
       </div>
@@ -81,7 +84,7 @@ export default function ProfiloCard() {
   }
 
   const stato = statoLivello(totaleXp);
-  const nome = profilo?.nickname || nickname || "Tu";
+  const nome = profilo?.nickname || nickname || t("profilo.tu");
   const avatar = urlAvatar(profilo);
   const iniziale =
     (profilo?.nickname || nome || "?").trim().charAt(0).toUpperCase() || "?";
@@ -94,7 +97,7 @@ export default function ProfiloCard() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatar}
-              alt={`Foto profilo di ${nome}`}
+              alt={t("profilo.fotoAlt", { nome })}
               className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-amber-300/60"
             />
           ) : (
@@ -103,7 +106,9 @@ export default function ProfiloCard() {
             </span>
           )}
           <div className="min-w-0">
-            <h2 className="font-scritta text-3xl text-amber-100">Ciao, {nome} 👋</h2>
+            <h2 className="font-scritta text-3xl text-amber-100">
+              {t("profilo.ciao", { nome })}
+            </h2>
           </div>
         </div>
         <button
@@ -111,7 +116,7 @@ export default function ProfiloCard() {
           onClick={esci}
           className="shrink-0 rounded-full border border-amber-100/30 px-3 py-1 text-xs font-semibold text-stone-300 transition hover:bg-stone-950/60"
         >
-          Esci
+          {t("profilo.esci")}
         </button>
       </div>
 
@@ -121,9 +126,11 @@ export default function ProfiloCard() {
         </span>
         <div className="min-w-0">
           <p className="font-scritta text-xl leading-tight text-amber-100">
-            {stato.livello.nome}
+            {t(`livello.${stato.livello.numero}`)}
           </p>
-          <p className="text-xs text-stone-400">{totaleXp} punti</p>
+          <p className="text-xs text-stone-400">
+            {t("profilo.punti", { xp: totaleXp })}
+          </p>
         </div>
       </div>
 
@@ -137,8 +144,11 @@ export default function ProfiloCard() {
         <div className="mt-2 flex justify-between text-xs text-stone-400">
           <span>
             {stato.prossimo
-              ? `${stato.puntiAlProssimo} punti al livello ${stato.prossimo.numero}`
-              : "Livello massimo raggiunto!"}
+              ? t("profilo.alProssimo", {
+                  n: stato.puntiAlProssimo ?? 0,
+                  lv: stato.prossimo.numero,
+                })
+              : t("profilo.maxLivello")}
           </span>
           <span>{stato.percentuale}%</span>
         </div>
@@ -147,15 +157,17 @@ export default function ProfiloCard() {
       <div className="mt-5 grid grid-cols-3 gap-2 text-center">
         <div className="rounded-lg bg-stone-950/40 p-3">
           <p className="font-scritta text-2xl text-amber-100">{muriVisita}</p>
-          <p className="text-xs text-stone-400">muri esplorati</p>
+          <p className="text-xs text-stone-400">{t("profilo.muriEsplorati")}</p>
         </div>
         <div className="rounded-lg bg-stone-950/40 p-3">
           <p className="font-scritta text-2xl text-amber-100">{pensieri}</p>
-          <p className="text-xs text-stone-400">pensieri lasciati</p>
+          <p className="text-xs text-stone-400">
+            {t("profilo.pensieriLasciati")}
+          </p>
         </div>
         <div className="rounded-lg bg-stone-950/40 p-3">
           <p className="font-scritta text-2xl text-amber-100">{preferiti.length}</p>
-          <p className="text-xs text-stone-400">preferiti</p>
+          <p className="text-xs text-stone-400">{t("profilo.preferiti")}</p>
         </div>
       </div>
 
@@ -163,7 +175,7 @@ export default function ProfiloCard() {
         href="/carica-foto"
         className="mt-4 block rounded-full border border-amber-100/30 px-4 py-2 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
       >
-        📷 Carica la foto di un muro
+        {t("profilo.caricaFoto")}
       </Link>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -171,19 +183,21 @@ export default function ProfiloCard() {
           href={`/profilo/${utente.id}`}
           className="rounded-full border border-amber-100/30 px-3 py-2 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
         >
-          👁️ Il mio profilo
+          {t("profilo.ilMioProfilo")}
         </Link>
         <Link
           href="/impostazioni"
           className="rounded-full border border-amber-100/30 px-3 py-2 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
         >
-          ⚙️ Impostazioni
+          {t("profilo.impostazioni")}
         </Link>
       </div>
 
       {/* Ricompense di livello */}
       <div className="mt-6">
-        <h3 className="font-scritta text-lg text-amber-100">Ricompense di livello</h3>
+        <h3 className="font-scritta text-lg text-amber-100">
+          {t("profilo.ricompense")}
+        </h3>
         <ul className="mt-2 space-y-1.5">
           {LIVELLI.filter((l) => l.bonus > 0).map((l) => {
             const sbloccato = totaleXp >= l.soglia;
@@ -208,10 +222,12 @@ export default function ProfiloCard() {
                   >
                     {l.numero}
                   </span>
-                  <span className="truncate">{l.nome}</span>
+                  <span className="truncate">{t(`livello.${l.numero}`)}</span>
                 </span>
                 <span className="shrink-0 text-xs font-semibold">
-                  {sbloccato ? `✓ +${l.bonus} punti` : `🔒 +${l.bonus} punti`}
+                  {sbloccato
+                    ? `✓ +${l.bonus} ${t("comune.punti")}`
+                    : `🔒 +${l.bonus} ${t("comune.punti")}`}
                 </span>
               </li>
             );
@@ -221,10 +237,12 @@ export default function ProfiloCard() {
 
       {/* Post-it preferiti */}
       <div className="mt-6">
-        <h3 className="font-scritta text-lg text-amber-100">Post-it preferiti</h3>
+        <h3 className="font-scritta text-lg text-amber-100">
+          {t("profilo.preferitiTitolo")}
+        </h3>
         {preferiti.length === 0 ? (
           <p className="mt-2 text-xs text-stone-500">
-            Nessun preferito: tocca il cuore 🤍 su un post-it per salvarlo qui.
+            {t("profilo.preferitiVuoto")}
           </p>
         ) : (
           <ul className="mt-2 space-y-2">
@@ -246,7 +264,7 @@ export default function ProfiloCard() {
                   <button
                     type="button"
                     onClick={() => togliPreferito(p.id)}
-                    aria-label="Rimuovi dai preferiti"
+                    aria-label={t("profilo.rimuoviPreferito")}
                     className="shrink-0 rounded-full px-1.5 text-stone-500 transition hover:text-red-300"
                   >
                     ✕
@@ -260,7 +278,7 @@ export default function ProfiloCard() {
 
       {stato.prossimo && (
         <p className="mt-4 text-center text-xs text-stone-500">
-          Visita altri muri per guadagnare punti e salire di livello.
+          {t("profilo.guadagnaPunti")}
         </p>
       )}
     </div>

@@ -20,6 +20,7 @@ import {
 import type { PostIt } from "@/lib/postit";
 import { nomeLuogo } from "@/lib/luoghi";
 import { formattaData } from "@/lib/formato";
+import { useLingua } from "@/lib/i18n";
 
 const campo =
   "w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
@@ -27,6 +28,7 @@ const area =
   "w-full resize-none rounded-2xl border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
 
 export default function PaginaImpostazioni() {
+  const { t } = useLingua();
   const { utente, caricamento, nickname: nicknameAccount, impostaUsername } =
     useAuth();
 
@@ -107,7 +109,7 @@ export default function PaginaImpostazioni() {
     setSalvando(false);
     if (esito.ok) {
       setProfilo(esito.profilo);
-      setMessaggio("Profilo salvato ✓");
+      setMessaggio(t("impost.profiloSalvato"));
     } else {
       setErrore(esito.errore);
       if (esito.errore === MESSAGGIO_MIGRAZIONE) setMancaMigrazione(true);
@@ -123,7 +125,7 @@ export default function PaginaImpostazioni() {
     setSalvandoUsername(false);
     if (esito.ok) {
       setUsername(username.trim().toLowerCase());
-      setMsgUsername("Username salvato ✓. Ora puoi accedere con questo nome.");
+      setMsgUsername(t("impost.usernameSalvato"));
     } else {
       setErrUsername(esito.errore);
     }
@@ -157,7 +159,7 @@ export default function PaginaImpostazioni() {
     setCaricandoAvatar(false);
     if (esito.ok) {
       setProfilo(esito.profilo);
-      setMessaggio("Foto profilo aggiornata ✓");
+      setMessaggio(t("impost.fotoAggiornata"));
     } else {
       setErrore(esito.errore);
     }
@@ -171,7 +173,7 @@ export default function PaginaImpostazioni() {
     const rimosso = await rimuoviAvatarFile();
     if (!rimosso.ok) {
       setCaricandoAvatar(false);
-      setErrore(rimosso.errore ?? "Rimozione non riuscita. Riprova.");
+      setErrore(rimosso.errore ?? t("comune.rimozioneFallita"));
       return;
     }
     const esito = await salvaMioProfilo({
@@ -183,7 +185,7 @@ export default function PaginaImpostazioni() {
     setCaricandoAvatar(false);
     if (esito.ok) {
       setProfilo(esito.profilo);
-      setMessaggio("Foto rimossa ✓");
+      setMessaggio(t("impost.fotoRimossa"));
     } else {
       setErrore(esito.errore);
     }
@@ -199,7 +201,7 @@ export default function PaginaImpostazioni() {
         />
         <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
         <p className="font-scritta text-2xl text-amber-100">
-          Apro le impostazioni…
+          {t("impost.apro")}
         </p>
       </main>
     );
@@ -219,14 +221,13 @@ export default function PaginaImpostazioni() {
             href="/"
             className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
           >
-            ← Torna alla home
+            {t("comune.tornaHomeFreccia")}
           </Link>
           <h1 className="mt-3 font-scritta text-4xl text-amber-100">
             Impostazioni
           </h1>
           <p className="mb-4 mt-2 text-sm text-stone-300">
-            Accedi per gestire la foto profilo, la biografia e la privacy dei
-            tuoi pensieri.
+            {t("impost.noAccountTesto")}
           </p>
           <AccessoForm />
         </div>
@@ -248,7 +249,7 @@ export default function PaginaImpostazioni() {
             href="/"
             className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
           >
-            ← Torna alla home
+            {t("comune.tornaHomeFreccia")}
           </Link>
           <div className="mt-4 rounded-lg border border-red-300/30 bg-red-950/40 p-5 text-sm leading-relaxed text-red-200">
             {MESSAGGIO_MIGRAZIONE}
@@ -283,18 +284,20 @@ export default function PaginaImpostazioni() {
           ← Torna alla home
         </Link>
         <h1 className="mt-3 font-scritta text-4xl text-amber-100">
-          Impostazioni
+          {t("impost.titolo")}
         </h1>
 
         {/* Foto profilo */}
         <section className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
-          <h2 className="font-scritta text-xl text-amber-100">Foto profilo</h2>
+          <h2 className="font-scritta text-xl text-amber-100">
+            {t("impost.fotoProfilo")}
+          </h2>
           <div className="mt-4 flex items-center gap-4">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatar}
-                alt="La tua foto profilo"
+                alt={t("impost.fotoProfilo")}
                 className="h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-amber-300/60"
               />
             ) : (
@@ -310,10 +313,10 @@ export default function PaginaImpostazioni() {
                 className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {caricandoAvatar
-                  ? "Attendi…"
+                  ? t("comune.attendi")
                   : avatar
-                    ? "🔄 Cambia foto"
-                    : "➕ Aggiungi foto"}
+                    ? t("impost.cambiaFoto")
+                    : t("impost.aggiungiFoto")}
               </button>
               {avatar && (
                 <button
@@ -322,7 +325,7 @@ export default function PaginaImpostazioni() {
                   disabled={caricandoAvatar}
                   className="rounded-full px-4 py-1 text-xs font-semibold text-stone-400 transition hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Rimuovi foto
+                  {t("impost.rimuoviFoto")}
                 </button>
               )}
             </div>
@@ -334,24 +337,20 @@ export default function PaginaImpostazioni() {
             onChange={cambiaFoto}
             className="hidden"
           />
-          <p className="mt-3 text-xs text-stone-500">
-            JPG, PNG o WebP: potrai trascinare l'immagine e scegliere con lo
-            zoom quale parte finisce nel cerchio.
-          </p>
+          <p className="mt-3 text-xs text-stone-500">{t("impost.fotoNota")}</p>
         </section>
 
         {/* Accesso: username */}
         <section className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
-          <h2 className="font-scritta text-xl text-amber-100">Accesso</h2>
-          <p className="mt-2 text-xs text-stone-400">
-            Lo username è il nome con cui accedi (insieme alla password).
-            L&apos;email di recupero serve se dimentichi la password.
-          </p>
+          <h2 className="font-scritta text-xl text-amber-100">
+            {t("impost.accesso")}
+          </h2>
+          <p className="mt-2 text-xs text-stone-400">{t("impost.accessoNota")}</p>
           <label
             htmlFor="uname"
             className="mt-4 block text-xs font-semibold uppercase tracking-wide text-stone-400"
           >
-            Username
+            {t("impost.username")}
           </label>
           <input
             id="uname"
@@ -363,15 +362,14 @@ export default function PaginaImpostazioni() {
               setErrUsername(null);
             }}
             maxLength={20}
-            placeholder="es. mario_rossi"
+            placeholder={t("impost.usernamePh")}
             autoCapitalize="none"
             spellCheck={false}
             className={campo + " mt-1"}
           />
           {!username && (
             <p className="mt-1 text-xs text-amber-300/80">
-              Non hai ancora scelto uno username: scegline uno per accedere
-              senza digitare l&apos;email.
+              {t("impost.usernameManca")}
             </p>
           )}
           <button
@@ -380,7 +378,7 @@ export default function PaginaImpostazioni() {
             disabled={salvandoUsername || !username.trim()}
             className="mt-3 w-full rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {salvandoUsername ? "Salvo…" : "Salva username"}
+            {salvandoUsername ? t("comune.salvo") : t("impost.salvaUsername")}
           </button>
           {(msgUsername || errUsername) && (
             <p
@@ -397,14 +395,14 @@ export default function PaginaImpostazioni() {
         {/* Dati del profilo */}
         <section className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
           <h2 className="font-scritta text-xl text-amber-100">
-            Il tuo profilo
+            {t("impost.profilo")}
           </h2>
 
           <label
             htmlFor="nick"
             className="mt-4 block text-xs font-semibold uppercase tracking-wide text-stone-400"
           >
-            Nome sui tuoi post-it
+            {t("impost.nomePost")}
           </label>
           <input
             id="nick"
@@ -422,7 +420,7 @@ export default function PaginaImpostazioni() {
             htmlFor="bio"
             className="mt-3 block text-xs font-semibold uppercase tracking-wide text-stone-400"
           >
-            Biografia
+            {t("impost.bio")}
           </label>
           <textarea
             id="bio"
@@ -430,7 +428,7 @@ export default function PaginaImpostazioni() {
             onChange={(e) => setBio(e.target.value)}
             maxLength={MAX_BIO}
             rows={3}
-            placeholder="Due righe su di te (opzionale)"
+            placeholder={t("impost.bioPh")}
             className={area + " mt-1"}
           />
           <p className="mt-1 text-right text-xs text-stone-500">
@@ -439,7 +437,7 @@ export default function PaginaImpostazioni() {
 
           <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-lg bg-stone-950/40 px-4 py-3">
             <span className="text-sm text-stone-200">
-              Mostra i miei post-it sul profilo pubblico
+              {t("impost.mostraPostit")}
             </span>
             <input
               type="checkbox"
@@ -449,8 +447,7 @@ export default function PaginaImpostazioni() {
             />
           </label>
           <p className="mt-2 text-xs text-stone-500">
-            Se lo disattivi, chi visita il tuo profilo non potra&apos; leggere
-            i pensieri che hai lasciato (restano comunque sul muro).
+            {t("impost.mostraPostitNota")}
           </p>
 
           <button
@@ -459,7 +456,7 @@ export default function PaginaImpostazioni() {
             disabled={salvando}
             className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {salvando ? "Salvo…" : "Salva modifiche"}
+            {salvando ? t("comune.salvo") : t("impost.salvaModifiche")}
           </button>
 
           {(messaggio || errore) && (
@@ -478,20 +475,19 @@ export default function PaginaImpostazioni() {
           href={`/profilo/${utente.id}`}
           className="mt-4 block rounded-full border border-amber-100/30 px-4 py-2 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
         >
-          👁️ Vedi il mio profilo pubblico
+          {t("impost.vediProfilo")}
         </Link>
 
         {/* I miei post-it */}
         <section className="mt-6">
           <h2 className="font-scritta text-xl text-amber-100">
-            I miei post-it
+            {t("impost.mieiPostit")}
           </h2>
           {caricandoPostit ? (
-            <p className="mt-2 text-sm text-stone-500">Carico…</p>
+            <p className="mt-2 text-sm text-stone-500">{t("comune.carico")}</p>
           ) : mieiPostit.length === 0 ? (
             <p className="mt-2 text-xs text-stone-500">
-              Non hai ancora lasciato pensieri: trova un QR code su un muro e
-              scrivi il primo.
+              {t("impost.nessunPostit")}
             </p>
           ) : (
             <ul className="mt-3 space-y-2">

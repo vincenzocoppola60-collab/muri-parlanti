@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import MieiMuri from "@/components/MieiMuri";
+import Testo from "@/components/Testo";
 
 export const metadata: Metadata = {
   title: "I tuoi muri",
@@ -28,10 +29,10 @@ export default function PaginaMieiMuri() {
           🧱 Muri Parlanti
         </Link>
         <h1 className="font-scritta text-5xl leading-tight text-amber-100 drop-shadow-md sm:text-6xl">
-          I tuoi muri
+          <Testo chiave="muri.titolo" />
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-stone-300">
-          I muri che hai incontrato: toccane uno per rileggere i pensieri.
+          <Testo chiave="mieiMuriPag.testo" />
         </p>
       </header>
 

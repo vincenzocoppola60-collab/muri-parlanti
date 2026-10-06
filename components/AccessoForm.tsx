@@ -2,10 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 
 type Modalita = "accedi" | "registrati" | "recupera";
 
 export default function AccessoForm() {
+  const { t } = useLingua();
   const { accedi, registrati, recuperaPassword } = useAuth();
   const [modalita, setModalita] = useState<Modalita>("accedi");
   const [identificativo, setIdentificativo] = useState(""); // username o email
@@ -41,9 +43,9 @@ export default function AccessoForm() {
 
     if (esito.ok) {
       if (modalita === "registrati") {
-        setMessaggio("Account creato. Bentornato!");
+        setMessaggio(t("accesso.accountCreato"));
       } else if (modalita === "recupera") {
-        setMessaggio(esito.messaggio ?? "Controlla la tua email di recupero.");
+        setMessaggio(esito.messaggio ?? t("accesso.controllaEmail"));
       }
     } else {
       setErrore(esito.errore);
@@ -69,8 +71,8 @@ export default function AccessoForm() {
       <div className="mb-4 flex rounded-full bg-stone-950/50 p-1">
         {(
           [
-            ["accedi", "Accedi"],
-            ["registrati", "Registrati"],
+            ["accedi", t("accesso.accedi")],
+            ["registrati", t("accesso.registrati")],
           ] as [Modalita, string][]
         ).map(([modo, etichetta]) => (
           <button
@@ -96,7 +98,7 @@ export default function AccessoForm() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             maxLength={20}
-            placeholder="Username (3-20: a-z, 0-9, _)"
+            placeholder={t("accesso.phUsername")}
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
@@ -106,7 +108,7 @@ export default function AccessoForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email di recupero"
+            placeholder={t("accesso.phEmailRecupero")}
             autoComplete="email"
             className={campo + " mb-3"}
           />
@@ -118,7 +120,7 @@ export default function AccessoForm() {
           type="text"
           value={identificativo}
           onChange={(e) => setIdentificativo(e.target.value)}
-          placeholder="Username o email"
+          placeholder={t("accesso.phIdentificativo")}
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
@@ -131,7 +133,7 @@ export default function AccessoForm() {
           type="text"
           value={identificativo}
           onChange={(e) => setIdentificativo(e.target.value)}
-          placeholder="Username o email di recupero"
+          placeholder={t("accesso.phIdentRecupero")}
           autoComplete="username"
           autoCapitalize="none"
           spellCheck={false}
@@ -144,7 +146,7 @@ export default function AccessoForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password (min 6 caratteri)"
+          placeholder={t("accesso.phPassword")}
           autoComplete={
             modalita === "accedi" ? "current-password" : "new-password"
           }
@@ -169,12 +171,12 @@ export default function AccessoForm() {
         className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {inviando
-          ? "Attendi…"
+          ? t("accesso.attendi")
           : modalita === "accedi"
-            ? "Accedi"
+            ? t("accesso.accedi")
             : modalita === "registrati"
-              ? "Crea il tuo account"
-              : "Invia il link di recupero"}
+              ? t("accesso.creaAccount")
+              : t("accesso.inviaRecupero")}
       </button>
 
       {modalita === "accedi" && (
@@ -183,7 +185,7 @@ export default function AccessoForm() {
           onClick={() => cambioModalita("recupera")}
           className="mt-3 w-full text-center text-xs font-semibold text-stone-400 transition hover:text-amber-100"
         >
-          Password dimenticata?
+          {t("accesso.passwordDimenticata")}
         </button>
       )}
 
@@ -193,14 +195,13 @@ export default function AccessoForm() {
           onClick={() => cambioModalita("accedi")}
           className="mt-3 w-full text-center text-xs font-semibold text-stone-400 transition hover:text-amber-100"
         >
-          ← Torna all&apos;accesso
+          {t("accesso.tornaAccesso")}
         </button>
       )}
 
       {modalita === "registrati" && (
         <p className="mt-3 text-xs text-stone-500">
-          Lo username è il nome con cui accedi. L&apos;email serve solo a
-          recuperare la password se la dimentichi.
+          {t("accesso.notaUsername")}
         </p>
       )}
     </form>

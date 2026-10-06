@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { getClienteAuth } from "@/lib/clienteAuth";
 import { normalizzaLuogo, nomeLuogo } from "@/lib/luoghi";
+import { useLingua } from "@/lib/i18n";
 
 type Stato = "inattivo" | "caricamento" | "fatto" | "errore";
 
 export default function CaricaFoto() {
+  const { t } = useLingua();
   const { utente, caricamento } = useAuth();
   const [slug, setSlug] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -21,14 +23,12 @@ export default function CaricaFoto() {
     const s = normalizzaLuogo(slug);
     if (!s) {
       setStato("errore");
-      setMessaggio(
-        "Slug non valido: usa solo lettere minuscole e trattini (es. parco-cerillo)."
-      );
+      setMessaggio(t("foto.errSlug"));
       return;
     }
     if (!file) {
       setStato("errore");
-      setMessaggio("Scegli una foto del muro.");
+      setMessaggio(t("foto.errScegli"));
       return;
     }
     setStato("caricamento");
@@ -55,9 +55,7 @@ export default function CaricaFoto() {
       setSlugFatto(s);
     } catch (e) {
       setStato("errore");
-      setMessaggio(
-        e instanceof Error ? e.message : "Caricamento non riuscito, riprova."
-      );
+      setMessaggio(e instanceof Error ? e.message : t("foto.errCarico"));
     }
   }
 
@@ -72,15 +70,15 @@ export default function CaricaFoto() {
           style={{ backgroundImage: "url(/images/brain.webp)" }}
         />
         <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
-        <h1 className="font-scritta text-4xl text-amber-100">Carica foto muro</h1>
-        <p className="max-w-md text-stone-300">
-          Devi accedere per caricare la foto di un muro.
-        </p>
+        <h1 className="font-scritta text-4xl text-amber-100">
+          {t("foto.titolo")}
+        </h1>
+        <p className="max-w-md text-stone-300">{t("foto.noAccount")}</p>
         <Link
           href="/"
           className="rounded-full bg-amber-300 px-6 py-3 font-bold text-stone-900 shadow-xl transition hover:scale-105"
         >
-          Torna alla home
+          {t("comune.tornaHome")}
         </Link>
       </main>
     );
@@ -99,10 +97,10 @@ export default function CaricaFoto() {
       />
 
       <div className="mx-auto mt-16 w-full max-w-md px-4 pb-16">
-        <h1 className="font-scritta text-4xl text-amber-100">Carica foto muro</h1>
-        <p className="mt-2 text-sm text-stone-300">
-          La foto verrà mostrata a chi scansiona il QR di quel muro.
-        </p>
+        <h1 className="font-scritta text-4xl text-amber-100">
+          {t("foto.titolo")}
+        </h1>
+        <p className="mt-2 text-sm text-stone-300">{t("foto.testo")}</p>
 
         {stato === "fatto" ? (
           <div className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
@@ -111,14 +109,14 @@ export default function CaricaFoto() {
               {nomeLuogo(slugFatto)}
             </h2>
             <p className="mt-2 text-sm text-stone-300">
-              Foto caricata: ora il muro ha la sua immagine.
+              {t("foto.fatto")}
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <Link
                 href={`/muro/${slugFatto}`}
                 className="rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105"
               >
-                Vai al muro
+                {t("foto.vaiMuro")}
               </Link>
               <button
                 type="button"
@@ -129,7 +127,7 @@ export default function CaricaFoto() {
                 }}
                 className="rounded-full border border-amber-100/30 px-6 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
               >
-                Carica un&apos;altra foto
+                {t("foto.altra")}
               </button>
             </div>
           </div>
@@ -142,14 +140,14 @@ export default function CaricaFoto() {
               htmlFor="slug"
               className="block text-sm font-medium text-stone-300"
             >
-              Slug del muro (es. parco-cerillo)
+              {t("foto.slugLabel")}
             </label>
             <input
               id="slug"
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              placeholder="es. parco-cerillo"
+              placeholder={t("foto.slugPh")}
               className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
             />
 
@@ -157,7 +155,7 @@ export default function CaricaFoto() {
               htmlFor="foto"
               className="mt-4 block text-sm font-medium text-stone-300"
             >
-              Foto del muro
+              {t("foto.fotoLabel")}
             </label>
             <input
               id="foto"
@@ -176,7 +174,7 @@ export default function CaricaFoto() {
               disabled={stato === "caricamento"}
               className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95 disabled:opacity-50"
             >
-              {stato === "caricamento" ? "Caricamento…" : "📷 Carica foto"}
+              {stato === "caricamento" ? t("foto.caricamento") : t("foto.carica")}
             </button>
           </form>
         )}
@@ -185,7 +183,7 @@ export default function CaricaFoto() {
           href="/"
           className="mt-6 inline-block text-sm text-stone-400 transition hover:text-amber-100"
         >
-          ← Torna alla home
+          {t("comune.tornaHomeFreccia")}
         </Link>
       </div>
     </main>

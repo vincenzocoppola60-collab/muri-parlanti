@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getClienteAuth } from "@/lib/clienteAuth";
+import { useLingua } from "@/lib/i18n";
 
 /**
  * Pagina di reimpostazione password: si arriva dal link inviato per email
@@ -12,6 +13,7 @@ import { getClienteAuth } from "@/lib/clienteAuth";
  * nuova password con updateUser().
  */
 export default function PaginaReimposta() {
+  const { t } = useLingua();
   const router = useRouter();
   const [pronto, setPronto] = useState(false);
   const [controllato, setControllato] = useState(false);
@@ -55,18 +57,18 @@ export default function PaginaReimposta() {
     e.preventDefault();
     setErrore(null);
     if (password.length < 6) {
-      setErrore("La password deve avere almeno 6 caratteri.");
+      setErrore(t("reimposta.errCorta"));
       return;
     }
     if (password !== conferma) {
-      setErrore("Le due password non coincidono.");
+      setErrore(t("reimposta.errDiversa"));
       return;
     }
     setInviando(true);
     const { error } = await getClienteAuth().auth.updateUser({ password });
     setInviando(false);
     if (error) {
-      setErrore("Non riuscito. Il link potrebbe essere scaduto: richiedine uno nuovo.");
+      setErrore(t("reimposta.errFallito"));
       return;
     }
     setFatto(true);
@@ -93,26 +95,24 @@ export default function PaginaReimposta() {
           href="/"
           className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
         >
-          ← Torna alla home
+          {t("comune.tornaHomeFreccia")}
         </Link>
 
         <h1 className="mt-3 font-scritta text-4xl text-amber-100">
-          Nuova password
+          {t("reimposta.titolo")}
         </h1>
 
         {fatto ? (
           <p className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-sm font-semibold text-amber-300">
-            Password aggiornata. Ti stiamo portando alla home…
+            {t("reimposta.fatto")}
           </p>
         ) : !controllato ? (
           <p className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-sm text-stone-300">
-            Verifico il link…
+            {t("reimposta.verifico")}
           </p>
         ) : !pronto ? (
           <div className="mt-6 rounded-lg border border-red-300/30 bg-red-950/40 p-6 text-sm leading-relaxed text-red-200">
-            Il link di recupero non è valido o è scaduto. Torna all&apos;accesso e
-            richiedi una nuova email di recupero con &laquo;Password
-            dimenticata?&raquo;.
+            {t("reimposta.linkNonValido")}
           </div>
         ) : (
           <form
@@ -123,7 +123,7 @@ export default function PaginaReimposta() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nuova password (min 6 caratteri)"
+              placeholder={t("reimposta.phPassword")}
               autoComplete="new-password"
               className={campo + " mb-3"}
             />
@@ -131,7 +131,7 @@ export default function PaginaReimposta() {
               type="password"
               value={conferma}
               onChange={(e) => setConferma(e.target.value)}
-              placeholder="Ripeti la nuova password"
+              placeholder={t("reimposta.phRipeti")}
               autoComplete="new-password"
               className={campo}
             />
@@ -143,7 +143,7 @@ export default function PaginaReimposta() {
               disabled={inviando || !password || !conferma}
               className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {inviando ? "Salvo…" : "Salva la nuova password"}
+              {inviando ? t("comune.salvo") : t("reimposta.salva")}
             </button>
           </form>
         )}

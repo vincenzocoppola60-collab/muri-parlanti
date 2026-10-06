@@ -9,6 +9,7 @@ import {
   muroPiuVicino,
   type MuroAdmin,
 } from "@/lib/admin";
+import { useLingua } from "@/lib/i18n";
 
 type Stato =
   | "cerco-posizione"
@@ -28,6 +29,7 @@ type Stato =
  * a mano.
  */
 export default function Apri() {
+  const { t } = useLingua();
   const router = useRouter();
   const [stato, setStato] = useState<Stato>("cerco-posizione");
   const [muri, setMuri] = useState<MuroAdmin[]>([]);
@@ -49,7 +51,7 @@ export default function Apri() {
       // 2. Chiedi la posizione.
       if (typeof navigator === "undefined" || !navigator.geolocation) {
         setStato("posizione-negata");
-        setMessaggio("Questo dispositivo non supporta la geolocalizzazione.");
+        setMessaggio(t("apri.noGeo"));
         return;
       }
 
@@ -81,24 +83,18 @@ export default function Apri() {
           } else {
             setStato("nessun-muro");
             if (lista.length === 0) {
-              setMessaggio("Non ci sono ancora muri: chiedi all'autore di crearne uno.");
+              setMessaggio(t("apri.noMuri"));
             } else if (ordinati.length === 0) {
-              setMessaggio(
-                "Nessun muro ha ancora le coordinate impostate."
-              );
+              setMessaggio(t("apri.noCoord"));
             } else {
-              setMessaggio(
-                "Nessun muro abbastanza vicino. Ecco quelli più vicini a te:"
-              );
+              setMessaggio(t("apri.noVicino"));
             }
           }
         },
         () => {
           if (!vivo) return;
           setStato("posizione-negata");
-          setMessaggio(
-            "Posizione non disponibile. Scegli il muro dall'elenco:"
-          );
+          setMessaggio(t("apri.posNegata"));
           const ordinati = lista
             .filter((m) => m.lat !== null && m.lng !== null)
             .map((m) => ({ muro: m, distanza: Number.POSITIVE_INFINITY }));
@@ -127,30 +123,31 @@ export default function Apri() {
       />
       <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
 
-      <h1 className="font-scritta text-4xl text-amber-100">Apri un muro</h1>
+      <h1 className="font-scritta text-4xl text-amber-100">
+        {t("apri.titolo")}
+      </h1>
 
       {stato === "cerco-posizione" && (
         <p className="mt-4 max-w-md text-stone-300">
-          Un attimo: cerco la tua posizione per capire su quale muro sei…
+          {t("apri.cercoPos")}
         </p>
       )}
 
       {stato === "cerco-muro" && (
         <p className="mt-4 max-w-md text-stone-300">
-          Posizione trovata. Cerco il muro più vicino…
+          {t("apri.cercoMuro")}
         </p>
       )}
 
       {stato === "trovato" && trovato && (
         <p className="mt-4 max-w-md text-stone-300">
-          Muro trovato: apro{" "}
-          <span className="text-amber-100">{trovato}</span>…
+          {t("apri.trovato", { slug: trovato })}
         </p>
       )}
 
       {stato === "errore" && (
         <p className="mt-4 max-w-md text-red-300">
-          Qualcosa è andato storto. Riprova o scegli il muro dall&apos;elenco.
+          {t("apri.errore")}
         </p>
       )}
 
@@ -187,7 +184,7 @@ export default function Apri() {
         href="/"
         className="mt-8 rounded-full border border-amber-100/30 px-5 py-2 text-sm text-amber-100 transition hover:bg-amber-100/10"
       >
-        ← Home
+        {t("apri.home")}
       </Link>
     </main>
   );

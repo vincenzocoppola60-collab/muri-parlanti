@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLingua } from "@/lib/i18n";
 
 /**
  * Tasto Home sempre visibile (fisso in alto a destra), per tornare alla
@@ -13,6 +14,7 @@ import { usePathname } from "next/navigation";
  */
 export default function TastoHome() {
   const pathname = usePathname();
+  const { t } = useLingua();
 
   const nascosto = pathname === "/" || (pathname?.startsWith("/qr") ?? false);
   if (nascosto) return null;
@@ -20,8 +22,8 @@ export default function TastoHome() {
   return (
     <Link
       href="/"
-      aria-label="Torna alla home"
-      title="Torna alla home"
+      aria-label={t("comune.tornaHome")}
+      title={t("comune.tornaHome")}
       className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
     >
       <span aria-hidden>🏠</span>

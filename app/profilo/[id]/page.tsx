@@ -8,6 +8,7 @@ import {
   urlAvatar,
 } from "@/lib/profili";
 import PostItView from "@/components/PostIt";
+import Testo from "@/components/Testo";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +89,7 @@ export default async function PaginaProfilo({
         {profilo.bio && (
           <div className="mx-auto mt-4 max-w-md rounded-xl border border-amber-100/25 bg-stone-900/60 px-5 py-4 text-left shadow-lg backdrop-blur-sm">
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70">
-              Bio
+              <Testo chiave="profiloPub.bio" />
             </p>
             <p className="mt-2 whitespace-pre-wrap font-scritta text-2xl leading-snug text-amber-100">
               {profilo.bio}
@@ -97,20 +98,21 @@ export default async function PaginaProfilo({
         )}
         {visibili && (
           <p className="mt-2 text-sm text-stone-300">
-            {totale === 1
-              ? "1 pensiero lasciato"
-              : `${totale} pensieri lasciati`}
+            <Testo
+              chiave={totale === 1 ? "profiloPub.pensieroUno" : "profiloPub.pensieri"}
+              valori={{ n: totale }}
+            />
           </p>
         )}
       </header>
 
       {!visibili ? (
         <p className="mx-auto mt-16 max-w-sm px-6 text-center text-lg text-stone-200">
-          Questo profilo ha scelto di non mostrare i suoi post-it.
+          <Testo chiave="profiloPub.nascosto" />
         </p>
       ) : postit.length === 0 ? (
         <p className="mx-auto mt-16 max-w-sm px-6 text-center text-lg text-stone-200">
-          Nessun pensiero ancora lasciato da questo autore.
+          <Testo chiave="profiloPub.vuoto" />
         </p>
       ) : (
         <section className="mx-auto mt-10 max-w-4xl columns-1 gap-6 px-4 pb-24 sm:columns-2 md:columns-3">

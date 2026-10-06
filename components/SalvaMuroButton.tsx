@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLingua } from "@/lib/i18n";
 import {
   caricaMieiMuri,
   rimuoviMuro,
@@ -14,6 +15,7 @@ export default function SalvaMuroButton({
   luogo: string;
   nome: string;
 }) {
+  const { t } = useLingua();
   const [salvato, setSalvato] = useState(false);
   const [pronto, setPronto] = useState(false);
 
@@ -44,7 +46,7 @@ export default function SalvaMuroButton({
           : "mt-3 rounded-full border border-amber-100/30 bg-stone-950/40 px-4 py-1.5 text-sm font-semibold text-amber-100/90 transition hover:border-amber-100/60 hover:bg-stone-950/70"
       }
     >
-      {salvato ? "✓ Nei tuoi muri" : "☆ Salva nei tuoi muri"}
+      {salvato ? t("muri.neiTuoi") : t("muri.salva")}
     </button>
   );
 }

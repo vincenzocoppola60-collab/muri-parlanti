@@ -1,3 +1,7 @@
+"use client";
+
+import { useLingua } from "@/lib/i18n";
+
 /**
  * Crediti per il creatore del progetto.
  *
@@ -34,16 +38,17 @@ function IconaInstagram({ className }: { className?: string }) {
 
 /** Casella crediti in evidenza (footer della home). */
 export function Crediti() {
+  const { t } = useLingua();
   return (
     <div className="mx-auto mt-6 max-w-xs rounded-xl border border-amber-100/20 bg-stone-900/50 px-5 py-4 text-center shadow-lg backdrop-blur-sm">
       <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70">
-        Idea by
+        {t("crediti.ideaBy")}
       </p>
       <a
         href={INSTAGRAM_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Profilo Instagram del creatore"
+        aria-label={t("crediti.instagram")}
         className="mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 font-scritta text-2xl leading-none text-amber-100 transition hover:bg-amber-100/10 hover:text-amber-50"
       >
         <IconaInstagram className="h-5 w-5" />
@@ -55,6 +60,7 @@ export function Crediti() {
 
 /** Versione compatta per il fondo del menu laterale. */
 export function CreditiCompatto() {
+  const { t } = useLingua();
   return (
     <a
       href={INSTAGRAM_URL}
@@ -62,7 +68,7 @@ export function CreditiCompatto() {
       rel="noopener noreferrer"
       className="block text-center text-[11px] leading-relaxed text-stone-500 transition hover:text-amber-100"
     >
-      Idea by{" "}
+      {t("crediti.ideaBy")}{" "}
       <span className="font-semibold text-stone-400">
         @{handleDaUrl(INSTAGRAM_URL)}
       </span>

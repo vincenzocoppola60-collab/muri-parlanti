@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 import { registraPensiero, registraVisita } from "@/lib/progresso";
 import { statoLivello } from "@/lib/livelli";
 
@@ -22,6 +23,7 @@ export type ProgressoMuroHandle = {
 const ProgressoMuro = forwardRef<ProgressoMuroHandle, { luogo: string }>(
   function ProgressoMuro({ luogo }, ref) {
     const { utente, caricamento } = useAuth();
+    const { t } = useLingua();
     const [xp, setXp] = useState(0);
     const [pronto, setPronto] = useState(false);
     const [toast, setToast] = useState<string | null>(null);
@@ -38,7 +40,7 @@ const ProgressoMuro = forwardRef<ProgressoMuroHandle, { luogo: string }>(
           setLivelloPrecedente(esito.stato.livello.numero);
           setPronto(true);
           if (esito.xpAggiunti > 0) {
-            setToast(`+${esito.xpAggiunti} punti`);
+            setToast(t("progresso.piuPunti", { n: esito.xpAggiunti }));
             setTimeout(() => setToast(null), 2600);
           }
         })
@@ -60,12 +62,12 @@ const ProgressoMuro = forwardRef<ProgressoMuroHandle, { luogo: string }>(
           const nuovoLivello =
             statoLivello(esito.resoconto.totaleXp).livello.numero;
           if (esito.xpAggiunti > 0) {
-            setToast(`+${esito.xpAggiunti} punti`);
+            setToast(t("progresso.piuPunti", { n: esito.xpAggiunti }));
             setTimeout(() => setToast(null), 2600);
           }
           if (nuovoLivello > livelloPrecedente) {
             setLivelloPrecedente(nuovoLivello);
-            setToast(`🎉 Livello ${nuovoLivello} sbloccato!`);
+            setToast(t("progresso.livelloSbloccato", { n: nuovoLivello }));
             setTimeout(() => setToast(null), 3200);
           }
         } catch {
@@ -94,7 +96,7 @@ const ProgressoMuro = forwardRef<ProgressoMuroHandle, { luogo: string }>(
               {stato.livello.numero}
             </span>
             <span>
-              {stato.livello.nome} · {xp} punti
+              {t(`livello.${stato.livello.numero}`)} · {xp} {t("comune.punti")}
             </span>
           </div>
         )}

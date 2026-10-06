@@ -14,10 +14,12 @@ import {
   svuotaPostit,
   type MuroAdmin,
 } from "@/lib/admin";
+import { useLingua } from "@/lib/i18n";
 
 type Stato = "inattivo" | "caricamento" | "fatto" | "errore";
 
 export default function PannelloMuri() {
+  const { t } = useLingua();
   const { utente, caricamento } = useAuth();
   const [controllo, setControllo] = useState(true);
   const [admin, setAdmin] = useState(false);
@@ -59,17 +61,17 @@ export default function PannelloMuri() {
 
   function usaLaMiaPosizione() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setMessaggio("La geolocalizzazione non è disponibile su questo dispositivo.");
+      setMessaggio(t("admin.noGeo"));
       return;
     }
-    setMessaggio("Cerco la tua posizione…");
+    setMessaggio(t("admin.cercoPos"));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLat(pos.coords.latitude.toFixed(6));
         setLng(pos.coords.longitude.toFixed(6));
         setMessaggio("");
       },
-      () => setMessaggio("Posizione non rilevata: inseriscila a mano."),
+      () => setMessaggio(t("admin.posNonRilevata")),
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
@@ -96,14 +98,14 @@ export default function PannelloMuri() {
     const slug = normalizzaLuogo(nome);
     if (!slug) {
       setStato("errore");
-      setMessaggio("Nome non valido: usa lettere e spazi (es. Parco Cerillo).");
+      setMessaggio(t("admin.errNome"));
       return;
     }
     const latNum = lat ? Number(lat) : null;
     const lngNum = lng ? Number(lng) : null;
     if ((latNum === null) !== (lngNum === null)) {
       setStato("errore");
-      setMessaggio("Inserisci sia latitudine sia longitudine, oppure nessuna.");
+      setMessaggio(t("admin.errCoord"));
       return;
     }
     const raggioNum = Math.max(10, Number(raggio) || 200);
@@ -122,18 +124,18 @@ export default function PannelloMuri() {
       });
       if (!esito.ok) throw new Error(esito.errore);
       setStato("fatto");
-      setMessaggio(`Muro "${nomeLuogo(slug)}" salvato.`);
+      setMessaggio(t("admin.salvato", { nome: nomeLuogo(slug) }));
       setNome("");
       setFoto(null);
       await ricaricaMuri();
     } catch (e) {
       setStato("errore");
-      setMessaggio(e instanceof Error ? e.message : "Salvataggio non riuscito.");
+      setMessaggio(e instanceof Error ? e.message : t("admin.errSalvataggio"));
     }
   }
 
   async function rimuovi(slug: string) {
-    if (!window.confirm(`Cancellare il muro "${nomeLuogo(slug)}"?`)) return;
+    if (!window.confirm(t("admin.confCancella", { nome: nomeLuogo(slug) }))) return;
     const esito = await cancellaMuro(slug);
     if (!esito.ok) {
       setMessaggio(esito.errore);
@@ -144,16 +146,12 @@ export default function PannelloMuri() {
 
   async function svuota(slug: string) {
     if (
-      !window.confirm(
-        `Svuotare TUTTI i post-it del muro "${nomeLuogo(slug)}"? L'operazione non è reversibile.`
-      )
+      !window.confirm(t("admin.confSvuota", { nome: nomeLuogo(slug) }))
     )
       return;
     const esito = await svuotaPostit(slug);
     setMessaggio(
-      esito.ok
-        ? `Post-it di ${nomeLuogo(slug)} svuotati.`
-        : esito.errore
+      esito.ok ? t("admin.svuotati", { nome: nomeLuogo(slug) }) : esito.errore
     );
   }
 
@@ -161,19 +159,13 @@ export default function PannelloMuri() {
 
   if (!utente) {
     return (
-      <Schermata
-        titolo="Pannello muri"
-        testo="Devi accedere con l'account amministratore per gestire i muri."
-      />
+      <Schermata titolo={t("admin.pannello")} testo={t("admin.noAccesso")} />
     );
   }
 
   if (!admin) {
     return (
-      <Schermata
-        titolo="Pannello muri"
-        testo="Questo account non è amministratore: non può creare né gestire i muri."
-      />
+      <Schermata titolo={t("admin.pannello")} testo={t("admin.noAdmin")} />
     );
   }
 
@@ -190,11 +182,10 @@ export default function PannelloMuri() {
       />
 
       <div className="mx-auto w-full max-w-2xl px-4 pb-20 pt-16">
-        <h1 className="font-scritta text-4xl text-amber-100">Pannello muri</h1>
-        <p className="mt-2 text-sm text-stone-300">
-          Solo tu puoi fondare un muro e generarne il QR. Tutti gli altri
-          possono solo leggere e lasciare pensieri.
-        </p>
+        <h1 className="font-scritta text-4xl text-amber-100">
+          {t("admin.pannello")}
+        </h1>
+        <p className="mt-2 text-sm text-stone-300">{t("admin.testo")}</p>
 
         {/* Form: fonda / aggiorna un muro */}
         <form
@@ -202,18 +193,18 @@ export default function PannelloMuri() {
           className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
         >
           <h2 className="font-scritta text-2xl text-amber-100">
-            Fonda un muro
+            {t("admin.fonda")}
           </h2>
 
           <label htmlFor="nome" className="mt-4 block text-sm font-medium text-stone-300">
-            Nome del luogo
+            {t("admin.nomeLuogo")}
           </label>
           <input
             id="nome"
             type="text"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            placeholder="es. Parco Cerillo"
+            placeholder={t("admin.nomePh")}
             className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
           />
 
@@ -223,12 +214,12 @@ export default function PannelloMuri() {
               onClick={usaLaMiaPosizione}
               className="self-start rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
             >
-              📍 Usa la mia posizione
+              {t("admin.usaPos")}
             </button>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="lat" className="block text-sm font-medium text-stone-300">
-                  Latitudine
+                  {t("admin.lat")}
                 </label>
                 <input
                   id="lat"
@@ -236,13 +227,13 @@ export default function PannelloMuri() {
                   inputMode="decimal"
                   value={lat}
                   onChange={(e) => setLat(e.target.value)}
-                  placeholder="es. 40.8518"
+                  placeholder={t("admin.latPh")}
                   className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
                 />
               </div>
               <div>
                 <label htmlFor="lng" className="block text-sm font-medium text-stone-300">
-                  Longitudine
+                  {t("admin.lng")}
                 </label>
                 <input
                   id="lng"
@@ -250,7 +241,7 @@ export default function PannelloMuri() {
                   inputMode="decimal"
                   value={lng}
                   onChange={(e) => setLng(e.target.value)}
-                  placeholder="es. 14.2681"
+                  placeholder={t("admin.lngPh")}
                   className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
                 />
               </div>
@@ -258,7 +249,7 @@ export default function PannelloMuri() {
           </div>
 
           <label htmlFor="raggio" className="mt-4 block text-sm font-medium text-stone-300">
-            Raggio di riconoscimento (metri)
+            {t("admin.raggio")}
           </label>
           <input
             id="raggio"
@@ -270,7 +261,7 @@ export default function PannelloMuri() {
           />
 
           <label htmlFor="foto" className="mt-4 block text-sm font-medium text-stone-300">
-            Foto del muro (facoltativa)
+            {t("admin.fotoLabel")}
           </label>
           <input
             id="foto"
@@ -295,19 +286,21 @@ export default function PannelloMuri() {
             disabled={stato === "caricamento"}
             className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95 disabled:opacity-50"
           >
-            {stato === "caricamento" ? "Salvataggio…" : "Fonda il muro"}
+            {stato === "caricamento" ? t("admin.salvataggio") : t("admin.fondaBtn")}
           </button>
         </form>
 
         {/* Elenco muri */}
         <section className="mt-8">
           <h2 className="font-scritta text-2xl text-amber-100">
-            I muri ({muri.length})
+            {t("admin.muri", { n: muri.length })}
           </h2>
           {caricoMuri ? (
-            <p className="mt-3 text-sm text-stone-400">Carico i muri…</p>
+            <p className="mt-3 text-sm text-stone-400">
+              {t("admin.caricoMuri")}
+            </p>
           ) : muri.length === 0 ? (
-            <p className="mt-3 text-sm text-stone-400">Nessun muro ancora.</p>
+            <p className="mt-3 text-sm text-stone-400">{t("admin.nessunMuro")}</p>
           ) : (
             <ul className="mt-3 flex flex-col gap-3">
               {muri.map((m) => (
@@ -324,8 +317,8 @@ export default function PannelloMuri() {
                         {m.slug} ·{" "}
                         {m.lat !== null && m.lng !== null
                           ? `${m.lat.toFixed(5)}, ${m.lng.toFixed(5)}`
-                          : "senza coordinate"}{" "}
-                        · raggio {m.raggio_m} m
+                          : t("admin.senzaCoord")}{" "}
+                        · {t("admin.raggioM", { m: m.raggio_m })}
                       </p>
                     </div>
                   </div>
@@ -341,21 +334,21 @@ export default function PannelloMuri() {
                       href={`/muro/${m.slug}`}
                       className="rounded-full border border-amber-100/30 px-4 py-2 font-semibold text-amber-100 transition hover:bg-stone-950/50"
                     >
-                      Apri
+                      {t("admin.apri")}
                     </Link>
                     <button
                       type="button"
                       onClick={() => svuota(m.slug)}
                       className="rounded-full border border-amber-100/30 px-4 py-2 font-semibold text-amber-100 transition hover:bg-stone-950/50"
                     >
-                      Svuota post-it
+                      {t("admin.svuota")}
                     </button>
                     <button
                       type="button"
                       onClick={() => rimuovi(m.slug)}
                       className="rounded-full border border-red-400/40 px-4 py-2 font-semibold text-red-300 transition hover:bg-red-500/10"
                     >
-                      Cancella
+                      {t("admin.cancella")}
                     </button>
                   </div>
                 </li>
@@ -368,7 +361,7 @@ export default function PannelloMuri() {
           href="/"
           className="mt-8 inline-block text-sm text-stone-400 transition hover:text-amber-100"
         >
-          ← Torna alla home
+          {t("comune.tornaHomeFreccia")}
         </Link>
       </div>
     </main>
@@ -376,6 +369,7 @@ export default function PannelloMuri() {
 }
 
 function Schermata({ titolo, testo }: { titolo: string; testo: string }) {
+  const { t } = useLingua();
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
       <div
@@ -390,7 +384,7 @@ function Schermata({ titolo, testo }: { titolo: string; testo: string }) {
         href="/"
         className="rounded-full bg-amber-300 px-6 py-3 font-bold text-stone-900 shadow-xl transition hover:scale-105"
       >
-        Torna alla home
+        {t("comune.tornaHome")}
       </Link>
     </main>
   );

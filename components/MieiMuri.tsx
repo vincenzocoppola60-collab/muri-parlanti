@@ -12,6 +12,7 @@ import {
 import { caricaProgresso } from "@/lib/progresso";
 import { nomeLuogo } from "@/lib/luoghi";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 
 type MuroVisibile = {
   slug: string;
@@ -21,6 +22,7 @@ type MuroVisibile = {
 };
 
 export default function MieiMuri() {
+  const { t } = useLingua();
   const { utente, caricamento } = useAuth();
   const [locali, setLocali] = useState<MioMuro[]>([]);
   const [luoghiAccount, setLuoghiAccount] = useState<string[]>([]);
@@ -79,17 +81,17 @@ export default function MieiMuri() {
   if (visibili.length === 0) {
     return (
       <div className="rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
-        <h2 className="font-scritta text-3xl text-amber-100">I tuoi muri</h2>
+        <h2 className="font-scritta text-3xl text-amber-100">
+          {t("muri.titolo")}
+        </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-stone-300">
-          {utente
-            ? "Non hai ancora nessun muro. Scansiona il QR del primo muro che incontri: resterà nel tuo account."
-            : "Scansiona il QR del primo muro che incontri: lo salverai qui e potrai tornare a leggerlo quando vuoi."}
+          {utente ? t("muri.vuotoAccount") : t("muri.vuotoOspite")}
         </p>
         <Link
           href="/scansiona"
           className="mt-4 inline-block rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-lg transition hover:scale-105 active:scale-95"
         >
-          Scansiona il tuo primo muro
+          {t("muri.scansionaPrimo")}
         </Link>
       </div>
     );
@@ -97,7 +99,9 @@ export default function MieiMuri() {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-100/20 bg-stone-900/60 px-6 py-4 shadow-xl backdrop-blur-sm">
-      <h2 className="font-scritta text-3xl text-amber-100">I tuoi muri</h2>
+      <h2 className="font-scritta text-3xl text-amber-100">
+        {t("muri.titolo")}
+      </h2>
       <div className="flex flex-wrap gap-2">
         {visibili.map((m) => (
           <Link
@@ -112,7 +116,7 @@ export default function MieiMuri() {
           href="/scansiona"
           className="rounded-full bg-amber-300 px-4 py-1.5 text-sm font-bold text-stone-900 transition hover:scale-105 active:scale-95"
         >
-          ＋ Aggiungi muro
+          {t("muri.aggiungi")}
         </Link>
       </div>
     </div>

@@ -10,8 +10,10 @@ import {
 } from "@/lib/preferiti";
 import { nomeLuogo } from "@/lib/luoghi";
 import { formattaData } from "@/lib/formato";
+import { useLingua } from "@/lib/i18n";
 
 export default function PaginaPreferiti() {
+  const { t } = useLingua();
   const { utente, caricamento } = useAuth();
   const [lista, setLista] = useState<Preferito[]>([]);
   const [pronto, setPronto] = useState(false);
@@ -34,7 +36,7 @@ export default function PaginaPreferiti() {
       })
       .catch(() => {
         if (attivo) {
-          setErrore("Non sono riuscito a caricare i tuoi post-it salvati.");
+          setErrore(t("preferitiPag.errCarico"));
           setPronto(true);
         }
       });
@@ -49,7 +51,7 @@ export default function PaginaPreferiti() {
       await rimuoviPreferito(utente.id, p.id);
       setLista((attuali) => attuali.filter((x) => x.id !== p.id));
     } catch {
-      setErrore("Rimozione non riuscita, riprova.");
+      setErrore(t("preferitiPag.errRimuovi"));
     }
   }
 
@@ -73,38 +75,36 @@ export default function PaginaPreferiti() {
           🧱 Muri Parlanti
         </Link>
         <h1 className="font-scritta text-5xl leading-tight text-amber-100 drop-shadow-md sm:text-6xl">
-          Post-it salvati
+          {t("preferitiPag.titolo")}
         </h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-stone-300">
-          I pensieri che hai salvato con il cuore, dai muri che hai visitato.
+          {t("preferitiPag.testo")}
         </p>
       </header>
 
       <section className="mx-auto mt-8 w-full max-w-3xl px-4 pb-24">
         {caricamento || !pronto ? (
-          <p className="text-center text-stone-400">Carico…</p>
+          <p className="text-center text-stone-400">{t("comune.carico")}</p>
         ) : !utente ? (
           <div className="rounded-xl border border-amber-100/20 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
             <p className="font-scritta text-2xl text-amber-100">
-              Serve un account
+              {t("preferitiPag.serveAccount")}
             </p>
             <p className="mx-auto mt-2 max-w-sm text-sm text-stone-300">
-              I post-it salvati restano nel tuo account: li ritrovi su ogni
-              dispositivo dopo l&apos;accesso.
+              {t("preferitiPag.serveAccountTesto")}
             </p>
             <Link
               href="/impostazioni"
               className="mt-4 inline-block rounded-full bg-amber-300 px-6 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105 active:scale-95"
             >
-              Accedi o crea account
+              {t("preferitiPag.accedi")}
             </Link>
           </div>
         ) : errore ? (
           <p className="text-center text-sm text-red-300">{errore}</p>
         ) : lista.length === 0 ? (
           <p className="mx-auto max-w-sm text-center text-lg text-stone-200">
-            Nessun post-it salvato ancora. Tocca il cuore 🤍 su un pensiero per
-            conservarlo qui.
+            {t("preferitiPag.vuoto")}
           </p>
         ) : (
           <ul className="flex flex-col gap-4">
@@ -138,7 +138,7 @@ export default function PaginaPreferiti() {
                   onClick={() => rimuovi(p)}
                   className="mt-3 text-xs font-semibold text-stone-500 underline underline-offset-2 transition hover:text-red-300"
                 >
-                  Rimuovi dai salvati
+                  {t("preferitiPag.rimuoviSalvati")}
                 </button>
               </li>
             ))}
