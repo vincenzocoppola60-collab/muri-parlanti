@@ -10,6 +10,7 @@ import {
 } from "@/lib/postit";
 import { comprimiImmagine } from "@/lib/immagini";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 
 const NICKNAME_KEY = "muri-parlanti:nickname";
 
@@ -23,6 +24,7 @@ export default function PostItEditor({
   onAnnulla: () => void;
 }) {
   const { utente, nickname: nicknameAccount } = useAuth();
+  const { t } = useLingua();
   const [testo, setTesto] = useState("");
   const [nickname, setNickname] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
@@ -59,7 +61,7 @@ export default function PostItEditor({
       return;
     }
     if (!file.type.startsWith("image/")) {
-      setErrore("Il file scelto non e' un'immagine.");
+      setErrore(t("editor.fileNonImmagine"));
       return;
     }
     setFoto(file);
@@ -97,9 +99,9 @@ export default function PostItEditor({
       } catch (err) {
         setInviando(false);
         setErrore(
-          err instanceof Error
-            ? `Non sono riuscito a caricare la foto (${err.message}). Riprova o rimuovila.`
-            : "Non sono riuscito a caricare la foto. Riprova o rimuovila."
+          t("editor.erroreFoto", {
+            msg: err instanceof Error ? err.message : "errore",
+          })
         );
         return; // il testo scritto resta nell'editor
       }
@@ -134,7 +136,7 @@ export default function PostItEditor({
         }}
       >
         <label htmlFor="testo-postit" className="sr-only">
-          Il tuo pensiero
+          {t("editor.titolo")}
         </label>
         <textarea
           id="testo-postit"
@@ -143,7 +145,7 @@ export default function PostItEditor({
           onChange={(e) => setTesto(e.target.value)}
           maxLength={MAX_TESTO}
           rows={5}
-          placeholder="Scrivi il tuo pensiero per questo muro..."
+          placeholder={t("editor.placeholder")}
           className="w-full resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
         />
         <p className="mt-1 text-right text-xs text-stone-700/70">
@@ -155,16 +157,14 @@ export default function PostItEditor({
               value={nickname}
               readOnly
               maxLength={MAX_NICKNAME}
-              aria-label="Nome con cui firmi il pensiero"
+              aria-label={t("editor.firma")}
               className="w-full cursor-default rounded-sm border border-stone-900/10 bg-white/40 px-3 py-2 text-base font-semibold text-stone-900 focus:outline-none"
             />
             <p className="mt-1 text-xs text-stone-700/80">
-              Firmi con il tuo account: chi scansiona il muro potra' aprire il
-              tuo profilo toccando il nome. Puoi cambiarlo nelle{" "}
+              {t("editor.firmaAccount")}{" "}
               <a href="/impostazioni" className="underline underline-offset-2">
-                Impostazioni
+                {t("nav.impostazioni")}
               </a>
-              .
             </p>
           </div>
         ) : (
@@ -172,7 +172,7 @@ export default function PostItEditor({
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={MAX_NICKNAME}
-            placeholder="Il tuo nome (facoltativo)"
+            placeholder={t("editor.nome")}
             className="mt-2 w-full rounded-sm border border-stone-900/20 bg-white/60 px-3 py-2 text-base text-stone-900 placeholder:text-stone-600/70 focus:outline-none"
           />
         )}
@@ -194,16 +194,16 @@ export default function PostItEditor({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={anteprima}
-                alt="Anteprima della foto"
+                alt={t("editor.anteprimaFoto")}
                 className="h-16 w-16 rounded-sm object-cover"
               />
               <p className="flex-1 text-xs text-stone-800">
-                Foto pronta: verra' caricata quando attacchi il pensiero.
+                {t("editor.fotoPronta")}
               </p>
               <button
                 type="button"
                 onClick={rimuoviFoto}
-                aria-label="Rimuovi la foto"
+                aria-label={t("editor.rimuoviFoto")}
                 className="rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
               >
                 ✕
@@ -215,9 +215,9 @@ export default function PostItEditor({
               onClick={() => fileRef.current?.click()}
               className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
             >
-              📷 Aggiungi una foto
+              📷 {t("editor.fotoAggiungi")}
               <span className="text-xs font-normal text-stone-600/80">
-                (facoltativa)
+                {t("editor.fotoFacoltativa")}
               </span>
             </button>
           )}
@@ -232,14 +232,18 @@ export default function PostItEditor({
             disabled={inviando || !testo.trim()}
             className="rounded-full bg-stone-900 px-5 py-2 text-sm font-bold text-amber-100 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {inviando ? (foto ? "Carico foto..." : "Attacco...") : "📌 Attacca"}
+            {inviando
+              ? foto
+                ? t("editor.caricoFoto")
+                : t("editor.attaccando")
+              : `📌 ${t("editor.attacca")}`}
           </button>
           <button
             type="button"
             onClick={onAnnulla}
             className="rounded-full px-4 py-2 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
           >
-            ✕ Annulla
+            ✕ {t("editor.annulla")}
           </button>
         </div>
       </form>

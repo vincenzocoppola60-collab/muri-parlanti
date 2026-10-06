@@ -1,6 +1,10 @@
+"use client";
+
 import MieiMuri from "@/components/MieiMuri";
 import ProfiloCard from "@/components/ProfiloCard";
+import InstallaApp from "@/components/InstallaApp";
 import { Crediti } from "@/components/Crediti";
+import { useLingua } from "@/lib/i18n";
 
 /**
  * La home NON mostra un elenco fisso di muri: ogni persona vede solo i
@@ -8,6 +12,8 @@ import { Crediti } from "@/components/Crediti";
  * Loggato: salvati sul dispositivo + quelli dell'account (progresso_muri).
  */
 export default function Home() {
+  const { t } = useLingua();
+
   return (
     <main className="relative min-h-dvh">
       <div
@@ -24,12 +30,7 @@ export default function Home() {
         <h1 className="font-scritta text-6xl text-amber-100 drop-shadow-md sm:text-7xl">
           Muri Parlanti
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-stone-300">
-          I muri della città raccontano storie. Scansiona il QR di un muro per
-          scoprirlo e lascia il tuo pensiero, anche in anonimo. Crea un account
-          gratuito per vedere i pensieri delle altre persone, aprire i profili
-          degli autori e salvare i tuoi preferiti.
-        </p>
+        <p className="mx-auto mt-4 max-w-md text-stone-300">{t("home.desc")}</p>
       </header>
 
       <section className="mx-auto mt-10 w-full max-w-5xl px-4">
@@ -40,8 +41,13 @@ export default function Home() {
         <MieiMuri />
       </section>
 
+      {/* Spiegazione "sul telefono, come un'app": salvataggio sulla Home. */}
+      <section className="mx-auto mt-10 w-full max-w-5xl px-4">
+        <InstallaApp />
+      </section>
+
       <footer className="pb-12 pt-12 text-center text-xs text-stone-500">
-        Un pensiero anonimo per ogni muro. Sii gentile.
+        {t("home.footer")}
         <Crediti />
       </footer>
     </main>

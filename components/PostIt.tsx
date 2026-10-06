@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { PostIt } from "@/lib/postit";
 import { formattaData } from "@/lib/formato";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
+import { traduciTesto } from "@/lib/traduzione";
 
 const SFONDI = ["/images/1.webp", "/images/3.webp"];
 
@@ -37,12 +39,45 @@ export default function PostItView({
   // browser dopo il mount: cosi' l'HTML del server (nickname) coincide con
   // il primo render del client e non ci sono divergenze di idratazione.
   const { utente } = useAuth();
+  const { t, lingua, traduciPubblici } = useLingua();
   const [montato, setMontato] = useState(false);
+  // Teniamo anche la chiave della richiesta: se cambia la lingua (o il testo),
+  // una traduzione vecchia viene semplicemente ignorata invece che azzerata.
+  const [trad, setTrad] = useState<{ chiave: string; testo: string } | null>(
+    null
+  );
+  const [mostraOriginale, setMostraOriginale] = useState(false);
   useEffect(() => {
     setMontato(true);
   }, []);
   const mio =
     montato && !!utente && postit.user_id != null && postit.user_id === utente.id;
+
+  // Traduzione dei post PUBBLICI (degli altri), solo se l'utente l'ha attivata
+  // accanto alla bandiera e la lingua scelta non e' l'italiano. Parte DOPO il
+  // mount: il primo render resta identico al server e non ci sono divergenze.
+  const chiaveTrad = `${lingua}|${postit.testo}`;
+  useEffect(() => {
+    if (!montato || !traduciPubblici || lingua === "it" || mio || !postit.testo.trim()) {
+      return;
+    }
+    let attivo = true;
+    traduciTesto(postit.testo, lingua).then((esito) => {
+      if (!attivo) return;
+      setTrad(
+        esito.ok && esito.tradotto
+          ? { chiave: chiaveTrad, testo: esito.testo }
+          : null
+      );
+    });
+    return () => {
+      attivo = false;
+    };
+  }, [montato, traduciPubblici, lingua, mio, postit.testo, chiaveTrad]);
+
+  const tradotto =
+    trad && trad.chiave === chiaveTrad ? trad.testo : null;
+  const testoMostrato = tradotto && !mostraOriginale ? tradotto : postit.testo;
 
   return (
     <article
@@ -66,15 +101,36 @@ export default function PostItView({
         <button
           type="button"
           onClick={onPreferito}
-          aria-label={preferito ? "Rimuovi dai preferiti" : "Salva nei preferiti"}
+          aria-label={
+            preferito ? t("postit.preferitoRimuovi") : t("postit.preferitoAggiungi")
+          }
           className="absolute right-2 top-1.5 z-10 rounded-full px-2 py-1 text-lg leading-none transition hover:scale-125 active:scale-90"
         >
           <span aria-hidden>{preferito ? "❤️" : "🤍"}</span>
         </button>
       )}
       <p className="whitespace-pre-wrap break-words text-lg leading-snug text-stone-900">
-        {postit.testo}
+        {testoMostrato}
       </p>
+      {tradotto && (
+        <button
+          type="button"
+          onClick={() => setMostraOriginale((v) => !v)}
+          className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-stone-900/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-700 transition hover:bg-stone-900/20"
+          title={
+            mostraOriginale
+              ? t("postit.mostraTraduzione")
+              : t("postit.mostraOriginale")
+          }
+        >
+          <span aria-hidden>🌍</span>
+          {t("postit.tradotto")}
+          <span aria-hidden>·</span>
+          {mostraOriginale
+            ? t("postit.mostraTraduzione")
+            : t("postit.mostraOriginale")}
+        </button>
+      )}
       {postit.foto_url && (
         <div
           className="mt-2 select-none"
@@ -87,7 +143,7 @@ export default function PostItView({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={postit.foto_url}
-            alt="Foto allegata al pensiero"
+            alt={t("postit.fotoAllegata")}
             loading="lazy"
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
@@ -99,18 +155,18 @@ export default function PostItView({
         {mio ? (
           <Link
             href={`/profilo/${postit.user_id}`}
-            title={`È il tuo pensiero (${postit.nickname})`}
+            title={t("postit.tuoPensiero", { nome: postit.nickname })}
             className="flex items-center gap-1.5 font-bold text-stone-900 underline decoration-stone-500 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
           >
-            ~ Tu
+            ~ {t("postit.tu")}
             <span className="rounded-full bg-stone-900/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-800">
-              tuo
+              {t("postit.tuo")}
             </span>
           </Link>
         ) : postit.user_id ? (
           <Link
             href={`/profilo/${postit.user_id}`}
-            title="Vedi il profilo dell'autore"
+            title={t("postit.vediProfilo")}
             className="font-semibold underline decoration-stone-400 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
           >
             ~ {postit.nickname}

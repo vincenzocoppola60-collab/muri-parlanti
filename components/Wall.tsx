@@ -5,12 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import type { PostIt } from "@/lib/postit";
 import PostItView from "@/components/PostIt";
 import PostItEditor from "@/components/PostItEditor";
+import PopupPrimoPensiero from "@/components/PopupPrimoPensiero";
 import SalvaMuroButton from "@/components/SalvaMuroButton";
 import ProgressoMuro, {
   type ProgressoMuroHandle,
 } from "@/components/ProgressoMuro";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 import { alternaPreferito, idPreferiti } from "@/lib/preferiti";
+
+/** Segna che l'invito del primo pensiero e' gia' stato mostrato su questo telefono. */
+const PRIMO_PENSIERO_KEY = "muri-parlanti:primo-pensiero-mostrato";
 
 export default function Wall({
   luogo,
@@ -31,8 +36,10 @@ export default function Wall({
   const [preferitiIds, setPreferitiIds] = useState<Set<string>>(new Set());
   const [toastPreferito, setToastPreferito] = useState<string | null>(null);
   const [invitoChiuso, setInvitoChiuso] = useState(false);
+  const [popupPrimo, setPopupPrimo] = useState(false);
   const progressoRef = useRef<ProgressoMuroHandle>(null);
   const { utente, caricamento } = useAuth();
+  const { t } = useLingua();
 
   // Carica i preferiti dell'utente (solo da client, dopo il login).
   useEffect(() => {
@@ -58,6 +65,17 @@ export default function Wall({
     setConteggio((c) => c + 1);
     setEditorAperto(false);
     progressoRef.current?.pensieroAggiunto();
+
+    // Invito UNA SOLA VOLTA, dopo il primo post-it pubblicato (ospite o
+    // registrato). Se il browser non ha memoria, semplicemente non compare.
+    try {
+      if (!window.localStorage.getItem(PRIMO_PENSIERO_KEY)) {
+        window.localStorage.setItem(PRIMO_PENSIERO_KEY, "1");
+        setPopupPrimo(true);
+      }
+    } catch {
+      // Nessun problema: e' solo un invito.
+    }
   }
 
   async function gestisciPreferito(p: PostIt) {
@@ -106,8 +124,8 @@ export default function Wall({
         </h1>
         <p className="mt-2 text-sm text-stone-300">
           {conteggio === 1
-            ? "1 pensiero lasciato"
-            : `${conteggio} pensieri lasciati`}
+            ? t("muro.pensieroUno")
+            : t("muro.pensieri", { n: conteggio })}
         </p>
         <div className="flex justify-center">
           <SalvaMuroButton luogo={luogo} nome={nome} />
@@ -121,24 +139,22 @@ export default function Wall({
             <button
               type="button"
               onClick={() => setInvitoChiuso(true)}
-              aria-label="Chiudi invito"
+              aria-label={t("muro.chiudiInvito")}
               className="absolute right-2 top-2 rounded-full px-2 text-stone-500 transition hover:text-amber-100"
             >
               ✕
             </button>
             <p className="font-scritta text-xl text-amber-100">
-              Questo muro è vivo
+              {t("muro.invitoTitolo")}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-stone-300">
-              Crea un account gratuito per salvare i muri che visiti, tenere i
-              tuoi post-it preferiti e salire di livello. Puoi comunque
-              lasciare il tuo pensiero anche senza account.
+              {t("muro.invitoTesto")}
             </p>
             <Link
               href="/"
               className="mt-4 inline-block rounded-full bg-amber-300 px-6 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105"
             >
-              Crea account gratuito
+              {t("muro.invitoCta")}
             </Link>
           </div>
         </div>
@@ -148,7 +164,7 @@ export default function Wall({
         <div className="mx-auto mt-6 w-full max-w-3xl px-4">
           <img
             src={fotoUrl}
-            alt={`Foto del muro di ${nome}`}
+            alt={t("muro.fotoMuro", { nome })}
             className="max-h-[420px] w-full rounded-xl border border-amber-100/20 object-cover shadow-xl"
           />
         </div>
@@ -156,7 +172,7 @@ export default function Wall({
 
       {lista.length === 0 ? (
         <p className="mx-auto mt-16 max-w-sm px-6 text-center text-lg text-stone-200">
-          Nessun pensiero ancora. Sii il primo.
+          {t("muro.vuoto")}
         </p>
       ) : (
         <section className="mx-auto mt-10 max-w-6xl columns-1 gap-6 px-4 pb-36 sm:columns-2 md:columns-3 lg:columns-4">
@@ -185,8 +201,10 @@ export default function Wall({
         onClick={() => setEditorAperto(true)}
         className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95"
       >
-        ✍️ Lascia un pensiero
+        ✍️ {t("muro.lascia")}
       </button>
+
+      {popupPrimo && <PopupPrimoPensiero onChiudi={() => setPopupPrimo(false)} />}
 
       {editorAperto && (
         <PostItEditor

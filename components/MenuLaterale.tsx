@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useLingua } from "@/lib/i18n";
 import { caricaMioProfilo, urlAvatar, type Profilo } from "@/lib/profili";
 import { eAmministratore } from "@/lib/admin";
 import { CreditiCompatto } from "@/components/Crediti";
@@ -17,6 +18,7 @@ import { CreditiCompatto } from "@/components/Crediti";
 export default function MenuLaterale() {
   const pathname = usePathname();
   const { utente, caricamento, nickname, esci } = useAuth();
+  const { t } = useLingua();
   const [aperto, setAperto] = useState(false);
   const [profilo, setProfilo] = useState<Profilo | null>(null);
   const [sonoAdmin, setSonoAdmin] = useState(false);
@@ -102,7 +104,7 @@ export default function MenuLaterale() {
       <button
         type="button"
         onClick={() => setAperto(true)}
-        aria-label="Apri il menu"
+        aria-label={t("nav.apri")}
         aria-expanded={aperto}
         className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-xl text-amber-100 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
       >
@@ -126,11 +128,13 @@ export default function MenuLaterale() {
         }`}
       >
         <div className="flex items-center justify-between px-4 pt-5">
-          <span className="font-scritta text-2xl text-amber-100">Menu</span>
+          <span className="font-scritta text-2xl text-amber-100">
+            {t("nav.menu")}
+          </span>
           <button
             type="button"
             onClick={chiudi}
-            aria-label="Chiudi il menu"
+            aria-label={t("nav.chiudi")}
             className="rounded-full px-2 py-1 text-lg text-stone-400 transition hover:text-amber-100"
           >
             ✕
@@ -159,10 +163,10 @@ export default function MenuLaterale() {
               )}
               <span className="min-w-0">
                 <span className="block truncate font-scritta text-xl text-amber-100">
-                  {nomeMostrato || "Il tuo profilo"}
+                  {nomeMostrato || t("nav.tuoProfilo")}
                 </span>
                 <span className="block text-xs text-stone-400">
-                  Tocca per aprire il profilo
+                  {t("nav.toccaProfilo")}
                 </span>
               </span>
             </Link>
@@ -172,10 +176,10 @@ export default function MenuLaterale() {
                 👤
               </span>
               <span className="mt-2 block font-scritta text-xl text-amber-100">
-                Ospite
+                {t("nav.ospite")}
               </span>
               <span className="mt-1 block text-xs leading-relaxed text-stone-400">
-                Crea un account gratuito per profilo, post-it salvati e livelli.
+                {t("nav.ospiteDescr")}
               </span>
             </Link>
           )}
@@ -183,7 +187,7 @@ export default function MenuLaterale() {
 
         <nav className="mt-4 flex flex-col gap-1 px-3">
           <Link href="/" onClick={chiudi} className={voce("/")}>
-            <span aria-hidden className="text-xl">🏠</span> Home
+            <span aria-hidden className="text-xl">🏠</span> {t("nav.home")}
           </Link>
           {utente && (
             <Link
@@ -191,20 +195,20 @@ export default function MenuLaterale() {
               onClick={chiudi}
               className={voce(`/profilo/${utente.id}`)}
             >
-              <span aria-hidden className="text-xl">🧑</span> Il tuo profilo
+              <span aria-hidden className="text-xl">🧑</span> {t("nav.tuoProfilo")}
             </Link>
           )}
           <Link href="/miei-muri" onClick={chiudi} className={voce("/miei-muri")}>
-            <span aria-hidden className="text-xl">🧱</span> I tuoi muri
+            <span aria-hidden className="text-xl">🧱</span> {t("nav.mieiMuri")}
           </Link>
           <Link href="/preferiti" onClick={chiudi} className={voce("/preferiti")}>
-            <span aria-hidden className="text-xl">❤️</span> Post-it salvati
+            <span aria-hidden className="text-xl">❤️</span> {t("nav.salvati")}
           </Link>
           <Link href="/scansiona" onClick={chiudi} className={voce("/scansiona")}>
-            <span aria-hidden className="text-xl">📷</span> Scansiona QR
+            <span aria-hidden className="text-xl">📷</span> {t("nav.scansiona")}
           </Link>
           <Link href="/impostazioni" onClick={chiudi} className={voce("/impostazioni")}>
-            <span aria-hidden className="text-xl">⚙️</span> Impostazioni
+            <span aria-hidden className="text-xl">⚙️</span> {t("nav.impostazioni")}
           </Link>
           {utente && sonoAdmin && (
             <>
@@ -214,7 +218,7 @@ export default function MenuLaterale() {
                 onClick={chiudi}
                 className={voce("/admin/muri")}
               >
-                <span aria-hidden className="text-xl">🛠️</span> Pannello admin
+                <span aria-hidden className="text-xl">🛠️</span> {t("nav.admin")}
               </Link>
             </>
           )}
@@ -230,7 +234,7 @@ export default function MenuLaterale() {
               }}
               className="w-full rounded-full border border-amber-100/30 px-4 py-2.5 text-sm font-semibold text-amber-100/90 transition hover:border-amber-100/60 hover:bg-stone-900"
             >
-              Esci dall'account
+              {t("nav.esci")}
             </button>
           ) : (
             <Link
@@ -238,7 +242,7 @@ export default function MenuLaterale() {
               onClick={chiudi}
               className="block rounded-full bg-amber-300 px-4 py-2.5 text-center text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105 active:scale-95"
             >
-              Crea account gratuito
+              {t("nav.creaAccount")}
             </Link>
           )}
           <p className="mt-4">
