@@ -8,6 +8,7 @@ import {
 
 export type Profilo = {
   id: string;
+  username?: string | null;
   nickname: string;
   bio: string | null;
   foto_url: string | null;

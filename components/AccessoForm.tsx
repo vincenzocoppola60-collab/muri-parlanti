@@ -3,14 +3,15 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 
-type Modalita = "accedi" | "registrati";
+type Modalita = "accedi" | "registrati" | "recupera";
 
 export default function AccessoForm() {
-  const { accedi, registrati } = useAuth();
+  const { accedi, registrati, recuperaPassword } = useAuth();
   const [modalita, setModalita] = useState<Modalita>("accedi");
+  const [identificativo, setIdentificativo] = useState(""); // username o email
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
   const [inviando, setInviando] = useState(false);
   const [messaggio, setMessaggio] = useState<string | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
@@ -27,16 +28,23 @@ export default function AccessoForm() {
     setMessaggio(null);
     setInviando(true);
 
-    const esito =
-      modalita === "accedi"
-        ? await accedi(email, password)
-        : await registrati(email, password, nickname);
+    let esito;
+    if (modalita === "accedi") {
+      esito = await accedi(identificativo, password);
+    } else if (modalita === "registrati") {
+      esito = await registrati(username, email, password);
+    } else {
+      esito = await recuperaPassword(identificativo);
+    }
 
     setInviando(false);
 
     if (esito.ok) {
-      if (modalita === "registrati") setMessaggio("Account creato. Bentornato!");
-      // Se ha richiesto conferma email, registrati restituisce ok:false con messaggio.
+      if (modalita === "registrati") {
+        setMessaggio("Account creato. Bentornato!");
+      } else if (modalita === "recupera") {
+        setMessaggio(esito.messaggio ?? "Controlla la tua email di recupero.");
+      }
     } else {
       setErrore(esito.errore);
     }
@@ -44,6 +52,14 @@ export default function AccessoForm() {
 
   const campo =
     "w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
+
+  const puoInviare =
+    !inviando &&
+    (modalita === "accedi"
+      ? Boolean(identificativo.trim() && password)
+      : modalita === "registrati"
+        ? Boolean(username.trim() && email.trim() && password)
+        : Boolean(identificativo.trim()));
 
   return (
     <form
@@ -74,38 +90,67 @@ export default function AccessoForm() {
       </div>
 
       {modalita === "registrati" && (
+        <>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            maxLength={20}
+            placeholder="Username (3-20: a-z, 0-9, _)"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            className={campo + " mb-3"}
+          />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email di recupero"
+            autoComplete="email"
+            className={campo + " mb-3"}
+          />
+        </>
+      )}
+
+      {modalita === "accedi" && (
         <input
           type="text"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          maxLength={30}
-          placeholder="Il tuo nome"
-          autoComplete="nickname"
+          value={identificativo}
+          onChange={(e) => setIdentificativo(e.target.value)}
+          placeholder="Username o email"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
           className={campo + " mb-3"}
         />
       )}
 
-      <input
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        autoComplete="email"
-        className={campo + " mb-3"}
-      />
+      {modalita === "recupera" && (
+        <input
+          type="text"
+          value={identificativo}
+          onChange={(e) => setIdentificativo(e.target.value)}
+          placeholder="Username o email di recupero"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          className={campo}
+        />
+      )}
 
-      <input
-        type="password"
-        required
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password (min 6 caratteri)"
-        autoComplete={
-          modalita === "accedi" ? "current-password" : "new-password"
-        }
-        className={campo}
-      />
+      {modalita !== "recupera" && (
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password (min 6 caratteri)"
+          autoComplete={
+            modalita === "accedi" ? "current-password" : "new-password"
+          }
+          className={campo}
+        />
+      )}
 
       {(errore || messaggio) && (
         <p
@@ -120,21 +165,44 @@ export default function AccessoForm() {
 
       <button
         type="submit"
-        disabled={inviando || !email || !password || (modalita === "registrati" && !nickname)}
+        disabled={!puoInviare}
         className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {inviando
           ? "Attendi…"
           : modalita === "accedi"
             ? "Accedi"
-            : "Crea il tuo account"}
+            : modalita === "registrati"
+              ? "Crea il tuo account"
+              : "Invia il link di recupero"}
       </button>
 
-      <p className="mt-3 text-center text-xs text-stone-500">
-        {modalita === "accedi"
-          ? "Non hai un account? Creane uno per salvare i progressi e sbloccare livelli."
-          : "Registrandoti salvi i muri visitati e sblocchi livelli guadagnando punti."}
-      </p>
+      {modalita === "accedi" && (
+        <button
+          type="button"
+          onClick={() => cambioModalita("recupera")}
+          className="mt-3 w-full text-center text-xs font-semibold text-stone-400 transition hover:text-amber-100"
+        >
+          Password dimenticata?
+        </button>
+      )}
+
+      {modalita === "recupera" && (
+        <button
+          type="button"
+          onClick={() => cambioModalita("accedi")}
+          className="mt-3 w-full text-center text-xs font-semibold text-stone-400 transition hover:text-amber-100"
+        >
+          ← Torna all&apos;accesso
+        </button>
+      )}
+
+      {modalita === "registrati" && (
+        <p className="mt-3 text-xs text-stone-500">
+          Lo username è il nome con cui accedi. L&apos;email serve solo a
+          recuperare la password se la dimentichi.
+        </p>
+      )}
     </form>
   );
 }

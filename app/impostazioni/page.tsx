@@ -27,7 +27,8 @@ const area =
   "w-full resize-none rounded-2xl border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
 
 export default function PaginaImpostazioni() {
-  const { utente, caricamento, nickname: nicknameAccount } = useAuth();
+  const { utente, caricamento, nickname: nicknameAccount, impostaUsername } =
+    useAuth();
 
   const [profilo, setProfilo] = useState<Profilo | null>(null);
   const [mancaMigrazione, setMancaMigrazione] = useState(false);
@@ -36,6 +37,11 @@ export default function PaginaImpostazioni() {
   const [nickname, setNickname] = useState("");
   const [bio, setBio] = useState("");
   const [mostraPostit, setMostraPostit] = useState(true);
+
+  const [username, setUsername] = useState("");
+  const [salvandoUsername, setSalvandoUsername] = useState(false);
+  const [msgUsername, setMsgUsername] = useState<string | null>(null);
+  const [errUsername, setErrUsername] = useState<string | null>(null);
 
   const [salvando, setSalvando] = useState(false);
   const [messaggio, setMessaggio] = useState<string | null>(null);
@@ -71,6 +77,7 @@ export default function PaginaImpostazioni() {
         setNickname(esito.profilo?.nickname ?? nicknameAccount);
         setBio(esito.profilo?.bio ?? "");
         setMostraPostit(esito.profilo?.mostra_postit ?? true);
+        setUsername(esito.profilo?.username ?? "");
         setCaricamentoProfilo(false);
       })
       .catch(() => {
@@ -104,6 +111,21 @@ export default function PaginaImpostazioni() {
     } else {
       setErrore(esito.errore);
       if (esito.errore === MESSAGGIO_MIGRAZIONE) setMancaMigrazione(true);
+    }
+  }
+
+  async function salvaUsername() {
+    if (salvandoUsername) return;
+    setErrUsername(null);
+    setMsgUsername(null);
+    setSalvandoUsername(true);
+    const esito = await impostaUsername(username);
+    setSalvandoUsername(false);
+    if (esito.ok) {
+      setUsername(username.trim().toLowerCase());
+      setMsgUsername("Username salvato ✓. Ora puoi accedere con questo nome.");
+    } else {
+      setErrUsername(esito.errore);
     }
   }
 
@@ -316,6 +338,60 @@ export default function PaginaImpostazioni() {
             JPG, PNG o WebP: potrai trascinare l'immagine e scegliere con lo
             zoom quale parte finisce nel cerchio.
           </p>
+        </section>
+
+        {/* Accesso: username */}
+        <section className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
+          <h2 className="font-scritta text-xl text-amber-100">Accesso</h2>
+          <p className="mt-2 text-xs text-stone-400">
+            Lo username è il nome con cui accedi (insieme alla password).
+            L&apos;email di recupero serve se dimentichi la password.
+          </p>
+          <label
+            htmlFor="uname"
+            className="mt-4 block text-xs font-semibold uppercase tracking-wide text-stone-400"
+          >
+            Username
+          </label>
+          <input
+            id="uname"
+            type="text"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setMsgUsername(null);
+              setErrUsername(null);
+            }}
+            maxLength={20}
+            placeholder="es. mario_rossi"
+            autoCapitalize="none"
+            spellCheck={false}
+            className={campo + " mt-1"}
+          />
+          {!username && (
+            <p className="mt-1 text-xs text-amber-300/80">
+              Non hai ancora scelto uno username: scegline uno per accedere
+              senza digitare l&apos;email.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={salvaUsername}
+            disabled={salvandoUsername || !username.trim()}
+            className="mt-3 w-full rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {salvandoUsername ? "Salvo…" : "Salva username"}
+          </button>
+          {(msgUsername || errUsername) && (
+            <p
+              className={
+                "mt-3 text-center text-sm font-semibold " +
+                (errUsername ? "text-red-300" : "text-amber-300")
+              }
+            >
+              {errUsername ?? msgUsername}
+            </p>
+          )}
         </section>
 
         {/* Dati del profilo */}

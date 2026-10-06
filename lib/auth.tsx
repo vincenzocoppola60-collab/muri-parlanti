@@ -10,22 +10,31 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { getClienteAuth } from "@/lib/clienteAuth";
 
-type Esito =
-  | { ok: true }
-  | { ok: false; errore: string };
+type Esito = { ok: true; messaggio?: string } | { ok: false; errore: string };
 
 type ContestoAuth = {
   utente: User | null;
   caricamento: boolean;
   nickname: string;
-  registrati: (email: string, password: string, nickname: string) => Promise<Esito>;
-  accedi: (email: string, password: string) => Promise<Esito>;
+  /** Crea l'account con username + email di recupero + password (poi accede). */
+  registrati: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<Esito>;
+  /** Accede con username oppure email di recupero + password. */
+  accedi: (identificativo: string, password: string) => Promise<Esito>;
+  /** Invia il link di reimpostazione all'email di recupero dell'account. */
+  recuperaPassword: (identificativo: string) => Promise<Esito>;
+  /** Imposta/aggiorna lo username dell'account connesso (account esistenti). */
+  impostaUsername: (username: string) => Promise<Esito>;
   esci: () => Promise<void>;
 };
 
 const Contesto = createContext<ContestoAuth | null>(null);
 
 const NICKNAME_KEY = "muri-parlanti:nickname";
+const FORMATO_USERNAME = /^[a-z0-9_]{3,20}$/;
 
 /** Legge il nickname dai metadati utente o dal backup locale. */
 function leggiNickname(u: User | null): string {
@@ -71,33 +80,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => abbonamento.subscription.unsubscribe();
   }, []);
 
+  /** Chiama una rotta API di auth e restituisce il JSON (o null). */
+  async function chiamaApi(
+    percorso: string,
+    corpo: unknown
+  ): Promise<{ status: number; dati: Record<string, unknown> | null }> {
+    const r = await fetch(percorso, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+    });
+    const dati = (await r.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
+    return { status: r.status, dati };
+  }
+
   async function registrati(
+    username: string,
     email: string,
-    password: string,
-    nickname: string
+    password: string
   ): Promise<Esito> {
-    const nick = nickname.trim();
-    if (!nick) return { ok: false, errore: "Inserisci un nome." };
+    const nick = username.trim().toLowerCase();
+    if (!FORMATO_USERNAME.test(nick)) {
+      return {
+        ok: false,
+        errore:
+          "Username non valido: 3-20 caratteri tra lettere minuscole, numeri e underscore.",
+      };
+    }
     if (password.length < 6) {
       return { ok: false, errore: "La password deve avere almeno 6 caratteri." };
     }
     try {
+      const { dati } = await chiamaApi("/api/auth/registrati", {
+        username: nick,
+        email: email.trim(),
+        password,
+      });
+      if (!dati?.ok) {
+        return {
+          ok: false,
+          errore: (dati?.errore as string) ?? "Registrazione non riuscita.",
+        };
+      }
+      // Registrazione riuscita: accedi subito per aprire la sessione.
       if (typeof window !== "undefined") {
         window.localStorage.setItem(NICKNAME_KEY, nick);
       }
-      const { data, error } = await getClienteAuth().auth.signUp({
-        email: email.trim(),
+      return await accedi(nick, password);
+    } catch {
+      return { ok: false, errore: "Errore di rete. Riprova." };
+    }
+  }
+
+  async function accedi(
+    identificativo: string,
+    password: string
+  ): Promise<Esito> {
+    const id = identificativo.trim();
+    if (!id || !password) {
+      return { ok: false, errore: "Inserisci username (o email) e password." };
+    }
+    try {
+      const { dati } = await chiamaApi("/api/auth/login", {
+        identificativo: id,
         password,
-        options: { data: { nickname: nick } },
       });
-      if (error) return { ok: false, errore: traducErrore(error.message) };
-      // Se la conferma email è abilitata, il data.user non è ancora attivo.
-      if (data.user && !data.session) {
+      if (!dati?.ok) {
         return {
           ok: false,
-          errore:
-            "Ti abbiamo inviato una mail di conferma. Aprila e poi accedi con la stessa email e password.",
+          errore: (dati?.errore as string) ?? "Accesso non riuscito.",
         };
+      }
+      const { error } = await getClienteAuth().auth.setSession({
+        access_token: dati.access_token as string,
+        refresh_token: dati.refresh_token as string,
+      });
+      if (error) {
+        return { ok: false, errore: "Accesso non riuscito. Riprova." };
       }
       return { ok: true };
     } catch {
@@ -105,13 +167,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function accedi(email: string, password: string): Promise<Esito> {
+  async function recuperaPassword(identificativo: string): Promise<Esito> {
+    const id = identificativo.trim();
+    if (!id) {
+      return { ok: false, errore: "Inserisci il tuo username o la tua email." };
+    }
     try {
-      const { error } = await getClienteAuth().auth.signInWithPassword({
-        email: email.trim(),
-        password,
+      const { dati } = await chiamaApi("/api/auth/recupero", {
+        identificativo: id,
       });
-      if (error) return { ok: false, errore: traducErrore(error.message) };
+      if (!dati?.ok) {
+        return {
+          ok: false,
+          errore: (dati?.errore as string) ?? "Invio non riuscito.",
+        };
+      }
+      return {
+        ok: true,
+        messaggio:
+          (dati.messaggio as string) ??
+          "Se l'account esiste, ti abbiamo inviato un'email con il link di recupero.",
+      };
+    } catch {
+      return { ok: false, errore: "Errore di rete. Riprova." };
+    }
+  }
+
+  async function impostaUsername(username: string): Promise<Esito> {
+    const u = username.trim().toLowerCase();
+    if (!FORMATO_USERNAME.test(u)) {
+      return {
+        ok: false,
+        errore:
+          "Username non valido: 3-20 caratteri tra lettere minuscole, numeri e underscore.",
+      };
+    }
+    try {
+      const { data } = await getClienteAuth().auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return { ok: false, errore: "Accedi per procedere." };
+      const r = await fetch("/api/auth/username", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ username: u }),
+      });
+      const dati = (await r.json().catch(() => null)) as Record<
+        string,
+        unknown
+      > | null;
+      if (!dati?.ok) {
+        return {
+          ok: false,
+          errore: (dati?.errore as string) ?? "Salvataggio non riuscito.",
+        };
+      }
       return { ok: true };
     } catch {
       return { ok: false, errore: "Errore di rete. Riprova." };
@@ -130,6 +242,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         nickname: ultimoNickname,
         registrati,
         accedi,
+        recuperaPassword,
+        impostaUsername,
         esci,
       }}
     >
@@ -142,20 +256,4 @@ export function useAuth(): ContestoAuth {
   const ctx = useContext(Contesto);
   if (!ctx) throw new Error("useAuth deve essere usato dentro AuthProvider");
   return ctx;
-}
-
-function traducErrore(messaggio: string): string {
-  if (/invalid login credentials/i.test(messaggio)) {
-    return "Email o password non corretti.";
-  }
-  if (/already registered/i.test(messaggio)) {
-    return "Questa email è già registrata. Prova ad accedere.";
-  }
-  if (/email.*not.*confirmed/i.test(messaggio)) {
-    return "Conferma prima la mail che ti abbiamo inviato, poi accedi.";
-  }
-  if (/password/i.test(messaggio) && /at least 6/i.test(messaggio)) {
-    return "La password deve avere almeno 6 caratteri.";
-  }
-  return messaggio;
 }
