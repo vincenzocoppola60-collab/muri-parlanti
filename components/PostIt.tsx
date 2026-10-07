@@ -83,7 +83,7 @@ export default function PostItView({
   return (
     <article
       className={
-        "postit relative mb-6 break-inside-avoid rounded-[3px] px-4 pb-3 pt-7 shadow-[0_8px_18px_rgba(0,0,0,0.4)] " +
+        "postit relative rounded-[3px] px-3 pb-2.5 pt-6 shadow-[0_6px_14px_rgba(0,0,0,0.4)] " +
         (animate ? "animate-attacca" : "animate-comparsa")
       }
       style={
@@ -96,7 +96,7 @@ export default function PostItView({
     >
       <span
         aria-hidden
-        className="nastro absolute -top-3 left-1/2 h-6 w-16 -translate-x-1/2 bg-amber-100/70 shadow-sm backdrop-blur-[1px]"
+        className="nastro absolute -top-2.5 left-1/2 h-5 w-12 -translate-x-1/2 bg-amber-100/70 shadow-sm backdrop-blur-[1px]"
       />
       {onPreferito && (
         <button
@@ -105,12 +105,12 @@ export default function PostItView({
           aria-label={
             preferito ? t("postit.preferitoRimuovi") : t("postit.preferitoAggiungi")
           }
-          className="absolute right-2 top-1.5 z-10 rounded-full px-2 py-1 text-lg leading-none transition hover:scale-125 active:scale-90"
+          className="absolute right-1.5 top-1 z-10 rounded-full px-1.5 py-0.5 text-base leading-none transition hover:scale-125 active:scale-90"
         >
           <span aria-hidden>{preferito ? "❤️" : "🤍"}</span>
         </button>
       )}
-      <p className="whitespace-pre-wrap break-words text-lg leading-snug text-stone-900">
+      <p className="whitespace-pre-wrap break-words text-sm leading-snug text-stone-900">
         {testoMostrato}
       </p>
       {tradotto && (

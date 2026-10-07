@@ -175,7 +175,7 @@ export default function Wall({
           {t("muro.vuoto")}
         </p>
       ) : (
-        <section className="mx-auto mt-10 max-w-6xl columns-1 gap-6 px-4 pb-36 sm:columns-2 md:columns-3 lg:columns-4">
+        <section className="mx-auto mt-8 grid max-w-6xl grid-cols-2 items-start gap-3 px-4 pb-36 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {lista.map((p, i) => (
             <PostItView
               key={p.id}
