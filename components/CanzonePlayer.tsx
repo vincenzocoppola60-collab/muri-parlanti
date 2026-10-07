@@ -2,23 +2,19 @@
 
 import { useState } from "react";
 import AudioPorzione from "@/components/AudioPorzione";
-import { embedClipYoutube, playerDaCanzone } from "@/lib/canzone";
+import PlayerAudioYoutube from "@/components/PlayerAudioYoutube";
+import { playerDaCanzone } from "@/lib/canzone";
 import { useLingua } from "@/lib/i18n";
 
 /**
  * Player della canzone allegata a un post-it.
  *
  * Per non appesantire il muro (che puo' avere decine di post-it), il player
- * NON viene montato subito: si vede una piccola scheda "Ascolta la canzone"
- * e il contenuto si carica solo quando l'utente la tocca. Cosi' non parte
- * nessuna richiesta ai servizi di streaming finche' non serve.
+ * NON viene montato subito: si vede una piccola scheda "Ascolta la canzone" e
+ * il contenuto si carica solo quando l'utente la tocca.
  *
- * Sono possibili questi casi:
- *  - link a un servizio (Spotify, Apple Music, ...): player ufficiale in iframe;
- *  - brano YouTube scelto con la ricerca: iframe dalla parte scelta (inizio/fine);
- *  - brano Apple/Spotify con anteprima audio: parte solo la porzione scelta
- *    (max 30s);
- *  - brano Spotify senza anteprima: player ufficiale (dall'inizio).
+ * La canzone parte sempre e solo in AUDIO: nessun video viene mostrato, ne'
+ * nell'editor ne' sul muro. Si sente la porzione scelta (max 30s).
  */
 export default function CanzonePlayer({ url }: { url: string }) {
   const { t } = useLingua();
@@ -35,9 +31,6 @@ export default function CanzonePlayer({ url }: { url: string }) {
       >
         <span aria-hidden>🎵</span>
         <span className="flex-1">{t("postit.ascolta")}</span>
-        <span className="rounded-full bg-stone-900/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
-          {player.etichetta}
-        </span>
       </button>
     );
   }
@@ -51,16 +44,19 @@ export default function CanzonePlayer({ url }: { url: string }) {
           durata={player.durata}
           className="block w-full"
         />
+      ) : player.tipo === "clip-youtube" ? (
+        // Audio-only: il video resta nascosto.
+        <PlayerAudioYoutube
+          id={player.id}
+          inizio={player.inizio}
+          fine={player.fine}
+        />
       ) : (
         <iframe
-          src={
-            player.tipo === "embed"
-              ? player.embedUrl
-              : embedClipYoutube(player.id, player.inizio, player.fine)
-          }
+          src={player.embedUrl}
           title={t("postit.canzone")}
           width="100%"
-          height={player.tipo === "embed" ? player.altezza : 200}
+          height={player.altezza}
           style={{ border: 0, display: "block" }}
           loading="lazy"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
