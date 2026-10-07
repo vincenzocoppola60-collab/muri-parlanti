@@ -175,17 +175,25 @@ export default function Wall({
           {t("muro.vuoto")}
         </p>
       ) : (
-        <section className="mx-auto mt-8 grid max-w-6xl grid-cols-2 items-start gap-3 px-4 pb-36 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {lista.map((p, i) => (
-            <PostItView
-              key={p.id}
-              postit={p}
-              animate={i === 0}
-              preferito={preferitiIds.has(p.id)}
-              onPreferito={() => gestisciPreferito(p)}
-            />
-          ))}
-        </section>
+        /* 3 righe orizzontali fisse: il flusso riempie la colonna dall'alto
+           verso il basso e poi passa alla colonna successiva a destra. Cosi'
+           il postito piu' nuovo (primo della lista) sta sempre in ALTO A
+           SINISTRA e, quando ne arriva uno nuovo, tutta la sequenza scorre di
+           una posizione verso destra. Le colonne in eccesso scorrono in
+           orizzontale. */
+        <div className="mt-8 overflow-x-auto overflow-y-hidden px-4 pb-36">
+          <section className="grid w-max grid-flow-col grid-rows-3 auto-cols-[9.5rem] gap-3 sm:auto-cols-[11rem]">
+            {lista.map((p, i) => (
+              <PostItView
+                key={p.id}
+                postit={p}
+                animate={i === 0}
+                preferito={preferitiIds.has(p.id)}
+                onPreferito={() => gestisciPreferito(p)}
+              />
+            ))}
+          </section>
+        </div>
       )}
 
       {toastPreferito && (
