@@ -7,8 +7,9 @@ import { useLingua } from "@/lib/i18n";
  * Piccolo invito che compare UNA SOLA VOLTA, subito dopo che la persona ha
  * pubblicato il suo primo post-it (con o senza account).
  *
- * Volutamente non invasivo: sta in basso, non blocca la pagina (niente velo),
- * si chiude con la ✕, con "Va bene" o con Esc, e sparisce da solo dopo un po'.
+ * Volutamente non invasivo: sta al centro dello schermo, non blocca la pagina
+ * (niente velo, il tocco dietro resta libero), si chiude con la ✕, con
+ * "Va bene" o con Esc, e sparisce da solo dopo un po'.
  */
 export default function PopupPrimoPensiero({
   onChiudi,
@@ -38,9 +39,9 @@ export default function PopupPrimoPensiero({
       role="dialog"
       aria-live="polite"
       aria-label={t("popup.titolo")}
-      className="animate-comparsa fixed bottom-24 left-1/2 z-40 w-[min(92vw,26rem)] -translate-x-1/2"
+      className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center p-4"
     >
-      <div className="relative rounded-2xl border border-amber-100/25 bg-stone-950/95 p-5 shadow-2xl backdrop-blur-md">
+      <div className="animate-comparsa pointer-events-auto relative w-[min(92vw,26rem)] rounded-2xl border border-amber-100/25 bg-stone-950/95 p-5 shadow-2xl backdrop-blur-md">
         <button
           type="button"
           onClick={onChiudi}
