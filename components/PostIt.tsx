@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { PostIt } from "@/lib/postit";
 import { formattaData } from "@/lib/formato";
@@ -157,35 +158,44 @@ export default function PostItView({
           </button>
         </div>
       )}
-      {zoomFoto && postit.foto_url && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/90 p-4 backdrop-blur-sm"
-          onClick={() => setZoomFoto(false)}
-          onContextMenu={(e) => e.preventDefault()}
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            type="button"
+      {/* Lo zoom vive in un PORTALE su <body>: cosi' esce dallo stacking
+          context della card (che ha 'rotate' e le animazioni) e copre davvero
+          tutto, post-it compresi. Il portale compare solo dopo il mount,
+          quindi il server e il client restano identici (niente hydration). */}
+      {montato &&
+        zoomFoto &&
+        postit.foto_url &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-stone-950/90 p-4 backdrop-blur-sm"
             onClick={() => setZoomFoto(false)}
-            aria-label={t("postit.chiudiZoom")}
-            className="absolute right-4 top-4 z-10 rounded-full bg-stone-900/70 px-3 py-1 text-2xl leading-none text-amber-100 transition hover:bg-stone-900"
-          >
-            ✕
-          </button>
-          {/* Foto a tutto schermo: cliccando fuori si chiude (tocco sull'immagine
-              non chiude). Resta non scaricabile e non trascinabile. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={postit.foto_url}
-            alt={t("postit.fotoAllegata")}
-            draggable={false}
-            onClick={(e) => e.stopPropagation()}
             onContextMenu={(e) => e.preventDefault()}
-            className="max-h-[90vh] max-w-[90vw] select-none rounded-lg object-contain shadow-2xl"
-          />
-        </div>
-      )}
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              onClick={() => setZoomFoto(false)}
+              aria-label={t("postit.chiudiZoom")}
+              className="absolute right-4 top-4 z-10 rounded-full bg-stone-900/70 px-3 py-1 text-2xl leading-none text-amber-100 transition hover:bg-stone-900"
+            >
+              ✕
+            </button>
+            {/* Foto a tutto schermo: cliccando fuori si chiude (tocco
+                sull'immagine non chiude). Non scaricabile ne' trascinabile. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={postit.foto_url}
+              alt={t("postit.fotoAllegata")}
+              draggable={false}
+              onClick={(e) => e.stopPropagation()}
+              onContextMenu={(e) => e.preventDefault()}
+              className="max-h-[90vh] max-w-[90vw] select-none rounded-lg object-contain shadow-2xl"
+              style={{ WebkitTouchCallout: "none" }}
+            />
+          </div>,
+          document.body
+        )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
       <footer className="mt-3 flex items-center justify-between gap-2 text-stone-700">
         {mio ? (
