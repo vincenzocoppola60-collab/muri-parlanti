@@ -2,19 +2,27 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth";
 import { getClienteAuth } from "@/lib/clienteAuth";
 import { comprimiImmagine } from "@/lib/immagini";
 import { normalizzaLuogo, nomeLuogo } from "@/lib/luoghi";
 import {
   cancellaMuro,
+  centroPoligono,
   eAmministratore,
   elencaMuri,
   salvaMuro,
   svuotaPostit,
   type MuroAdmin,
+  type Punto,
 } from "@/lib/admin";
 import { useLingua } from "@/lib/i18n";
+
+// La mappa (Leaflet) si carica solo nel browser.
+const DisegnaZona = dynamic(() => import("@/components/DisegnaZona"), {
+  ssr: false,
+});
 
 type Stato = "inattivo" | "caricamento" | "fatto" | "errore";
 
@@ -29,9 +37,8 @@ export default function PannelloMuri() {
 
   // Campi del form "fonda un muro"
   const [nome, setNome] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
-  const [raggio, setRaggio] = useState("200");
+  const [zona, setZona] = useState<Punto[]>([]);
+  const [centro, setCentro] = useState<Punto | null>(null);
   const [foto, setFoto] = useState<File | null>(null);
 
   const [stato, setStato] = useState<Stato>("inattivo");
@@ -59,7 +66,8 @@ export default function PannelloMuri() {
     };
   }, [caricamento, utente, ricaricaMuri]);
 
-  function usaLaMiaPosizione() {
+  /** Centra la mappa sulla posizione dell'admin (per disegnare la zona). */
+  function vaiAllaMiaPosizione() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setMessaggio(t("admin.noGeo"));
       return;
@@ -67,8 +75,10 @@ export default function PannelloMuri() {
     setMessaggio(t("admin.cercoPos"));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLat(pos.coords.latitude.toFixed(6));
-        setLng(pos.coords.longitude.toFixed(6));
+        setCentro([
+          Number(pos.coords.latitude.toFixed(6)),
+          Number(pos.coords.longitude.toFixed(6)),
+        ]);
         setMessaggio("");
       },
       () => setMessaggio(t("admin.posNonRilevata")),
@@ -101,14 +111,12 @@ export default function PannelloMuri() {
       setMessaggio(t("admin.errNome"));
       return;
     }
-    const latNum = lat ? Number(lat) : null;
-    const lngNum = lng ? Number(lng) : null;
-    if ((latNum === null) !== (lngNum === null)) {
+    if (zona.length < 3) {
       setStato("errore");
-      setMessaggio(t("admin.errCoord"));
+      setMessaggio(t("admin.errZona"));
       return;
     }
-    const raggioNum = Math.max(10, Number(raggio) || 200);
+    const [latCentro, lngCentro] = centroPoligono(zona);
 
     setStato("caricamento");
     setMessaggio("");
@@ -117,15 +125,17 @@ export default function PannelloMuri() {
       const esito = await salvaMuro({
         slug,
         nome: nomeLuogo(slug),
-        lat: latNum,
-        lng: lngNum,
-        raggio_m: raggioNum,
+        lat: latCentro,
+        lng: lngCentro,
+        zona,
         ...(fotoUrl ? { foto_url: fotoUrl } : {}),
       });
       if (!esito.ok) throw new Error(esito.errore);
       setStato("fatto");
       setMessaggio(t("admin.salvato", { nome: nomeLuogo(slug) }));
       setNome("");
+      setZona([]);
+      setCentro(null);
       setFoto(null);
       await ricaricaMuri();
     } catch (e) {
@@ -208,59 +218,48 @@ export default function PannelloMuri() {
             className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
           />
 
-          <div className="mt-4 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={usaLaMiaPosizione}
-              className="self-start rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
-            >
-              {t("admin.usaPos")}
-            </button>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="lat" className="block text-sm font-medium text-stone-300">
-                  {t("admin.lat")}
-                </label>
-                <input
-                  id="lat"
-                  type="text"
-                  inputMode="decimal"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                  placeholder={t("admin.latPh")}
-                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
-                />
-              </div>
-              <div>
-                <label htmlFor="lng" className="block text-sm font-medium text-stone-300">
-                  {t("admin.lng")}
-                </label>
-                <input
-                  id="lng"
-                  type="text"
-                  inputMode="decimal"
-                  value={lng}
-                  onChange={(e) => setLng(e.target.value)}
-                  placeholder={t("admin.lngPh")}
-                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
-                />
-              </div>
-            </div>
+          {/* Mappa: disegna la zona di accesso del muro */}
+          <label className="mt-5 block text-sm font-medium text-stone-300">
+            {t("admin.zona")}
+          </label>
+          <p className="mt-1 text-xs leading-relaxed text-stone-400">
+            {t("admin.zonaAiuto")}
+          </p>
+
+          <div className="mt-2">
+            <DisegnaZona punti={zona} onChange={setZona} centro={centro} />
           </div>
 
-          <label htmlFor="raggio" className="mt-4 block text-sm font-medium text-stone-300">
-            {t("admin.raggio")}
-          </label>
-          <input
-            id="raggio"
-            type="number"
-            min={10}
-            value={raggio}
-            onChange={(e) => setRaggio(e.target.value)}
-            className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none focus:border-amber-300"
-          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={vaiAllaMiaPosizione}
+              className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+            >
+              {t("admin.zonaVaiPos")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setZona((z) => z.slice(0, -1))}
+              disabled={zona.length === 0}
+              className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50 disabled:opacity-40"
+            >
+              {t("admin.zonaIndietro")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setZona([])}
+              disabled={zona.length === 0}
+              className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50 disabled:opacity-40"
+            >
+              {t("admin.zonaPulisci")}
+            </button>
+            <span className="text-xs text-stone-400">
+              {t("admin.zonaPunti", { n: zona.length })}
+            </span>
+          </div>
 
-          <label htmlFor="foto" className="mt-4 block text-sm font-medium text-stone-300">
+          <label htmlFor="foto" className="mt-5 block text-sm font-medium text-stone-300">
             {t("admin.fotoLabel")}
           </label>
           <input
@@ -315,10 +314,9 @@ export default function PannelloMuri() {
                       </p>
                       <p className="text-xs text-stone-400">
                         {m.slug} ·{" "}
-                        {m.lat !== null && m.lng !== null
-                          ? `${m.lat.toFixed(5)}, ${m.lng.toFixed(5)}`
-                          : t("admin.senzaCoord")}{" "}
-                        · {t("admin.raggioM", { m: m.raggio_m })}
+                        {m.zona
+                          ? t("admin.zonaPunti", { n: m.zona.length })
+                          : t("admin.senzaZona")}
                       </p>
                     </div>
                   </div>

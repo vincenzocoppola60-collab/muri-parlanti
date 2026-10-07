@@ -11,6 +11,9 @@ import { getSupabase } from "@/lib/supabase";
  * funzioni degradano senza rompere l'app (ritornano false / liste vuote).
  */
 
+/** Punto geografico: [latitudine, longitudine]. */
+export type Punto = [number, number];
+
 export type MuroAdmin = {
   slug: string;
   nome: string;
@@ -18,14 +21,30 @@ export type MuroAdmin = {
   lat: number | null;
   lng: number | null;
   raggio_m: number;
+  /** Zona di accesso (poligono). null = si usa lat/lng + raggio_m. */
+  zona: Punto[] | null;
 };
 
-/** Colonne base (esistono anche senza la migrazione 0009). */
+/** Colonne base (esistono anche senza le migrazioni 0009/0011). */
 const COLONNE_BASE = "slug, nome, foto_url";
-/** Colonne complete (dopo la migrazione 0009). */
-const COLONNE_COMPLETE = "slug, nome, foto_url, lat, lng, raggio_m";
+/** Colonne complete (dopo le migrazioni 0009 e 0011). */
+const COLONNE_COMPLETE = "slug, nome, foto_url, lat, lng, raggio_m, zona";
 
-function conRaggio(m: Partial<MuroAdmin>): MuroAdmin {
+/** Converte un valore grezzo in una zona valida (almeno 3 punti), o null. */
+function normalizzaZona(raw: unknown): Punto[] | null {
+  if (!Array.isArray(raw)) return null;
+  const punti: Punto[] = [];
+  for (const p of raw) {
+    if (Array.isArray(p) && p.length >= 2) {
+      const lat = Number(p[0]);
+      const lng = Number(p[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) punti.push([lat, lng]);
+    }
+  }
+  return punti.length >= 3 ? punti : null;
+}
+
+function normalizza(m: Partial<MuroAdmin>): MuroAdmin {
   return {
     slug: String(m.slug ?? ""),
     nome: String(m.nome ?? ""),
@@ -33,6 +52,7 @@ function conRaggio(m: Partial<MuroAdmin>): MuroAdmin {
     lat: typeof m.lat === "number" ? m.lat : null,
     lng: typeof m.lng === "number" ? m.lng : null,
     raggio_m: typeof m.raggio_m === "number" ? m.raggio_m : 200,
+    zona: normalizzaZona(m.zona),
   };
 }
 
@@ -62,7 +82,8 @@ export async function eAmministratore(): Promise<boolean> {
 
 /**
  * Elenco di tutti i muri. Usa il client pubblico (i muri sono leggibili da
- * tutti). Se la 0009 non e' stata eseguita, ricade sulle sole colonne base.
+ * tutti). Se le migrazioni non sono state eseguite, ricade sulle sole
+ * colonne base.
  */
 export async function elencaMuri(): Promise<MuroAdmin[]> {
   try {
@@ -71,13 +92,13 @@ export async function elencaMuri(): Promise<MuroAdmin[]> {
       .select(COLONNE_COMPLETE)
       .order("nome", { ascending: true });
     if (error) throw error;
-    return (data ?? []).map((m) => conRaggio(m as Partial<MuroAdmin>));
+    return (data ?? []).map((m) => normalizza(m as Partial<MuroAdmin>));
   } catch {
     const { data } = await getSupabase()
       .from("muri")
       .select(COLONNE_BASE)
       .order("nome", { ascending: true });
-    return (data ?? []).map((m) => conRaggio(m as Partial<MuroAdmin>));
+    return (data ?? []).map((m) => normalizza(m as Partial<MuroAdmin>));
   }
 }
 
@@ -86,7 +107,7 @@ export type EsitoAdmin =
   | { ok: false; errore: string };
 
 /**
- * Crea (o aggiorna) un muro con le sue coordinate. Deve essere chiamata da
+ * Crea (o aggiorna) un muro con la sua zona. Deve essere chiamata da
  * un amministratore collegato: la policy RLS rifiuta tutti gli altri.
  */
 export async function salvaMuro(input: {
@@ -95,6 +116,7 @@ export async function salvaMuro(input: {
   lat?: number | null;
   lng?: number | null;
   raggio_m?: number;
+  zona?: Punto[] | null;
   foto_url?: string | null;
 }): Promise<EsitoAdmin> {
   try {
@@ -107,6 +129,7 @@ export async function salvaMuro(input: {
     if (typeof input.lat === "number") riga.lat = input.lat;
     if (typeof input.lng === "number") riga.lng = input.lng;
     if (typeof input.raggio_m === "number") riga.raggio_m = input.raggio_m;
+    if (input.zona !== undefined) riga.zona = input.zona;
     if (input.foto_url !== undefined) riga.foto_url = input.foto_url;
 
     const { error } = await supabase
@@ -168,7 +191,7 @@ export async function svuotaPostit(
 
 /**
  * Distanza in metri fra due punti (formula di Haversine).
- * Serve per il QR unico: capire quale muro e' il piu' vicino a chi apre il QR.
+ * Ripiego per i muri senza zona disegnata.
  */
 export function distanzaMetri(
   lat1: number,
@@ -190,17 +213,53 @@ export function distanzaMetri(
 }
 
 /**
- * Trova il muro piu' vicino alle coordinate date, entro il suo raggio_m.
- * Ritorna { muro, distanza } oppure null se nessun muro e' abbastanza vicino.
+ * Centro (media dei vertici) di un poligono. Serve a fissare lat/lng del muro
+ * per centrare la mappa e come ripiego.
  */
-export function muroPiuVicino(
+export function centroPoligono(poligono: Punto[]): Punto {
+  const n = poligono.length || 1;
+  const lat = poligono.reduce((s, p) => s + p[0], 0) / n;
+  const lng = poligono.reduce((s, p) => s + p[1], 0) / n;
+  return [Number(lat.toFixed(6)), Number(lng.toFixed(6))];
+}
+
+/**
+ * True se il punto (lat, lng) cade dentro il poligono (ray casting).
+ * lat e' trattata come Y, lng come X.
+ */
+export function dentroPoligono(lat: number, lng: number, poligono: Punto[]): boolean {
+  let dentro = false;
+  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
+    const [latI, lngI] = poligono[i];
+    const [latJ, lngJ] = poligono[j];
+    const interseca =
+      lngI > lng !== lngJ > lng &&
+      lat < ((latJ - latI) * (lng - lngI)) / (lngJ - lngI) + latI;
+    if (interseca) dentro = !dentro;
+  }
+  return dentro;
+}
+
+/**
+ * Trova il muro in cui si trova la posizione data.
+ *   1. Prima i muri con una zona disegnata: se la posizione cade dentro,
+ *      quello e' il muro. (Accesso preciso, voluto.)
+ *   2. Ripiego, solo per i muri SENZA zona: il piu' vicino entro raggio_m.
+ *      Serve a non rompere i muri creati prima delle zone.
+ * Ritorna null se la posizione non appartiene a nessun muro.
+ */
+export function muroPerPosizione(
   lat: number,
   lng: number,
   muri: MuroAdmin[]
-): { muro: MuroAdmin; distanza: number } | null {
-  let migliore: { muro: MuroAdmin; distanza: number } | null = null;
-
+): MuroAdmin | null {
   for (const muro of muri) {
+    if (muro.zona && dentroPoligono(lat, lng, muro.zona)) return muro;
+  }
+
+  let migliore: { muro: MuroAdmin; distanza: number } | null = null;
+  for (const muro of muri) {
+    if (muro.zona) continue;
     if (muro.lat === null || muro.lng === null) continue;
     const distanza = distanzaMetri(lat, lng, muro.lat, muro.lng);
     const raggio = muro.raggio_m > 0 ? muro.raggio_m : 200;
@@ -209,5 +268,5 @@ export function muroPiuVicino(
       migliore = { muro, distanza };
     }
   }
-  return migliore;
+  return migliore?.muro ?? null;
 }

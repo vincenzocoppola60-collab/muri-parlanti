@@ -324,16 +324,19 @@ const IT: Parole = {
   "apri.titolo": "Apri un muro",
   "apri.cercoPos":
     "Un attimo: cerco la tua posizione per capire su quale muro sei…",
-  "apri.cercoMuro": "Posizione trovata. Cerco il muro più vicino…",
+  "apri.cercoMuro": "Posizione trovata. Verifico la zona del muro…",
   "apri.trovato": "Muro trovato: apro {slug}…",
   "apri.errore":
-    "Qualcosa è andato storto. Riprova o scegli il muro dall'elenco.",
+    "Qualcosa è andato storto. Riscansiona il QR e riprova.",
   "apri.noGeo": "Questo dispositivo non supporta la geolocalizzazione.",
+  "apri.fuoriZona":
+    "Non sei nella zona di nessun muro. Avvicinati al muro e riscansiona il QR.",
   "apri.noMuri":
     "Non ci sono ancora muri: chiedi all'autore di crearne uno.",
   "apri.noCoord": "Nessun muro ha ancora le coordinate impostate.",
   "apri.noVicino": "Nessun muro abbastanza vicino. Ecco quelli più vicini a te:",
-  "apri.posNegata": "Posizione non disponibile. Scegli il muro dall'elenco:",
+  "apri.posNegata":
+    "Posizione non disponibile. Consenti l'accesso alla posizione e riscansiona il QR.",
   "apri.home": "← Home",
 
   "reimposta.titolo": "Nuova password",
@@ -353,7 +356,7 @@ const IT: Parole = {
   "admin.noAccesso":
     "Devi accedere con l'account amministratore per gestire i muri.",
   "admin.noAdmin":
-    "Questo account non è amministratore: non pu���������� creare né gestire i muri.",
+    "Questo account non è amministratore: non pu������������ creare né gestire i muri.",
   "admin.testo":
     "Solo tu puoi fondare un muro e generarne il QR. Tutti gli altri possono solo leggere e lasciare pensieri.",
   "admin.fonda": "Fonda un muro",
@@ -390,6 +393,15 @@ const IT: Parole = {
     "La geolocalizzazione non è disponibile su questo dispositivo.",
   "admin.cercoPos": "Cerco la tua posizione…",
   "admin.posNonRilevata": "Posizione non rilevata: inseriscila a mano.",
+  "admin.zona": "Zona di accesso del muro",
+  "admin.zonaAiuto":
+    "Tocca la mappa per disegnare il perimetro della zona: almeno 3 punti. Solo chi si trova dentro questa zona, scannerizzando il QR, potrà aprire il muro.",
+  "admin.zonaVaiPos": "📍 Vai alla mia posizione",
+  "admin.zonaIndietro": "Annulla ultimo punto",
+  "admin.zonaPulisci": "Pulisci",
+  "admin.zonaPunti": "{n} punti",
+  "admin.senzaZona": "senza zona (raggio predefinito)",
+  "admin.errZona": "Disegna almeno 3 punti sulla mappa per definire la zona.",
 
   "qr.muroDi": "Muro di {nome}",
   "qr.inquadra": "Inquadra il codice per lasciare un pensiero su questo muro.",
@@ -443,7 +455,7 @@ const EN: Parole = {
   "pwa.installaFatto": "App added to your Home screen",
   "pwa.ios": "On iPhone/iPad: tap Share, then “Add to Home Screen”.",
   "pwa.altro":
-    "From the browser menu choose “Install app” or “Add to Home screen”.",
+    "From the browser menu choose ���Install app” or “Add to Home screen”.",
   "pwa.giaInstallata": "You are already using the version saved to your Home screen.",
   "muro.pensieroUno": "1 thought left",
   "muro.pensieri": "{n} thoughts left",
@@ -690,16 +702,19 @@ const EN: Parole = {
   "apri.titolo": "Open a wall",
   "apri.cercoPos":
     "One moment: getting your location to figure out which wall you're at…",
-  "apri.cercoMuro": "Location found. Looking for the nearest wall…",
+  "apri.cercoMuro": "Location found. Checking the wall's area…",
   "apri.trovato": "Wall found: opening {slug}…",
   "apri.errore":
-    "Something went wrong. Try again or choose the wall from the list.",
+    "Something went wrong. Scan the QR again and retry.",
   "apri.noGeo": "This device doesn't support geolocation.",
+  "apri.fuoriZona":
+    "You're not inside any wall's area. Move closer to the wall and scan the QR again.",
   "apri.noMuri":
     "There are no walls yet: ask the author to create one.",
   "apri.noCoord": "No wall has its coordinates set yet.",
   "apri.noVicino": "No wall close enough. Here are the ones nearest to you:",
-  "apri.posNegata": "Location unavailable. Choose the wall from the list:",
+  "apri.posNegata":
+    "Location unavailable. Allow location access and scan the QR again.",
   "apri.home": "← Home",
 
   "reimposta.titolo": "New password",
@@ -756,6 +771,15 @@ const EN: Parole = {
     "Geolocation is not available on this device.",
   "admin.cercoPos": "Getting your location…",
   "admin.posNonRilevata": "Location not detected: enter it manually.",
+  "admin.zona": "Wall access area",
+  "admin.zonaAiuto":
+    "Tap the map to draw the perimeter of the area: at least 3 points. Only people inside this area can open the wall by scanning the QR.",
+  "admin.zonaVaiPos": "📍 Go to my location",
+  "admin.zonaIndietro": "Undo last point",
+  "admin.zonaPulisci": "Clear",
+  "admin.zonaPunti": "{n} points",
+  "admin.senzaZona": "no area (default radius)",
+  "admin.errZona": "Draw at least 3 points on the map to define the area.",
 
   "qr.muroDi": "Wall of {nome}",
   "qr.inquadra": "Frame the code to leave a thought on this wall.",
@@ -1057,16 +1081,19 @@ const ES: Parole = {
   "apri.titolo": "Abrir un muro",
   "apri.cercoPos":
     "Un momento: busco tu ubicación para saber en qué muro estás…",
-  "apri.cercoMuro": "Ubicación encontrada. Busco el muro más cercano…",
+  "apri.cercoMuro": "Ubicación encontrada. Verifico la zona del muro…",
   "apri.trovato": "Muro encontrado: abriendo {slug}…",
   "apri.errore":
-    "Algo salió mal. Reintenta o elige el muro de la lista.",
+    "Algo salió mal. Vuelve a escanear el QR e inténtalo de nuevo.",
   "apri.noGeo": "Este dispositivo no admite la geolocalización.",
+  "apri.fuoriZona":
+    "No estás en la zona de ningún muro. Acércate al muro y vuelve a escanear el QR.",
   "apri.noMuri":
     "Todavía no hay muros: pide al autor que cree uno.",
   "apri.noCoord": "Ningún muro tiene aún las coordenadas configuradas.",
   "apri.noVicino": "Ningún muro lo suficientemente cerca. Aquí están los más cercanos a ti:",
-  "apri.posNegata": "Ubicación no disponible. Elige el muro de la lista:",
+  "apri.posNegata":
+    "Ubicación no disponible. Permite el acceso a la ubicación y vuelve a escanear el QR.",
   "apri.home": "← Inicio",
 
   "reimposta.titolo": "Nueva contraseña",
@@ -1123,6 +1150,15 @@ const ES: Parole = {
     "La geolocalización no está disponible en este dispositivo.",
   "admin.cercoPos": "Buscando tu ubicación…",
   "admin.posNonRilevata": "Ubicación no detectada: introdúcela a mano.",
+  "admin.zona": "Zona de acceso del muro",
+  "admin.zonaAiuto":
+    "Toca el mapa para dibujar el perímetro de la zona: al menos 3 puntos. Solo quien esté dentro de esta zona podrá abrir el muro escaneando el QR.",
+  "admin.zonaVaiPos": "📍 Ir a mi ubicación",
+  "admin.zonaIndietro": "Deshacer último punto",
+  "admin.zonaPulisci": "Limpiar",
+  "admin.zonaPunti": "{n} puntos",
+  "admin.senzaZona": "sin zona (radio predeterminado)",
+  "admin.errZona": "Dibuja al menos 3 puntos en el mapa para definir la zona.",
 
   "qr.muroDi": "Muro de {nome}",
   "qr.inquadra": "Encuadra el código para dejar un pensamiento en este muro.",
@@ -1288,7 +1324,7 @@ const FR: Parole = {
   "profilo.pensieriLasciati": "pensées laissées",
   "profilo.preferiti": "favoris",
   "profilo.caricaFoto": "📷 Téléverser la photo d'un mur",
-  "profilo.ilMioProfilo": "👁️ Mon profil",
+  "profilo.ilMioProfilo": "����️ Mon profil",
   "profilo.impostazioni": "⚙️ Paramètres",
   "profilo.ricompense": "Récompenses de niveau",
   "profilo.preferitiTitolo": "Post-it favoris",
@@ -1424,16 +1460,19 @@ const FR: Parole = {
   "apri.titolo": "Ouvrir un mur",
   "apri.cercoPos":
     "Un instant : je cherche votre position pour savoir à quel mur vous êtes…",
-  "apri.cercoMuro": "Position trouvée. Je cherche le mur le plus proche…",
+  "apri.cercoMuro": "Position trouvée. Je vérifie la zone du mur…",
   "apri.trovato": "Mur trouvé : ouverture de {slug}…",
   "apri.errore":
-    "Quelque chose s'est mal passé. Réessayez ou choisissez le mur dans la liste.",
+    "Quelque chose s'est mal passé. Rescannez le QR et réessayez.",
   "apri.noGeo": "Cet appareil ne prend pas en charge la géolocalisation.",
+  "apri.fuoriZona":
+    "Vous n'êtes dans la zone d'aucun mur. Rapprochez-vous du mur et rescannez le QR.",
   "apri.noMuri":
     "Il n'y a pas encore de murs : demandez à l'auteur d'en créer un.",
   "apri.noCoord": "Aucun mur n'a encore ses coordonnées définies.",
   "apri.noVicino": "Aucun mur assez proche. Voici les plus proches de vous :",
-  "apri.posNegata": "Position indisponible. Choisissez le mur dans la liste :",
+  "apri.posNegata":
+    "Position indisponible. Autorisez l'accès à la position et rescannez le QR.",
   "apri.home": "← Accueil",
 
   "reimposta.titolo": "Nouveau mot de passe",
@@ -1490,6 +1529,15 @@ const FR: Parole = {
     "La géolocalisation n'est pas disponible sur cet appareil.",
   "admin.cercoPos": "Je cherche votre position…",
   "admin.posNonRilevata": "Position non détectée : saisissez-la manuellement.",
+  "admin.zona": "Zone d'accès du mur",
+  "admin.zonaAiuto":
+    "Touchez la carte pour tracer le périmètre de la zone : au moins 3 points. Seules les personnes situées dans cette zone pourront ouvrir le mur en scannant le QR.",
+  "admin.zonaVaiPos": "📍 Aller à ma position",
+  "admin.zonaIndietro": "Annuler le dernier point",
+  "admin.zonaPulisci": "Effacer",
+  "admin.zonaPunti": "{n} points",
+  "admin.senzaZona": "sans zone (rayon par défaut)",
+  "admin.errZona": "Tracez au moins 3 points sur la carte pour définir la zone.",
 
   "qr.muroDi": "Mur de {nome}",
   "qr.inquadra": "Cadrez le code pour laisser une pensée sur ce mur.",
@@ -1578,7 +1626,7 @@ const DE: Parole = {
   "postit.vediProfilo": "Profil der Autorin/des Autors ansehen",
   "postit.tradotto": "übersetzt",
   "postit.mostraOriginale": "Original anzeigen",
-  "postit.mostraTraduzione": "Übersetzen",
+  "postit.mostraTraduzione": "��bersetzen",
   "postit.preferitoAggiungi": "Zu Favoriten hinzufügen",
   "postit.preferitoRimuovi": "Aus Favoriten entfernen",
   "postit.fotoAllegata": "An den Gedanken angehängtes Foto",
@@ -1791,16 +1839,19 @@ const DE: Parole = {
   "apri.titolo": "Eine Wand öffnen",
   "apri.cercoPos":
     "Einen Moment: Ich suche deinen Standort, um zu erkennen, an welcher Wand du bist…",
-  "apri.cercoMuro": "Standort gefunden. Ich suche die nächste Wand…",
+  "apri.cercoMuro": "Standort gefunden. Ich prüfe den Bereich der Wand…",
   "apri.trovato": "Wand gefunden: {slug} wird geöffnet…",
   "apri.errore":
-    "Etwas ist schiefgelaufen. Versuche es erneut oder wähle die Wand aus der Liste.",
+    "Etwas ist schiefgelaufen. Scanne den QR-Code erneut und versuche es noch einmal.",
   "apri.noGeo": "Dieses Gerät unterstützt keine Geolokalisierung.",
+  "apri.fuoriZona":
+    "Du bist im Bereich keiner Wand. Geh näher an die Wand und scanne den QR-Code erneut.",
   "apri.noMuri":
     "Es gibt noch keine Wände: Bitte den Autor, eine zu erstellen.",
   "apri.noCoord": "Bei keiner Wand sind die Koordinaten eingestellt.",
   "apri.noVicino": "Keine Wand nah genug. Hier sind die nächstgelegenen:",
-  "apri.posNegata": "Standort nicht verfügbar. Wähle die Wand aus der Liste:",
+  "apri.posNegata":
+    "Standort nicht verfügbar. Erlaube den Standortzugriff und scanne den QR-Code erneut.",
   "apri.home": "← Startseite",
 
   "reimposta.titolo": "Neues Passwort",
@@ -1857,6 +1908,15 @@ const DE: Parole = {
     "Die Geolokalisierung ist auf diesem Gerät nicht verfügbar.",
   "admin.cercoPos": "Ich suche deinen Standort…",
   "admin.posNonRilevata": "Standort nicht erkannt: Gib ihn manuell ein.",
+  "admin.zona": "Zugangsbereich der Wand",
+  "admin.zonaAiuto":
+    "Tippe auf die Karte, um den Umriss des Bereichs zu zeichnen: mindestens 3 Punkte. Nur wer sich in diesem Bereich befindet, kann die Wand durch Scannen des QR-Codes öffnen.",
+  "admin.zonaVaiPos": "📍 Zu meinem Standort",
+  "admin.zonaIndietro": "Letzten Punkt rückgängig",
+  "admin.zonaPulisci": "Leeren",
+  "admin.zonaPunti": "{n} Punkte",
+  "admin.senzaZona": "ohne Bereich (Standardradius)",
+  "admin.errZona": "Zeichne mindestens 3 Punkte auf der Karte, um den Bereich festzulegen.",
 
   "qr.muroDi": "Wand von {nome}",
   "qr.inquadra": "Richte den Code aus, um einen Gedanken an dieser Wand zu hinterlassen.",
