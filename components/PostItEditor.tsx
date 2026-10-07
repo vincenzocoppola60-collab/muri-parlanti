@@ -9,6 +9,7 @@ import {
   type PostIt,
 } from "@/lib/postit";
 import { comprimiImmagine } from "@/lib/immagini";
+import { analizzaCanzone } from "@/lib/canzone";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 
@@ -29,6 +30,7 @@ export default function PostItEditor({
   const [nickname, setNickname] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
   const [anteprima, setAnteprima] = useState<string | null>(null);
+  const [canzone, setCanzone] = useState("");
   const [inviando, setInviando] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -87,6 +89,15 @@ export default function PostItEditor({
       }
     }
 
+    // La canzone (se c'e') deve essere un link riconosciuto: cosi' il player
+    // si carica correttamente subito dopo la pubblicazione.
+    const linkCanzone = canzone.trim();
+    const canzoneOk = linkCanzone ? analizzaCanzone(linkCanzone) : null;
+    if (linkCanzone && !canzoneOk) {
+      setErrore(t("editor.canzoneNonSupportata"));
+      return; // il testo e la foto restano nell'editor
+    }
+
     setInviando(true);
 
     // La foto (se c'e') viene compressa e caricata PRIMA del post-it: cosi'
@@ -113,6 +124,7 @@ export default function PostItEditor({
       luogo,
       userId: utente?.id ?? null,
       fotoUrl,
+      canzoneUrl: canzoneOk?.url ?? null,
     });
     setInviando(false);
 
@@ -220,6 +232,46 @@ export default function PostItEditor({
                 {t("editor.fotoFacoltativa")}
               </span>
             </button>
+          )}
+        </div>
+
+        {/* Canzone facoltativa: si incolla il link di un servizio supportato
+            e sotto al pensiero comparira' il player ufficiale. */}
+        <div className="mt-3">
+          <p className="mb-1 text-xs font-semibold text-stone-700">
+            🎵 {t("editor.canzoneAggiungi")}{" "}
+            <span className="font-normal text-stone-600/80">
+              {t("editor.canzoneFacoltativa")}
+            </span>
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="url"
+              inputMode="url"
+              value={canzone}
+              onChange={(e) => {
+                setCanzone(e.target.value);
+                setErrore(null);
+              }}
+              placeholder={t("editor.canzonePlaceholder")}
+              className="min-w-0 flex-1 rounded-sm border border-stone-900/20 bg-white/60 px-3 py-2 text-sm text-stone-900 placeholder:text-stone-600/70 focus:outline-none"
+            />
+            {canzone && (
+              <button
+                type="button"
+                onClick={() => setCanzone("")}
+                aria-label={t("editor.canzoneRimuovi")}
+                className="rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {canzone.trim() && analizzaCanzone(canzone.trim()) && (
+            <p className="mt-1 text-xs font-semibold text-emerald-800">
+              ✓ {t("editor.canzonePronta")}{" "}
+              {analizzaCanzone(canzone.trim())!.etichetta}
+            </p>
           )}
         </div>
 

@@ -7,6 +7,7 @@ import { formattaData } from "@/lib/formato";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { traduciTesto } from "@/lib/traduzione";
+import CanzonePlayer from "@/components/CanzonePlayer";
 
 const SFONDI = ["/images/1.webp", "/images/3.webp"];
 
@@ -151,6 +152,7 @@ export default function PostItView({
           />
         </div>
       )}
+      {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
       <footer className="mt-3 flex items-center justify-between gap-2 text-stone-700">
         {mio ? (
           <Link

@@ -11,6 +11,8 @@ export type PostIt = {
   user_id?: string | null;
   /** URL pubblico della foto allegata al pensiero, se presente. */
   foto_url?: string | null;
+  /** Link al brano (Spotify/YouTube/...) allegato al pensiero, se presente. */
+  canzone_url?: string | null;
 };
 
 export type EsitoPostIt =
@@ -179,10 +181,11 @@ async function inserisci(
  * userId: se presente il pensiero resta firmato dall'account (nome
  * cliccabile verso il profilo); la riga viene verificata da RLS.
  * fotoUrl: se presente allega la foto al pensiero.
+ * canzoneUrl: se presente allega il brano (link gia' riconosciuto).
  *
  * I tentativi vanno dal piu' completo al piu' compatibile: se una colonna
- * non esiste ancora (migrazione 0005 o 0008 non eseguita) si riprova senza,
- * per non bloccare mai la pubblicazione del testo.
+ * non esiste ancora (migrazione 0005, 0008 o 0012 non eseguita) si riprova
+ * senza, per non bloccare mai la pubblicazione del testo.
  */
 export async function attaccaPostit(input: {
   testo: string;
@@ -190,6 +193,7 @@ export async function attaccaPostit(input: {
   luogo: string;
   userId?: string | null;
   fotoUrl?: string | null;
+  canzoneUrl?: string | null;
 }): Promise<EsitoPostIt> {
   const testo = input.testo.trim();
   if (!testo) {
@@ -205,17 +209,30 @@ export async function attaccaPostit(input: {
   const nickname = input.nickname.trim().slice(0, MAX_NICKNAME) || "Anonimo";
   const userId = input.userId ?? null;
   const fotoUrl = input.fotoUrl ?? null;
+  const canzoneUrl = input.canzoneUrl ?? null;
   const base: Record<string, unknown> = {
     testo,
     nickname,
     luogo: input.luogo,
   };
 
+  // Colonne facoltative presenti su questa riga (dipendono dalle migrazioni).
+  const opzionali: Record<string, unknown>[] = [];
+  if (userId) opzionali.push({ user_id: userId });
+  if (fotoUrl) opzionali.push({ foto_url: fotoUrl });
+  if (canzoneUrl) opzionali.push({ canzone_url: canzoneUrl });
+
+  // Tentativi dal piu' completo al piu' compatibile: un sottoinsieme per
+  // ogni combinazione di colonne facoltative, cosi' se una colonna non esiste
+  // ancora si riprova senza, senza mai perdere il testo scritto.
   const tentativi: Record<string, unknown>[] = [];
-  if (userId && fotoUrl) tentativi.push({ ...base, user_id: userId, foto_url: fotoUrl });
-  if (fotoUrl) tentativi.push({ ...base, foto_url: fotoUrl });
-  if (userId) tentativi.push({ ...base, user_id: userId });
-  tentativi.push({ ...base });
+  for (let mask = (1 << opzionali.length) - 1; mask >= 0; mask--) {
+    const riga: Record<string, unknown> = { ...base };
+    for (let i = 0; i < opzionali.length; i++) {
+      if (mask & (1 << i)) Object.assign(riga, opzionali[i]);
+    }
+    tentativi.push(riga);
+  }
 
   let ultimo: EsitoPostIt = {
     ok: false,
