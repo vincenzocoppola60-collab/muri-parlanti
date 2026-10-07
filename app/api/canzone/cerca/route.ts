@@ -8,42 +8,70 @@ import { MAX_PORZIONE, type RisultatoCanzone } from "@/lib/canzone";
  * testo cercato e riceve un elenco di brani. Cosi' eventuali chiavi restano
  * sul server.
  *
- * Ordine di scelta:
- *  1) YouTube Data API, se YOUTUBE_API_KEY e' configurata: permette di
- *     scegliere da quale secondo partire (porzione fino a 30s) sul brano
- *     completo;
- *  2) l'iTunes Search API di Apple (senza chiave): restituisce artisti e
- *     copertine e un'anteprima audio ufficiale di 30 secondi.
- * Se YouTube e' configurata ma non risponde o non trova nulla, si ripiega
- * comunque su iTunes (la ricerca non resta mai bloccata).
+ * Fonti:
+ *  - YouTube Data API (YOUTUBE_API_KEY): brano completo, permette di scegliere
+ *    da quale secondo partire e per quanti secondi (porzione fino a 30s);
+ *  - Spotify Web API (SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET, client
+ *    credentials): id, copertina e (quando disponibile) l'anteprima audio di
+ *    30 secondi;
+ *  - iTunes Search API di Apple (nessuna chiave): sempre disponibile, con
+ *    anteprima audio ufficiale di 30 secondi.
+ *
+ * Il parametro "fonte" (tutti|youtube|spotify|apple) filtra la ricerca. Con
+ * "tutti" le fonti configurate vengono interrogate in parallelo e i risultati
+ * alternati tra loro. Se una fonte non e' configurata ma e' richiesta
+ * esplicitamente, si risponde con "avviso" per far mostrare un messaggio.
  */
 
 export const runtime = "nodejs";
 
 const MAX_Q = 80;
 const LIMITE = 12;
+const LIMITE_TOTALE = 15;
+
+type Fonte = "tutti" | "youtube" | "spotify" | "apple";
+
+function normalizzaFonte(x: string | null): Fonte {
+  if (x === "youtube" || x === "spotify" || x === "apple") return x;
+  return "tutti";
+}
 
 export async function GET(request: Request) {
-  const q = (new URL(request.url).searchParams.get("q") ?? "").trim().slice(0, MAX_Q);
+  const sp = new URL(request.url).searchParams;
+  const q = (sp.get("q") ?? "").trim().slice(0, MAX_Q);
+  const fonte = normalizzaFonte(sp.get("fonte"));
+
   if (q.length < 2) {
     return NextResponse.json({ ok: true, risultati: [] as RisultatoCanzone[] });
   }
 
-  const chiave = process.env.YOUTUBE_API_KEY?.trim();
+  const chiaveYt = process.env.YOUTUBE_API_KEY?.trim();
+  const spotifyConfigurato = Boolean(
+    process.env.SPOTIFY_CLIENT_ID?.trim() && process.env.SPOTIFY_CLIENT_SECRET?.trim()
+  );
+
+  const voleYt = fonte === "tutti" || fonte === "youtube";
+  const voleSp = fonte === "tutti" || fonte === "spotify";
+  const voleAp = fonte === "tutti" || fonte === "apple";
+
+  // Una fonte richiesta esplicitamente ma non configurata: avvisiamo la UI.
+  const avviso =
+    fonte === "youtube" && !chiaveYt
+      ? "youtube"
+      : fonte === "spotify" && !spotifyConfigurato
+        ? "spotify"
+        : undefined;
+
+  const lavori: Promise<RisultatoCanzone[]>[] = [];
+  if (voleYt && chiaveYt) lavori.push(cercaYouTube(q, chiaveYt).catch(() => []));
+  if (voleSp && spotifyConfigurato)
+    lavori.push(cercaSpotify(q).catch(() => []));
+  if (voleAp) lavori.push(cercaItunes(q).catch(() => []));
+
   try {
-    // Con la chiave YouTube si prova prima YouTube; se non risponde (o non
-    // trova nulla) si ripiega comunque su iTunes, cosi' la ricerca funziona
-    // sempre, anche con una chiave scaduta.
-    if (chiave) {
-      try {
-        const yt = await cercaYouTube(q, chiave);
-        if (yt.length) return NextResponse.json({ ok: true, risultati: yt });
-      } catch {
-        // si prosegue con iTunes
-      }
-    }
-    const itunes = await cercaItunes(q);
-    return NextResponse.json({ ok: true, risultati: itunes });
+    const gruppi = await Promise.all(lavori);
+    const risultati = mescola(gruppi);
+    return NextResponse.json({ ok: true, risultati, avviso });
   } catch {
     return NextResponse.json(
       { ok: false, errore: "Ricerca non disponibile.", risultati: [] },
@@ -52,13 +80,34 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * Alterna i risultati delle diverse fonti (round-robin) cosi' l'elenco non
+ * e' dominato da un solo servizio, e rimuove i doppioni titolo+artista.
+ */
+function mescola(gruppi: RisultatoCanzone[][]): RisultatoCanzone[] {
+  const fuori: RisultatoCanzone[] = [];
+  const visti = new Set<string>();
+  const max = gruppi.reduce((m, g) => Math.max(m, g.length), 0);
+  for (let i = 0; i < max; i++) {
+    for (const g of gruppi) {
+      const r = g[i];
+      if (!r) continue;
+      const firma = `${r.titolo.toLowerCase()}|${r.artista.toLowerCase()}`;
+      if (visti.has(firma)) continue;
+      visti.add(firma);
+      fuori.push(r);
+      if (fuori.length >= LIMITE_TOTALE) return fuori;
+    }
+  }
+  return fuori;
+}
+
 /* ------------------------------- iTunes ------------------------------- */
 
 type ItunesBrano = {
   trackId?: number;
   trackName?: string;
   artistName?: string;
-  collectionName?: string;
   previewUrl?: string;
   artworkUrl100?: string;
   trackTimeMillis?: number;
@@ -96,8 +145,104 @@ async function cercaItunes(q: string): Promise<RisultatoCanzone[]> {
       copertina: b.artworkUrl100
         ? b.artworkUrl100.replace(/\/\d+x\d+bb\./, "/200x200bb.")
         : null,
+      durataSec: b.trackTimeMillis ? Math.round(b.trackTimeMillis / 1000) : null,
       // L'anteprima ufficiale di Apple dura 30 secondi.
-      durataSec: MAX_PORZIONE,
+      anteprimaDurata: MAX_PORZIONE,
+      anteprimaUrl: anteprima,
+    });
+  }
+  return fuori;
+}
+
+/* ------------------------------- Spotify ------------------------------ */
+
+type SpotifyBrano = {
+  id?: string;
+  name?: string;
+  artists?: { name?: string }[];
+  album?: { images?: { url?: string; width?: number }[] };
+  duration_ms?: number;
+  preview_url?: string | null;
+};
+
+// Token "client credentials" con cache in memoria finche' non scade.
+let tokenSpotify: { valore: string; scadenza: number } | null = null;
+
+async function ottieniTokenSpotify(): Promise<string> {
+  if (tokenSpotify && tokenSpotify.scadenza > Date.now() + 30_000) {
+    return tokenSpotify.valore;
+  }
+  const id = process.env.SPOTIFY_CLIENT_ID?.trim();
+  const segreto = process.env.SPOTIFY_CLIENT_SECRET?.trim();
+  if (!id || !segreto) throw new Error("spotify-config");
+
+  const r = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: "Basic " + Buffer.from(`${id}:${segreto}`).toString("base64"),
+    },
+    body: "grant_type=client_credentials",
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error("spotify-token");
+  const dati = (await r.json().catch(() => null)) as {
+    access_token?: string;
+    expires_in?: number;
+  } | null;
+  const valore = dati?.access_token;
+  if (!valore) throw new Error("spotify-token");
+  tokenSpotify = {
+    valore,
+    scadenza: Date.now() + (dati?.expires_in ?? 3600) * 1000,
+  };
+  return valore;
+}
+
+async function cercaSpotify(q: string): Promise<RisultatoCanzone[]> {
+  const token = await ottieniTokenSpotify();
+  const url = new URL("https://api.spotify.com/v1/search");
+  url.search = new URLSearchParams({
+    q,
+    type: "track",
+    limit: String(LIMITE),
+  }).toString();
+
+  const r = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error("spotify");
+  const dati = (await r.json().catch(() => null)) as {
+    tracks?: { items?: SpotifyBrano[] };
+  } | null;
+
+  const fuori: RisultatoCanzone[] = [];
+  const visti = new Set<string>();
+  for (const t of dati?.tracks?.items ?? []) {
+    const id = t.id ?? "";
+    const titolo = (t.name ?? "").trim();
+    if (!id || !titolo) continue;
+    const artista = (t.artists ?? [])
+      .map((a) => a.name ?? "")
+      .filter(Boolean)
+      .join(", ");
+    const firma = `${titolo.toLowerCase()}|${artista.toLowerCase()}`;
+    if (visti.has(firma)) continue;
+    visti.add(firma);
+    const immagini = t.album?.images ?? [];
+    const immagine =
+      immagini.find((i) => (i.width ?? 0) >= 160) ?? immagini[0];
+    const anteprima = t.preview_url?.trim() || null;
+    fuori.push({
+      servizio: "spotify",
+      id,
+      titolo,
+      artista,
+      copertina: immagine?.url ?? null,
+      durataSec: t.duration_ms ? Math.round(t.duration_ms / 1000) : null,
+      // Le anteprime Spotify durano 30 secondi (quando disponibili).
+      anteprimaDurata: anteprima ? MAX_PORZIONE : null,
       anteprimaUrl: anteprima,
     });
   }
@@ -178,6 +323,7 @@ async function cercaYouTube(q: string, chiave: string): Promise<RisultatoCanzone
       copertina:
         it.snippet?.thumbnails?.high?.url ?? it.snippet?.thumbnails?.medium?.url ?? null,
       durataSec: meta && meta.secondi > 0 ? meta.secondi : null,
+      anteprimaDurata: null,
       anteprimaUrl: null,
     });
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AudioPorzione from "@/components/AudioPorzione";
 import { embedClipYoutube, playerDaCanzone } from "@/lib/canzone";
 import { useLingua } from "@/lib/i18n";
 
@@ -12,10 +13,12 @@ import { useLingua } from "@/lib/i18n";
  * e il contenuto si carica solo quando l'utente la tocca. Cosi' non parte
  * nessuna richiesta ai servizi di streaming finche' non serve.
  *
- * Sono possibili tre casi:
+ * Sono possibili questi casi:
  *  - link a un servizio (Spotify, Apple Music, ...): player ufficiale in iframe;
- *  - brano YouTube scelto con la ricerca: iframe che parte dal secondo scelto;
- *  - brano scelto con la ricerca (anteprima Apple): audio di 30 secondi.
+ *  - brano YouTube scelto con la ricerca: iframe dalla parte scelta (inizio/fine);
+ *  - brano Apple/Spotify con anteprima audio: parte solo la porzione scelta
+ *    (max 30s);
+ *  - brano Spotify senza anteprima: player ufficiale (dall'inizio).
  */
 export default function CanzonePlayer({ url }: { url: string }) {
   const { t } = useLingua();
@@ -42,10 +45,10 @@ export default function CanzonePlayer({ url }: { url: string }) {
   return (
     <div className="mt-2 overflow-hidden rounded-[3px] border border-stone-900/15 bg-stone-900/10">
       {player.tipo === "clip-audio" ? (
-        <audio
+        <AudioPorzione
           src={player.src}
-          controls
-          autoPlay
+          inizio={player.inizio}
+          durata={player.durata}
           className="block w-full"
         />
       ) : (

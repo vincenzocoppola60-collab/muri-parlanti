@@ -200,18 +200,26 @@ export function analizzaCanzone(ingresso: string): Canzone | null {
 /** Durata massima della porzione che si puo' far sentire (secondi). */
 export const MAX_PORZIONE = 30;
 
+/** Durata minima della porzione scelta dall'utente (secondi). */
+export const MIN_PORZIONE = 5;
+
 /** Brano trovato con la ricerca, prima della scelta della porzione. */
 export type RisultatoCanzone = {
-  servizio: "youtube" | "apple";
-  /** id del video YouTube oppure id del brano iTunes. */
+  servizio: "youtube" | "apple" | "spotify";
+  /** id del video YouTube, del brano iTunes o della traccia Spotify. */
   id: string;
   titolo: string;
   artista: string;
   /** URL della copertina (o null). */
   copertina: string | null;
-  /** Durata del brano in secondi (per Apple: la durata dell'anteprima, 30). */
+  /** Durata del brano completo in secondi, se nota. */
   durataSec: number | null;
-  /** URL dell'anteprima audio (Apple/iTunes), altrimenti null. */
+  /**
+   * Lunghezza (secondi) dell'anteprima audio riproducibile, quando c'e':
+   * serve all'editor per sapere entro quale intervallo far scegliere l'inizio.
+   */
+  anteprimaDurata: number | null;
+  /** URL dell'anteprima audio (Apple/iTunes, Spotify), altrimenti null. */
   anteprimaUrl: string | null;
 };
 
@@ -219,16 +227,21 @@ export type RisultatoCanzone = {
 export type ClipCanzone = {
   /** Versione del formato: ci permette di evolvere senza rompere i vecchi. */
   v: 1;
-  servizio: "youtube" | "apple";
+  servizio: "youtube" | "apple" | "spotify";
   id: string;
   titolo: string;
   artista: string;
   copertina: string | null;
   /** Secondo da cui parte l'ascolto. */
   inizio: number;
-  /** Secondo in cui finisce l'ascolto (YouTube) o null (anteprima fissa). */
+  /**
+   * Durata scelta della porzione in secondi (al massimo 30). Null per i
+   * vecchi salvataggi o quando si ascolta un'anteprima intera.
+   */
+  durata: number | null;
+  /** Secondo in cui finisce l'ascolto (YouTube), ricavato da inizio+durata. */
   fine: number | null;
-  /** URL dell'anteprima audio (Apple), altrimenti null. */
+  /** URL dell'anteprima audio (Apple/Spotify), altrimenti null. */
   anteprima: string | null;
 };
 
@@ -242,7 +255,13 @@ export type Player =
       fine: number | null;
       etichetta: string;
     }
-  | { tipo: "clip-audio"; src: string; inizio: number; etichetta: string };
+  | {
+      tipo: "clip-audio";
+      src: string;
+      inizio: number;
+      durata: number | null;
+      etichetta: string;
+    };
 
 /** Serializza la scelta per salvarla su postit.canzone_url. */
 export function serializzaClip(clip: ClipCanzone): string {
@@ -263,13 +282,25 @@ export function leggiClip(valore: string | null | undefined): ClipCanzone | null
   const o = dati as Record<string, unknown>;
   if (o.v !== 1) return null;
   const servizio = o.servizio;
-  if (servizio !== "youtube" && servizio !== "apple") return null;
+  if (servizio !== "youtube" && servizio !== "apple" && servizio !== "spotify")
+    return null;
   const id = typeof o.id === "string" ? o.id : "";
   if (!id) return null;
   const num = (x: unknown, difetto: number) =>
     typeof x === "number" && Number.isFinite(x) && x >= 0 ? x : difetto;
   const testo = (x: unknown) => (typeof x === "string" ? x : "");
   const nullo = (x: unknown) => (typeof x === "string" && x ? x : null);
+  const inizio = num(o.inizio, 0);
+  const fine = o.fine === null ? null : num(o.fine, 0);
+  // I vecchi salvataggi non avevano "durata": la ricaviamo dalla fine.
+  const durata =
+    o.durata === null
+      ? null
+      : o.durata === undefined
+        ? fine !== null && fine > inizio
+          ? fine - inizio
+          : null
+        : num(o.durata, 0);
   return {
     v: 1,
     servizio,
@@ -277,8 +308,9 @@ export function leggiClip(valore: string | null | undefined): ClipCanzone | null
     titolo: testo(o.titolo),
     artista: testo(o.artista),
     copertina: nullo(o.copertina),
-    inizio: num(o.inizio, 0),
-    fine: o.fine === null ? null : num(o.fine, 0),
+    inizio,
+    durata,
+    fine,
     anteprima: nullo(o.anteprima),
   };
 }
@@ -305,6 +337,11 @@ export function descrizioneCanzone(valore: string): string | null {
   return c ? c.etichetta : null;
 }
 
+/** URL del player Spotify (embed pubblico) di una traccia. */
+export function embedSpotify(id: string): string {
+  return `https://open.spotify.com/embed/track/${encodeURIComponent(id)}`;
+}
+
 /** URL del player YouTube di una porzione (start/end). */
 export function embedClipYoutube(
   id: string,
@@ -329,19 +366,41 @@ export function playerDaCanzone(valore: string | null | undefined): Player | nul
   const clip = leggiClip(valore);
   if (clip) {
     if (clip.servizio === "youtube") {
+      const fine =
+        clip.fine ?? (clip.durata !== null ? clip.inizio + clip.durata : null);
       return {
         tipo: "clip-youtube",
         id: clip.id,
         inizio: clip.inizio,
-        fine: clip.fine,
+        fine,
         etichetta: "YouTube",
       };
     }
+    // Anteprima audio (Apple Music o Spotify con preview_url): la riproduciamo
+    // noi per far partire l'ascolto dal secondo scelto.
     if (clip.anteprima) {
       return {
         tipo: "clip-audio",
         src: clip.anteprima,
         inizio: clip.inizio,
+        durata: clip.durata,
+        etichetta: clip.servizio === "spotify" ? "Spotify" : "Apple Music",
+      };
+    }
+    if (clip.servizio === "spotify") {
+      // Nessuna anteprima disponibile: player ufficiale (parte dall'inizio).
+      return {
+        tipo: "embed",
+        embedUrl: embedSpotify(clip.id),
+        altezza: 152,
+        etichetta: "Spotify",
+      };
+    }
+    if (clip.servizio === "apple") {
+      return {
+        tipo: "embed",
+        embedUrl: `https://embed.music.apple.com/song/${encodeURIComponent(clip.id)}`,
+        altezza: 175,
         etichetta: "Apple Music",
       };
     }
