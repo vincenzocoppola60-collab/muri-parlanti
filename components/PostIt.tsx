@@ -48,6 +48,7 @@ export default function PostItView({
     null
   );
   const [mostraOriginale, setMostraOriginale] = useState(false);
+  const [zoomFoto, setZoomFoto] = useState(false);
   useEffect(() => {
     setMontato(true);
   }, []);
@@ -133,22 +134,55 @@ export default function PostItView({
         </button>
       )}
       {postit.foto_url && (
+        <div className="mt-2">
+          {/* Miniatura a META' larghezza: tocca per aprirla a tutto schermo.
+              Niente trascinamento e niente menu "salva immagine". */}
+          <button
+            type="button"
+            onClick={() => setZoomFoto(true)}
+            aria-label={t("postit.ingrandisciFoto")}
+            className="block w-1/2 select-none"
+            onContextMenu={(e) => e.preventDefault()}
+            style={{ WebkitTouchCallout: "none" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={postit.foto_url}
+              alt={t("postit.fotoAllegata")}
+              loading="lazy"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              className="pointer-events-none w-full select-none rounded-[3px] border border-stone-900/15 object-cover"
+            />
+          </button>
+        </div>
+      )}
+      {zoomFoto && postit.foto_url && (
         <div
-          className="mt-2 select-none"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/90 p-4 backdrop-blur-sm"
+          onClick={() => setZoomFoto(false)}
           onContextMenu={(e) => e.preventDefault()}
-          style={{ WebkitTouchCallout: "none" }}
+          role="dialog"
+          aria-modal="true"
         >
-          {/* Foto allegata al pensiero: SOLO mostrata. Niente link (non si apre
-              in un'altra pagina), niente trascinamento, niente menu "salva
-              immagine" (tasto destro / pressione prolungata). */}
+          <button
+            type="button"
+            onClick={() => setZoomFoto(false)}
+            aria-label={t("postit.chiudiZoom")}
+            className="absolute right-4 top-4 z-10 rounded-full bg-stone-900/70 px-3 py-1 text-2xl leading-none text-amber-100 transition hover:bg-stone-900"
+          >
+            ✕
+          </button>
+          {/* Foto a tutto schermo: cliccando fuori si chiude (tocco sull'immagine
+              non chiude). Resta non scaricabile e non trascinabile. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={postit.foto_url}
             alt={t("postit.fotoAllegata")}
-            loading="lazy"
             draggable={false}
+            onClick={(e) => e.stopPropagation()}
             onContextMenu={(e) => e.preventDefault()}
-            className="pointer-events-none w-full select-none rounded-[3px] border border-stone-900/15 object-cover"
+            className="max-h-[90vh] max-w-[90vw] select-none rounded-lg object-contain shadow-2xl"
           />
         </div>
       )}
