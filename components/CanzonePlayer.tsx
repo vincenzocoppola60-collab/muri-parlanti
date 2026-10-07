@@ -37,6 +37,35 @@ export default function CanzonePlayer({ url }: { url: string }) {
 
   return (
     <div className="mt-2 overflow-hidden rounded-[3px] border border-stone-900/15 bg-stone-900/10">
+      {/* Copertina e titolo del brano, con i controlli di ascolto SOTTO. */}
+      {(player.copertina || player.titolo) && (
+        <div className="flex items-center gap-3 px-3 pt-3">
+          {player.copertina ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={player.copertina}
+              alt=""
+              draggable={false}
+              className="h-12 w-12 shrink-0 rounded-md object-cover"
+            />
+          ) : (
+            <span
+              aria-hidden
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-stone-900/15 text-lg"
+            >
+              🎵
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-stone-900">
+              {player.titolo ?? t("postit.canzone")}
+            </p>
+            {player.artista && (
+              <p className="truncate text-xs text-stone-700">{player.artista}</p>
+            )}
+          </div>
+        </div>
+      )}
       {player.tipo === "clip-audio" ? (
         <AudioPorzione
           src={player.src}

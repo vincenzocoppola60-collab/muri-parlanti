@@ -245,23 +245,33 @@ export type ClipCanzone = {
   anteprima: string | null;
 };
 
+/**
+ * Dati comuni a ogni player: etichetta del servizio e, quando noti, titolo,
+ * artista e copertina del brano. Servono a mostrare la scheda con copertina e
+ * titolo (stile "music sticker") con i controlli di ascolto sotto.
+ */
+type PlayerBase = {
+  etichetta: string;
+  titolo: string | null;
+  artista: string | null;
+  copertina: string | null;
+};
+
 /** Player pronto da mostrare, ricavato da un link o da una scelta JSON. */
 export type Player =
-  | { tipo: "embed"; embedUrl: string; altezza: number; etichetta: string }
-  | {
+  | (PlayerBase & { tipo: "embed"; embedUrl: string; altezza: number })
+  | (PlayerBase & {
       tipo: "clip-youtube";
       id: string;
       inizio: number;
       fine: number | null;
-      etichetta: string;
-    }
-  | {
+    })
+  | (PlayerBase & {
       tipo: "clip-audio";
       src: string;
       inizio: number;
       durata: number | null;
-      etichetta: string;
-    };
+    });
 
 /** Serializza la scelta per salvarla su postit.canzone_url. */
 export function serializzaClip(clip: ClipCanzone): string {
@@ -376,6 +386,9 @@ export function embedClipYoutube(
 export function playerDaCanzone(valore: string | null | undefined): Player | null {
   const clip = leggiClip(valore);
   if (clip) {
+    const titolo = clip.titolo || null;
+    const artista = clip.artista || null;
+    const copertina = clip.copertina;
     if (clip.servizio === "youtube") {
       const fine =
         clip.fine ?? (clip.durata !== null ? clip.inizio + clip.durata : null);
@@ -385,6 +398,9 @@ export function playerDaCanzone(valore: string | null | undefined): Player | nul
         inizio: clip.inizio,
         fine,
         etichetta: "YouTube",
+        titolo,
+        artista,
+        copertina,
       };
     }
     // Anteprima audio (Apple Music o Spotify con preview_url): la riproduciamo
@@ -396,6 +412,9 @@ export function playerDaCanzone(valore: string | null | undefined): Player | nul
         inizio: clip.inizio,
         durata: clip.durata,
         etichetta: clip.servizio === "spotify" ? "Spotify" : "Apple Music",
+        titolo,
+        artista,
+        copertina,
       };
     }
     if (clip.servizio === "spotify") {
@@ -405,6 +424,9 @@ export function playerDaCanzone(valore: string | null | undefined): Player | nul
         embedUrl: embedSpotify(clip.id),
         altezza: 152,
         etichetta: "Spotify",
+        titolo,
+        artista,
+        copertina,
       };
     }
     if (clip.servizio === "apple") {
@@ -413,16 +435,23 @@ export function playerDaCanzone(valore: string | null | undefined): Player | nul
         embedUrl: `https://embed.music.apple.com/song/${encodeURIComponent(clip.id)}`,
         altezza: 175,
         etichetta: "Apple Music",
+        titolo,
+        artista,
+        copertina,
       };
     }
     return null;
   }
   const c = analizzaCanzone(valore ?? "");
   if (!c) return null;
+  // Link storico incollato: del brano conosciamo solo il servizio.
   return {
     tipo: "embed",
     embedUrl: c.embedUrl,
     altezza: c.altezza,
     etichetta: c.etichetta,
+    titolo: null,
+    artista: null,
+    copertina: null,
   };
 }
