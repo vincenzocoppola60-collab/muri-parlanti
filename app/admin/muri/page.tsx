@@ -205,7 +205,7 @@ export default function PannelloMuri() {
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder={t("admin.nomePh")}
-            className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+            className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
           />
 
           <div className="mt-4 flex flex-col gap-2">
@@ -228,7 +228,7 @@ export default function PannelloMuri() {
                   value={lat}
                   onChange={(e) => setLat(e.target.value)}
                   placeholder={t("admin.latPh")}
-                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
                 />
               </div>
               <div>
@@ -242,7 +242,7 @@ export default function PannelloMuri() {
                   value={lng}
                   onChange={(e) => setLng(e.target.value)}
                   placeholder={t("admin.lngPh")}
-                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+                  className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export default function PannelloMuri() {
             min={10}
             value={raggio}
             onChange={(e) => setRaggio(e.target.value)}
-            className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none focus:border-amber-300"
+            className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none focus:border-amber-300"
           />
 
           <label htmlFor="foto" className="mt-4 block text-sm font-medium text-stone-300">

@@ -55,8 +55,10 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <MenuLaterale />
-            <SelettoreLingua />
-            <TastoHome />
+            <div className="barra-alta">
+              <TastoHome />
+              <SelettoreLingua />
+            </div>
             {children}
             <RegistraServiceWorker />
           </AuthProvider>

@@ -4,9 +4,31 @@
   --font-scritta: var(--font-caveat);
 }
 
+/* Niente scorrimento orizzontale: su telefoni piccoli il contenuto non deve
+   mai uscire dallo schermo. */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background-color: #0c0a09; /* stone-950 */
   color: #f5f5f4; /* stone-100 */
+}
+
+/* ===== Barra in alto a destra (bandiera + tasto Home) =====
+   Le due icone stanno affiancate, mai una sopra l'altra. La posizione tiene
+   conto delle "safe area" (notch/status bar): su qualunque telefono restano
+   dentro lo schermo, anche quando l'app e' aperta a tutto schermo. */
+.barra-alta {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 ::selection {

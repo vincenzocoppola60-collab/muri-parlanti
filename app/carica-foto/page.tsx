@@ -148,7 +148,7 @@ export default function CaricaFoto() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder={t("foto.slugPh")}
-              className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+              className="mt-2 w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
             />
 
             <label

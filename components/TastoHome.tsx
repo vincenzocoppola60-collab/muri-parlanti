@@ -24,7 +24,7 @@ export default function TastoHome() {
       href="/"
       aria-label={t("comune.tornaHome")}
       title={t("comune.tornaHome")}
-      className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
+      className="flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
     >
       <span aria-hidden>🏠</span>
     </Link>

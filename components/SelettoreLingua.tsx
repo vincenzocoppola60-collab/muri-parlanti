@@ -53,7 +53,7 @@ export default function SelettoreLingua() {
   if (nascosto) return null;
 
   return (
-    <div ref={boxRef} className="fixed right-4 top-4 z-50">
+    <div ref={boxRef} className="relative">
       <button
         type="button"
         onClick={() => setApertoPer(aperto ? null : pagina)}

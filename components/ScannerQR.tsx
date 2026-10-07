@@ -356,7 +356,7 @@ export default function ScannerQR() {
               value={testo}
               onChange={(e) => setTesto(e.target.value)}
               placeholder={t("scan.manualePh")}
-              className="min-w-0 flex-1 rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-sm text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+              className="min-w-0 flex-1 rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
             />
             <button
               type="submit"
