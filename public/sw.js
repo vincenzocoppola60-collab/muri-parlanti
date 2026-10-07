@@ -5,21 +5,34 @@
  *  - rete sempre per prima (nessun contenuto vecchio servito online);
  *  - la copia salvata si usa SOLO se la rete fallisce;
  *  - niente cache per le API e per tutto cio' che non e' del sito.
+ *
+ * In piu': quando esce una nuova versione del sito, questo service worker la
+ * prende in carico e avvisa le pagine aperte, cosi' l'app salvata sulla Home
+ * si aggiorna da sola invece di restare bloccata sulla vecchia versione.
  */
-const CACHE = "muri-parlanti-v1";
+const CACHE = "muri-parlanti-v2";
 
 self.addEventListener("install", () => {
+  // Il nuovo service worker prende subito il posto del vecchio.
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Pulizia delle cache vecchie.
       const nomi = await caches.keys();
       await Promise.all(nomi.filter((n) => n !== CACHE).map((n) => caches.delete(n)));
+      // Prende il controllo delle pagine gia' aperte: fa scattare il
+      // "controllerchange" che le fa ricaricare con la versione nuova.
       await self.clients.claim();
     })()
   );
+});
+
+// Le pagine aperte possono chiedere di attivare subito la versione nuova.
+self.addEventListener("message", (event) => {
+  if (event.data === "saltaAttesa") self.skipWaiting();
 });
 
 self.addEventListener("fetch", (event) => {
