@@ -8,9 +8,10 @@ import { caricaApiVideo, formattaSecondi, type YTPlayer } from "@/lib/youtube";
  *
  * NON si vede nessun video: la canzone suona (audio) da un player nascosto e
  * l'utente sceglie il pezzo da tenere agendo su UNA sola barra a forma di onda
- * sonora, come nelle storie:
- *  - trascinando il CENTRO della finestra la si sposta lungo la canzone;
- *  - tirando i due BORDI si allarga o si stringe la finestra.
+ * sonora. Per non sbagliare mai bersaglio, le tre zone sono elementi distinti:
+ *  - il CORPO della finestra (in mezzo) sposta la parte scelta;
+ *  - la MANIGLIA SINISTRA cambia l'inizio e allarga/restringe da quel lato;
+ *  - la MANIGLIA DESTRA cambia la fine e allarga/restringe da quell'altro lato.
  *
  * La durata e' libera da 5 a 30 secondi (se il brano e' piu' corto di 5s la
  * finestra coincide con tutto il brano).
@@ -19,6 +20,8 @@ import { caricaApiVideo, formattaSecondi, type YTPlayer } from "@/lib/youtube";
 const MIN_PORZIONE = 5;
 const MAX_PORZIONE = 30;
 const N_BARRE = 56;
+
+type Modo = "sposta" | "sinistra" | "destra";
 
 export default function PorzioneYouTube({
   videoId,
@@ -40,7 +43,7 @@ export default function PorzioneYouTube({
   const player = useRef<YTPlayer | null>(null);
   const timer = useRef<number | null>(null);
   const barra = useRef<HTMLDivElement>(null);
-  const modo = useRef<"sposta" | "sinistra" | "destra" | null>(null);
+  const modo = useRef<Modo | null>(null);
   const avviato = useRef(false);
 
   const [pronto, setPronto] = useState(false);
@@ -78,7 +81,12 @@ export default function PorzioneYouTube({
   const idxInizio = durataBrano > 0 ? (inizio / durataBrano) * N_BARRE : 0;
   const idxFine = durataBrano > 0 ? (fine / durataBrano) * N_BARRE : N_BARRE;
   const fracInizio = durataBrano > 0 ? inizio / durataBrano : 0;
-  const fracFinestra = durataBrano > 0 ? finestra / durataBrano : 1;
+  const fracFine = durataBrano > 0 ? fine / durataBrano : 1;
+
+  // Valori sempre aggiornati per i gestori del trascinamento (che restano
+  // agganciati alla finestra e non vengono ricreati a ogni render).
+  const stato = useRef({ inizio, fine, finestra, durataBrano, durataMin, durataMax });
+  stato.current = { inizio, fine, finestra, durataBrano, durataMin, durataMax };
 
   useEffect(() => {
     let annullato = false;
@@ -147,12 +155,13 @@ export default function PorzioneYouTube({
 
   function avvia() {
     const p = player.current;
-    if (!p || durataBrano <= 0) return;
+    const { inizio: i0, finestra: f0, durataBrano: d0 } = stato.current;
+    if (!p || d0 <= 0) return;
     fermaTimer();
-    p.seekTo(inizio, true);
+    p.seekTo(i0, true);
     p.playVideo();
     setInRiproduzione(true);
-    const limite = Math.min(inizio + finestra, durataBrano);
+    const limite = Math.min(i0 + f0, d0);
     timer.current = window.setInterval(() => {
       const pl = player.current;
       if (!pl) return;
@@ -173,65 +182,62 @@ export default function PorzioneYouTube({
   /** Secondo della canzone sotto il dito, in base alla posizione orizzontale. */
   function secondoDaX(clientX: number): number | null {
     const el = barra.current;
-    if (!el || durataBrano <= 0) return null;
+    const d = stato.current.durataBrano;
+    if (!el || d <= 0) return null;
     const r = el.getBoundingClientRect();
     const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-    return f * durataBrano;
+    return f * d;
   }
 
   function aggiorna(t: number) {
     const m = modo.current;
+    const s = stato.current;
     if (m === "sposta") {
       const nuovo = Math.min(
-        Math.max(t - finestra / 2, 0),
-        Math.max(0, durataBrano - finestra)
+        Math.max(t - s.finestra / 2, 0),
+        Math.max(0, s.durataBrano - s.finestra)
       );
       setInizio(nuovo);
     } else if (m === "sinistra") {
-      // Il bordo sinistro si muove; quello destro resta fermo.
+      // La maniglia sinistra si muove; quella destra resta ferma.
       const nuovoInizio = Math.min(
-        Math.max(t, fine - durataMax, 0),
-        Math.max(0, fine - durataMin)
+        Math.max(t, s.fine - s.durataMax, 0),
+        Math.max(0, s.fine - s.durataMin)
       );
       setInizio(nuovoInizio);
-      setDurataScelta(fine - nuovoInizio);
+      setDurataScelta(s.fine - nuovoInizio);
     } else if (m === "destra") {
-      // Il bordo destro si muove; quello sinistro resta fermo.
+      // La maniglia destra si muove; quella sinistra resta ferma.
       const nuovoFine = Math.max(
-        Math.min(t, inizio + durataMax, durataBrano),
-        inizio + durataMin
+        Math.min(t, s.inizio + s.durataMax, s.durataBrano),
+        s.inizio + s.durataMin
       );
-      setDurataScelta(nuovoFine - inizio);
+      setDurataScelta(nuovoFine - s.inizio);
     }
   }
 
-  function iniziaTrascina(e: React.PointerEvent) {
-    const t = secondoDaX(e.clientX);
-    if (t === null) return;
-    const r = barra.current!.getBoundingClientRect();
-    // Zona "maniglia" in secondi, corrispondente a ~18 px ai due lati.
-    const soglia = (18 / r.width) * durataBrano;
-    if (Math.abs(t - inizio) <= soglia) {
-      modo.current = "sinistra";
-    } else if (Math.abs(t - fine) <= soglia) {
-      modo.current = "destra";
-    } else {
-      modo.current = "sposta";
-    }
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
-    aggiorna(t);
-  }
-
-  function duranteTrascina(e: React.PointerEvent) {
-    if (!modo.current) return;
+  /** Avvia un trascinamento: il tipo e' deciso da QUALE elemento e' toccato. */
+  function iniziaTrascina(m: Modo, e: React.PointerEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    modo.current = m;
     const t = secondoDaX(e.clientX);
     if (t !== null) aggiorna(t);
-  }
 
-  function finisciTrascina() {
-    if (!modo.current) return;
-    modo.current = null;
-    if (inRiproduzione) avvia();
+    const muovi = (ev: PointerEvent) => {
+      const tt = secondoDaX(ev.clientX);
+      if (tt !== null) aggiorna(tt);
+    };
+    const finisci = () => {
+      window.removeEventListener("pointermove", muovi);
+      window.removeEventListener("pointerup", finisci);
+      window.removeEventListener("pointercancel", finisci);
+      modo.current = null;
+      if (stato.current && inRiproduzione) avvia();
+    };
+    window.addEventListener("pointermove", muovi);
+    window.addEventListener("pointerup", finisci);
+    window.addEventListener("pointercancel", finisci);
   }
 
   return (
@@ -266,52 +272,73 @@ export default function PorzioneYouTube({
             {etichette.istruzioni}
           </p>
 
-          {/* La barra: sposta la finestra dal centro, cambia durata dai bordi. */}
+          {/* La barra: il corpo sposta, le due maniglie cambiano la durata. */}
           <div
             ref={barra}
-            role="slider"
-            aria-label={etichette.istruzioni}
-            aria-valuemin={0}
-            aria-valuemax={Math.round(durataBrano)}
-            aria-valuenow={Math.round(inizio)}
-            tabIndex={0}
-            onPointerDown={iniziaTrascina}
-            onPointerMove={duranteTrascina}
-            onPointerUp={finisciTrascina}
-            onPointerCancel={finisciTrascina}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft") setInizio((v) => Math.max(0, v - 1));
-              if (e.key === "ArrowRight")
-                setInizio((v) =>
-                  Math.min(Math.max(0, durataBrano - finestra), v + 1)
-                );
-            }}
-            className="relative flex h-24 cursor-grab touch-none select-none items-end gap-[2px] overflow-hidden rounded-xl bg-stone-900/5 px-1.5 py-1.5 active:cursor-grabbing"
+            className="relative flex h-24 touch-none select-none items-end gap-[2px] overflow-hidden rounded-xl bg-stone-900/5 px-1.5 py-1.5"
           >
-            {barre.map((h, i) => {
-              const dentro = i >= idxInizio && i < idxFine;
-              return (
-                <span
-                  key={i}
-                  style={{ height: `${h * 100}%` }}
-                  className={
-                    "flex-1 rounded-[2px] transition-colors " +
-                    (dentro ? "bg-amber-500" : "bg-stone-400/40")
-                  }
-                />
-              );
-            })}
-            {/* Cornice della finestra scelta, con i due bordi trascinabili. */}
+            {/* Corpo: tocca il centro per spostare la parte scelta. */}
+            <button
+              type="button"
+              aria-label={etichette.istruzioni}
+              onPointerDown={(e) => iniziaTrascina("sposta", e)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") setInizio((v) => Math.max(0, v - 1));
+                if (e.key === "ArrowRight")
+                  setInizio((v) =>
+                    Math.min(Math.max(0, durataBrano - finestra), v + 1)
+                  );
+              }}
+              className="absolute inset-0 z-0 cursor-grab touch-none active:cursor-grabbing"
+            />
+
+            {/* Le barrette dell'onda: decorazione (non catturano il tocco). */}
+            <div className="pointer-events-none absolute inset-1.5 flex items-end gap-[2px]">
+              {barre.map((h, i) => {
+                const dentro = i >= idxInizio && i < idxFine;
+                return (
+                  <span
+                    key={i}
+                    style={{ height: `${h * 100}%` }}
+                    className={
+                      "flex-1 rounded-[2px] transition-colors " +
+                      (dentro ? "bg-amber-500" : "bg-stone-400/40")
+                    }
+                  />
+                );
+              })}
+            </div>
+
+            {/* Cornice della finestra scelta (decorativa). */}
             <span
-              className="pointer-events-none absolute inset-y-0 rounded-lg border-2 border-amber-600"
+              className="pointer-events-none absolute inset-y-1.5 z-10 rounded-lg border-2 border-amber-600"
               style={{
                 left: `calc(${fracInizio * 100}% + 6px)`,
-                width: `calc(${fracFinestra * 100}% - 12px)`,
+                width: `calc(${fracFine * 100}% - ${fracInizio * 100}% - 12px)`,
               }}
+            />
+
+            {/* Maniglia sinistra: presa dedicata (non si confonde col centro). */}
+            <button
+              type="button"
+              aria-label={`${etichette.istruzioni} — ${etichette.durata}`}
+              onPointerDown={(e) => iniziaTrascina("sinistra", e)}
+              className="absolute inset-y-0 z-20 flex w-7 -translate-x-1/2 touch-none items-center justify-center"
+              style={{ left: `calc(${fracInizio * 100}% + 6px)` }}
             >
-              <span className="absolute -left-1 top-1/2 h-8 w-2 -translate-y-1/2 rounded-full bg-amber-600 shadow" />
-              <span className="absolute -right-1 top-1/2 h-8 w-2 -translate-y-1/2 rounded-full bg-amber-600 shadow" />
-            </span>
+              <span className="h-10 w-2.5 rounded-full bg-amber-600 shadow ring-2 ring-white/70" />
+            </button>
+
+            {/* Maniglia destra. */}
+            <button
+              type="button"
+              aria-label={`${etichette.istruzioni} — ${etichette.durata}`}
+              onPointerDown={(e) => iniziaTrascina("destra", e)}
+              className="absolute inset-y-0 z-20 flex w-7 -translate-x-1/2 touch-none items-center justify-center"
+              style={{ left: `calc(${fracFine * 100}% - 6px)` }}
+            >
+              <span className="h-10 w-2.5 rounded-full bg-amber-600 shadow ring-2 ring-white/70" />
+            </button>
           </div>
 
           <div className="mt-2 flex items-center justify-between">
@@ -343,9 +370,7 @@ export default function PorzioneYouTube({
                 onChange={(e) => {
                   const d = Number(e.target.value);
                   setDurataScelta(d);
-                  setInizio((v) =>
-                    Math.min(v, Math.max(0, durataBrano - d))
-                  );
+                  setInizio((v) => Math.min(v, Math.max(0, durataBrano - d)));
                 }}
                 className="w-full accent-amber-600"
               />
