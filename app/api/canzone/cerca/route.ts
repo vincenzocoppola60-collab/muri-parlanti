@@ -9,8 +9,11 @@ import { MAX_PORZIONE, type RisultatoCanzone } from "@/lib/canzone";
  * sul server.
  *
  * Fonti:
- *  - YouTube Data API (YOUTUBE_API_KEY): brano completo, permette di scegliere
- *    da quale secondo partire e per quanti secondi (porzione fino a 30s);
+ *  - YouTube (nessuna chiave): la ricerca legge la pagina dei risultati di
+ *    YouTube e ne estrae i video. Nessuna chiave, nessun costo: e' la fonte
+ *    che permette di mostrare la CANZONE COMPLETA e di scegliere la porzione.
+ *    Se la variabile YOUTUBE_API_KEY e' impostata si usa l'API ufficiale
+ *    (piu' stabile), altrimenti si usa la lettura diretta della pagina.
  *  - Spotify Web API (SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET, client
  *    credentials): id, copertina e (quando disponibile) l'anteprima audio di
  *    30 secondi;
@@ -18,9 +21,10 @@ import { MAX_PORZIONE, type RisultatoCanzone } from "@/lib/canzone";
  *    anteprima audio ufficiale di 30 secondi.
  *
  * Il parametro "fonte" (tutti|youtube|spotify|apple) filtra la ricerca. Con
- * "tutti" le fonti configurate vengono interrogate in parallelo e i risultati
- * alternati tra loro. Se una fonte non e' configurata ma e' richiesta
- * esplicitamente, si risponde con "avviso" per far mostrare un messaggio.
+ * "tutti" le fonti disponibili vengono interrogate in parallelo e i risultati
+ * alternati tra loro. Se una fonte e' richiesta esplicitamente ma non e'
+ * disponibile (per esempio Spotify senza chiavi), si risponde con "avviso"
+ * per far mostrare un messaggio.
  */
 
 export const runtime = "nodejs";
@@ -54,16 +58,20 @@ export async function GET(request: Request) {
   const voleSp = fonte === "tutti" || fonte === "spotify";
   const voleAp = fonte === "tutti" || fonte === "apple";
 
-  // Una fonte richiesta esplicitamente ma non configurata: avvisiamo la UI.
+  // Una fonte richiesta esplicitamente ma non disponibile: avvisiamo la UI.
+  // (YouTube ora e' sempre disponibile, quindi non serve segnalarlo.)
   const avviso =
-    fonte === "youtube" && !chiaveYt
-      ? "youtube"
-      : fonte === "spotify" && !spotifyConfigurato
-        ? "spotify"
-        : undefined;
+    fonte === "spotify" && !spotifyConfigurato ? "spotify" : undefined;
 
   const lavori: Promise<RisultatoCanzone[]>[] = [];
-  if (voleYt && chiaveYt) lavori.push(cercaYouTube(q, chiaveYt).catch(() => []));
+  // YouTube c'e' sempre: con la chiave si usa l'API ufficiale, senza chiave si
+  // legge la pagina dei risultati. In entrambi i casi e' gratuito.
+  if (voleYt)
+    lavori.push(
+      (chiaveYt ? cercaYouTube(q, chiaveYt) : cercaYouTubeSenzaChiave(q)).catch(
+        () => []
+      )
+    );
   if (voleSp && spotifyConfigurato)
     lavori.push(cercaSpotify(q).catch(() => []));
   if (voleAp) lavori.push(cercaItunes(q).catch(() => []));
@@ -328,6 +336,126 @@ async function cercaYouTube(q: string, chiave: string): Promise<RisultatoCanzone
     });
   }
   return fuori;
+}
+
+/* ------------------- YouTube senza chiave (gratis) -------------------- */
+
+/**
+ * Ricerca su YouTube senza nessuna chiave API.
+ *
+ * Si legge la pagina dei risultati (https://www.youtube.com/results) e si
+ * estrae l'oggetto "ytInitialData" che contiene l'elenco dei video. E' la
+ * stessa cosa che fa il browser quando apri la pagina, quindi non serve fare
+ * nessuna registrazione ne' pagare nulla.
+ */
+async function cercaYouTubeSenzaChiave(q: string): Promise<RisultatoCanzone[]> {
+  const url =
+    "https://www.youtube.com/results?search_query=" +
+    encodeURIComponent(q) +
+    "&sp=EgIQAQ%253D%253D"; // filtro: solo video (non canali/playlist)
+
+  const r = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+      "Accept-Language": "it-IT,it;q=0.9,en;q=0.8",
+    },
+    cache: "no-store",
+  });
+  if (!r.ok) throw new Error("youtube");
+  const html = await r.text();
+
+  const dati = estraiJsonDopo(html, "ytInitialData");
+  if (!dati) return [];
+
+  const fuori: RisultatoCanzone[] = [];
+  const visti = new Set<string>();
+  camminaVideo(dati, (v) => {
+    const id = typeof v.videoId === "string" ? v.videoId : "";
+    if (!id || visti.has(id)) return;
+    const titolo = (v.title?.runs?.[0]?.text ?? "").trim();
+    if (!titolo) return;
+    visti.add(id);
+    const thumbs = v.thumbnail?.thumbnails ?? [];
+    fuori.push({
+      servizio: "youtube",
+      id,
+      titolo,
+      artista: (v.ownerText?.runs?.[0]?.text ?? "").trim(),
+      copertina: thumbs.length ? thumbs[thumbs.length - 1]?.url ?? null : null,
+      durataSec: durataDaTesto(v.lengthText?.simpleText),
+      anteprimaDurata: null,
+      anteprimaUrl: null,
+    });
+  });
+  return fuori.slice(0, LIMITE);
+}
+
+/** Forma minima (parziale) di un videoRenderer di YouTube. */
+type YtVideoRenderer = {
+  videoId?: string;
+  title?: { runs?: { text?: string }[] };
+  ownerText?: { runs?: { text?: string }[] };
+  lengthText?: { simpleText?: string };
+  thumbnail?: { thumbnails?: { url?: string }[] };
+};
+
+/** Attraversa l'albero JSON e richiama la funzione per ogni video trovato. */
+function camminaVideo(
+  nodo: unknown,
+  visita: (v: YtVideoRenderer) => void
+): void {
+  if (!nodo || typeof nodo !== "object") return;
+  const o = nodo as Record<string, unknown>;
+  const v = o.videoRenderer;
+  if (v && typeof v === "object") visita(v as YtVideoRenderer);
+  for (const chiave in o) camminaVideo(o[chiave], visita);
+}
+
+/**
+ * Estrae un oggetto JSON dalla pagina a partire da un marcatore, usando il
+ * conteggio delle parentesi (piu' sicuro di una espressione regolare).
+ */
+function estraiJsonDopo(html: string, marcatore: string): unknown {
+  const i = html.indexOf(marcatore);
+  if (i < 0) return null;
+  const inizio = html.indexOf("{", i);
+  if (inizio < 0) return null;
+  let livello = 0;
+  let inStringa = false;
+  let escape = false;
+  for (let j = inizio; j < html.length; j++) {
+    const c = html[j];
+    if (inStringa) {
+      if (escape) escape = false;
+      else if (c === "\\") escape = true;
+      else if (c === '"') inStringa = false;
+    } else if (c === '"') {
+      inStringa = true;
+    } else if (c === "{") {
+      livello++;
+    } else if (c === "}") {
+      livello--;
+      if (livello === 0) {
+        try {
+          return JSON.parse(html.slice(inizio, j + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** Converte "5:40" (o "1:02:03") in secondi; null se non e' una durata. */
+function durataDaTesto(testo: string | undefined): number | null {
+  if (!testo) return null;
+  const parti = testo.split(":").map((p) => Number(p));
+  if (parti.some((n) => !Number.isFinite(n))) return null;
+  let sec = 0;
+  for (const p of parti) sec = sec * 60 + p;
+  return sec > 0 ? sec : null;
 }
 
 /** Converte una durata ISO 8601 (PT#H#M#S) in secondi (0 se non valida). */
