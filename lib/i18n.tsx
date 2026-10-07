@@ -136,6 +136,9 @@ const IT: Parole = {
   "scegli.senzaPorzione": "Anteprima non disponibile: la canzone parte dall'inizio.",
   "scegli.spotifyNonConfigurato": "Spotify non è configurato. Aggiungi le chiavi o usa un'altra fonte.",
   "scegli.youtubeNonConfigurato": "YouTube non è configurato. Aggiungi la chiave API o usa un'altra fonte.",
+  "scegli.parteCompleta": "Scegli una parte della canzone (max 30 secondi)",
+  "scegli.caricoPlayer": "Carico la canzone completa...",
+  "scegli.errorePlayer": "Non riesco a caricare il player. Riprova.",
   "editor.canzoneRimuovi": "Rimuovi la canzone",
   "editor.canzoneNonSupportata":
     "Link non riconosciuto. Usa Spotify, YouTube, Apple Music, SoundCloud o Deezer.",
@@ -538,6 +541,9 @@ const EN: Parole = {
   "scegli.senzaPorzione": "Preview unavailable: the song plays from the beginning.",
   "scegli.spotifyNonConfigurato": "Spotify isn't configured. Add the keys or pick another source.",
   "scegli.youtubeNonConfigurato": "YouTube isn't configured. Add the API key or pick another source.",
+  "scegli.parteCompleta": "Choose a part of the song (max 30 seconds)",
+  "scegli.caricoPlayer": "Loading the full song...",
+  "scegli.errorePlayer": "Couldn't load the player. Try again.",
   "editor.canzoneRimuovi": "Remove the song",
   "editor.canzoneNonSupportata":
     "Link not recognised. Use Spotify, YouTube, Apple Music, SoundCloud or Deezer.",
@@ -613,7 +619,7 @@ const EN: Parole = {
   "profilo.muriEsplorati": "walls explored",
   "profilo.pensieriLasciati": "thoughts left",
   "profilo.preferiti": "favorites",
-  "profilo.caricaFoto": "📷 Upload a wall photo",
+  "profilo.caricaFoto": "��� Upload a wall photo",
   "profilo.ilMioProfilo": "👁️ My profile",
   "profilo.impostazioni": "⚙️ Settings",
   "profilo.ricompense": "Level rewards",
@@ -941,6 +947,9 @@ const ES: Parole = {
   "scegli.senzaPorzione": "Vista previa no disponible: la canción empieza desde el principio.",
   "scegli.spotifyNonConfigurato": "Spotify no está configurado. Añade las claves o elige otra fuente.",
   "scegli.youtubeNonConfigurato": "YouTube no está configurado. Añade la clave API o elige otra fuente.",
+  "scegli.parteCompleta": "Elige una parte de la canción (máx. 30 segundos)",
+  "scegli.caricoPlayer": "Cargando la canción completa...",
+  "scegli.errorePlayer": "No se pudo cargar el reproductor. Inténtalo de nuevo.",
   "editor.canzoneRimuovi": "Quitar la canción",
   "editor.canzoneNonSupportata":
     "Enlace no reconocido. Usa Spotify, YouTube, Apple Music, SoundCloud o Deezer.",
@@ -1344,6 +1353,9 @@ const FR: Parole = {
   "scegli.senzaPorzione": "Aperçu indisponible : la chanson démarre depuis le début.",
   "scegli.spotifyNonConfigurato": "Spotify n'est pas configuré. Ajoutez les clés ou choisissez une autre source.",
   "scegli.youtubeNonConfigurato": "YouTube n'est pas configuré. Ajoutez la clé API ou choisissez une autre source.",
+  "scegli.parteCompleta": "Choisissez une partie de la chanson (max 30 secondes)",
+  "scegli.caricoPlayer": "Chargement de la chanson complète...",
+  "scegli.errorePlayer": "Impossible de charger le lecteur. Réessayez.",
   "editor.canzoneRimuovi": "Retirer la chanson",
   "editor.canzoneNonSupportata":
     "Lien non reconnu. Utilisez Spotify, YouTube, Apple Music, SoundCloud ou Deezer.",
@@ -1747,6 +1759,9 @@ const DE: Parole = {
   "scegli.senzaPorzione": "Vorschau nicht verfügbar: Der Song startet von Beginn an.",
   "scegli.spotifyNonConfigurato": "Spotify ist nicht konfiguriert. Füge die Schlüssel hinzu oder wähle eine andere Quelle.",
   "scegli.youtubeNonConfigurato": "YouTube ist nicht konfiguriert. Füge den API-Schlüssel hinzu oder wähle eine andere Quelle.",
+  "scegli.parteCompleta": "Wähle einen Teil des Songs (max. 30 Sekunden)",
+  "scegli.caricoPlayer": "Der ganze Song wird geladen...",
+  "scegli.errorePlayer": "Player konnte nicht geladen werden. Versuch es erneut.",
   "editor.canzoneRimuovi": "Song entfernen",
   "editor.canzoneNonSupportata":
     "Link nicht erkannt. Nutze Spotify, YouTube, Apple Music, SoundCloud oder Deezer.",

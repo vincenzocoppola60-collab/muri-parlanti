@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AudioPorzione from "@/components/AudioPorzione";
+import PorzioneYouTube from "@/components/PorzioneYouTube";
 import {
   analizzaCanzone,
-  embedClipYoutube,
   embedSpotify,
+  idVideoYoutube,
   MAX_PORZIONE,
   MIN_PORZIONE,
   serializzaClip,
@@ -15,16 +16,18 @@ import {
 import { useLingua } from "@/lib/i18n";
 
 /**
- * Ricerca della canzone da allegare al post-it (stile "music sticker").
+ * Scelta della canzone da allegare al post-it (stile "music sticker").
  *
- * L'utente cerca un brano, sceglie la fonte (Tutti/YouTube/Spotify/Apple),
- * lo ascolta in anteprima e decide da quale secondo farlo partire e per
- * quanti secondi (porzione fino a 30s, ma anche meno). La scelta viene
- * restituita al chiamante come stringa JSON pronta da salvare su
- * postit.canzone_url.
+ * L'utente cerca un brano (YouTube / Spotify / Apple), lo ascolta e sceglie
+ * DA QUALE SECONDO partire e PER QUANTI SECONDI (massimo 30, ma anche meno).
  *
- * Resta comunque possibile incollare direttamente un link di un servizio:
- * in quel caso non serve nessuna ricerca.
+ * Sul brano completo (YouTube) viene mostrato il player intero: si vede tutta
+ * la canzone e si seleziona con gli slider la parte da usare. Per Apple e
+ * Spotify, che per le app di terze parti offrono solo un'anteprima ufficiale di
+ * 30 secondi, la parte viene scelta dentro quell'anteprima.
+ *
+ * Si puo' anche incollare direttamente un link: per un video YouTube si apre
+ * subito il selettore della parte sulla canzone completa.
  */
 
 type Fonte = "tutti" | "youtube" | "spotify" | "apple";
@@ -44,9 +47,14 @@ export default function ScegliCanzone({
   const [errore, setErrore] = useState<string | null>(null);
   const [avviso, setAvviso] = useState<string | null>(null);
   const [scelto, setScelto] = useState<RisultatoCanzone | null>(null);
-  const [inizio, setInizio] = useState(0);
+  const [porzione, setPorzione] = useState<{
+    inizio: number;
+    durata: number;
+    fine: number;
+  }>({ inizio: 0, durata: MAX_PORZIONE, fine: MAX_PORZIONE });
+  const [inizio, setInizio] = useState(0); // per le anteprime audio
   const [durataScelta, setDurataScelta] = useState(MAX_PORZIONE);
-  const [prova, setProva] = useState(0); // rilancia l'anteprima al clic
+  const [prova, setProva] = useState(0); // rilancia l'anteprima audio
   const campoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -90,54 +98,100 @@ export default function ScegliCanzone({
   }, [q, fonte, t]);
 
   const link = q.trim() ? analizzaCanzone(q.trim()) : null;
+  const idYoutubeLink = link ? idVideoYoutube(link) : null;
 
-  // Ampiezza entro cui si puo' scegliere la porzione:
-  //  - YouTube: l'intero brano;
-  //  - Apple/Spotify con anteprima: la durata dell'anteprima (~30s).
-  const contenitore = scelto
-    ? scelto.servizio === "youtube"
-      ? scelto.durataSec
-      : scelto.anteprimaUrl
-        ? scelto.anteprimaDurata
-        : null
+  const aggiornaPorzione = useCallback(
+    (p: { inizio: number; durata: number; fine: number }) => setPorzione(p),
+    []
+  );
+
+  // Ampiezza entro cui scegliere la parte, per le anteprime audio (Apple /
+  // Spotify): e' la durata dell'anteprima (~30 secondi).
+  const contenitoreAudio =
+    scelto && scelto.servizio !== "youtube" && scelto.anteprimaUrl
+      ? scelto.anteprimaDurata ?? MAX_PORZIONE
+      : null;
+  const durataMaxAudio = contenitoreAudio
+    ? Math.min(MAX_PORZIONE, Math.floor(contenitoreAudio))
+    : MAX_PORZIONE;
+  const durataMinAudio = Math.min(MIN_PORZIONE, durataMaxAudio);
+  const durataAudio = Math.min(
+    Math.max(durataScelta, durataMinAudio),
+    durataMaxAudio
+  );
+  const maxInizioAudio = contenitoreAudio
+    ? Math.max(0, Math.floor(contenitoreAudio) - durataAudio)
+    : 0;
+  const fineAudio = contenitoreAudio
+    ? Math.min(inizio + durataAudio, Math.floor(contenitoreAudio))
     : null;
-  const contenitoreMax = contenitore ? Math.floor(contenitore) : 0;
-  const durataMax = Math.min(MAX_PORZIONE, contenitoreMax);
-  const durataMin = Math.min(MIN_PORZIONE, durataMax);
-  const haPorzione = contenitoreMax > 0;
-  const durata = Math.min(Math.max(durataScelta, durataMin), durataMax);
-  const maxInizio = haPorzione ? Math.max(0, contenitoreMax - durata) : 0;
-  const fine = haPorzione ? Math.min(inizio + durata, contenitoreMax) : null;
 
   function apri(r: RisultatoCanzone) {
     setScelto(r);
     setInizio(0);
+    setDurataScelta(MAX_PORZIONE);
+    setPorzione({ inizio: 0, durata: MAX_PORZIONE, fine: MAX_PORZIONE });
     setProva((n) => n + 1);
-    const cont =
-      r.servizio === "youtube"
-        ? r.durataSec
-        : r.anteprimaUrl
-          ? r.anteprimaDurata
-          : null;
-    setDurataScelta(
-      cont ? Math.min(MAX_PORZIONE, Math.floor(cont)) : MAX_PORZIONE
-    );
+  }
+
+  function apriLinkYoutube() {
+    if (!idYoutubeLink || !link) return;
+    setScelto({
+      servizio: "youtube",
+      id: idYoutubeLink,
+      titolo: link.etichetta,
+      artista: "",
+      copertina: null,
+      durataSec: null,
+      anteprimaDurata: null,
+      anteprimaUrl: null,
+    });
+    setPorzione({ inizio: 0, durata: MAX_PORZIONE, fine: MAX_PORZIONE });
   }
 
   function conferma() {
     if (!scelto) return;
-    const clip: ClipCanzone = {
-      v: 1,
-      servizio: scelto.servizio,
-      id: scelto.id,
-      titolo: scelto.titolo,
-      artista: scelto.artista,
-      copertina: scelto.copertina,
-      inizio: haPorzione ? inizio : 0,
-      durata: haPorzione ? durata : null,
-      fine: scelto.servizio === "youtube" && haPorzione ? fine : null,
-      anteprima: scelto.anteprimaUrl,
-    };
+    let clip: ClipCanzone;
+    if (scelto.servizio === "youtube") {
+      clip = {
+        v: 1,
+        servizio: "youtube",
+        id: scelto.id,
+        titolo: scelto.titolo,
+        artista: scelto.artista,
+        copertina: scelto.copertina,
+        inizio: porzione.inizio,
+        durata: porzione.durata,
+        fine: porzione.fine,
+        anteprima: null,
+      };
+    } else if (scelto.anteprimaUrl) {
+      clip = {
+        v: 1,
+        servizio: scelto.servizio,
+        id: scelto.id,
+        titolo: scelto.titolo,
+        artista: scelto.artista,
+        copertina: scelto.copertina,
+        inizio,
+        durata: durataAudio,
+        fine: null,
+        anteprima: scelto.anteprimaUrl,
+      };
+    } else {
+      clip = {
+        v: 1,
+        servizio: scelto.servizio,
+        id: scelto.id,
+        titolo: scelto.titolo,
+        artista: scelto.artista,
+        copertina: scelto.copertina,
+        inizio: 0,
+        durata: null,
+        fine: null,
+        anteprima: null,
+      };
+    }
     onScegli(serializzaClip(clip));
   }
 
@@ -207,16 +261,28 @@ export default function ScegliCanzone({
           </div>
 
           {link && (
-            <button
-              type="button"
-              onClick={() => onScegli(link.url)}
-              className="mt-2 flex w-full items-center gap-2 rounded-lg border border-amber-700/30 bg-amber-100 px-3 py-2 text-left text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
-            >
-              <span aria-hidden>🔗</span>
-              <span className="flex-1">
-                {t("scegli.linkUsa")} · {link.etichetta}
-              </span>
-            </button>
+            <div className="mt-2 space-y-1.5">
+              <button
+                type="button"
+                onClick={() => onScegli(link.url)}
+                className="flex w-full items-center gap-2 rounded-lg border border-amber-700/30 bg-amber-100 px-3 py-2 text-left text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
+              >
+                <span aria-hidden>🔗</span>
+                <span className="flex-1">
+                  {t("scegli.linkUsa")} · {link.etichetta}
+                </span>
+              </button>
+              {idYoutubeLink && (
+                <button
+                  type="button"
+                  onClick={apriLinkYoutube}
+                  className="flex w-full items-center gap-2 rounded-lg border border-stone-900/20 bg-white px-3 py-2 text-left text-sm font-semibold text-stone-800 transition hover:bg-stone-200"
+                >
+                  <span aria-hidden>✂️</span>
+                  <span className="flex-1">{t("scegli.parteCompleta")}</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -247,97 +313,92 @@ export default function ScegliCanzone({
                 </button>
               </div>
 
-              {/* Anteprima */}
-              <div className="mt-3 overflow-hidden rounded-lg border border-stone-900/10">
+              {/* Player: canzone completa (YouTube) oppure anteprima (Apple/Spotify). */}
+              <div className="mt-3">
                 {scelto.servizio === "youtube" ? (
-                  <iframe
-                    key={`${prova}-${inizio}-${fine ?? ""}`}
-                    src={embedClipYoutube(scelto.id, inizio, fine)}
-                    title={t("scegli.titolo")}
-                    width="100%"
-                    height={200}
-                    style={{ border: 0, display: "block" }}
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    referrerPolicy="strict-origin-when-cross-origin"
+                  <PorzioneYouTube
+                    key={scelto.id}
+                    videoId={scelto.id}
+                    onCambia={aggiornaPorzione}
+                    etichette={{
+                      inizio: t("scegli.momento"),
+                      durata: t("scegli.durata"),
+                      prova: t("scegli.prova"),
+                      carico: t("scegli.caricoPlayer"),
+                      errore: t("scegli.errorePlayer"),
+                    }}
                   />
                 ) : scelto.anteprimaUrl ? (
-                  <AudioPorzione
-                    key={prova}
-                    src={scelto.anteprimaUrl}
-                    inizio={inizio}
-                    durata={durata}
-                    className="block w-full"
-                  />
+                  <div className="space-y-3">
+                    <AudioPorzione
+                      key={prova}
+                      src={scelto.anteprimaUrl}
+                      inizio={inizio}
+                      durata={durataAudio}
+                      className="block w-full"
+                    />
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
+                        <span>{t("scegli.momento")}</span>
+                        <span className="tabular-nums text-stone-900">
+                          {formatta(inizio)} – {formatta(fineAudio ?? inizio)}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={maxInizioAudio}
+                        step={1}
+                        value={inizio}
+                        disabled={maxInizioAudio <= 0}
+                        onChange={(e) => setInizio(Number(e.target.value))}
+                        className="mt-1 w-full accent-amber-600"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
+                        <span>{t("scegli.durata")}</span>
+                        <span className="tabular-nums text-stone-900">
+                          {durataAudio}s
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={durataMinAudio}
+                        max={durataMaxAudio}
+                        step={1}
+                        value={durataAudio}
+                        disabled={durataMaxAudio <= durataMinAudio}
+                        onChange={(e) => {
+                          const d = Number(e.target.value);
+                          setDurataScelta(d);
+                          setInizio((i) =>
+                            Math.min(i, Math.max(0, Math.floor(contenitoreAudio ?? 0) - d))
+                          );
+                        }}
+                        className="mt-1 w-full accent-amber-600"
+                      />
+                    </div>
+                  </div>
                 ) : (
-                  // Spotify senza anteprima disponibile: player ufficiale.
-                  <iframe
-                    key={prova}
-                    src={embedSpotify(scelto.id)}
-                    title={t("scegli.titolo")}
-                    width="100%"
-                    height={152}
-                    style={{ border: 0, display: "block" }}
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                  />
+                  <>
+                    <div className="overflow-hidden rounded-lg border border-stone-900/10">
+                      <iframe
+                        src={embedSpotify(scelto.id)}
+                        title={t("scegli.titolo")}
+                        width="100%"
+                        height={152}
+                        style={{ border: 0, display: "block" }}
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-stone-600">
+                      {t("scegli.senzaPorzione")}
+                    </p>
+                  </>
                 )}
               </div>
-
-              {haPorzione ? (
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
-                      <span>{t("scegli.momento")}</span>
-                      <span className="tabular-nums text-stone-900">
-                        {formatta(inizio)} – {formatta(fine ?? inizio)}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={maxInizio}
-                      step={1}
-                      value={inizio}
-                      disabled={maxInizio <= 0}
-                      onChange={(e) => setInizio(Number(e.target.value))}
-                      className="mt-1 w-full accent-amber-600"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
-                      <span>{t("scegli.durata")}</span>
-                      <span className="tabular-nums text-stone-900">
-                        {formatta(durata)} ({durata}s)
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={durataMin}
-                      max={durataMax}
-                      step={1}
-                      value={durata}
-                      disabled={durataMax <= durataMin}
-                      onChange={(e) => {
-                        const d = Number(e.target.value);
-                        setDurataScelta(d);
-                        setInizio((i) => Math.min(i, Math.max(0, contenitoreMax - d)));
-                      }}
-                      className="mt-1 w-full accent-amber-600"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setProva((n) => n + 1)}
-                    className="rounded-full border border-stone-900/20 bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-800 transition hover:bg-stone-200"
-                  >
-                    {t("scegli.prova")}
-                  </button>
-                </div>
-              ) : (
-                <p className="mt-3 text-xs text-stone-600">
-                  {t("scegli.senzaPorzione")}
-                </p>
-              )}
 
               <button
                 type="button"

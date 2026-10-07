@@ -337,6 +337,17 @@ export function descrizioneCanzone(valore: string): string | null {
   return c ? c.etichetta : null;
 }
 
+/**
+ * Se il brano e' un singolo video YouTube, restituisce il suo id (altrimenti
+ * null: per esempio per le playlist o per gli altri servizi). Serve per aprire
+ * il selettore della parte sulla canzone completa partendo da un link.
+ */
+export function idVideoYoutube(canzone: Canzone): string | null {
+  if (canzone.servizio !== "youtube") return null;
+  const m = /\/embed\/([A-Za-z0-9_-]{6,})(?:\?|$)/.exec(canzone.embedUrl);
+  return m ? m[1] : null;
+}
+
 /** URL del player Spotify (embed pubblico) di una traccia. */
 export function embedSpotify(id: string): string {
   return `https://open.spotify.com/embed/track/${encodeURIComponent(id)}`;
