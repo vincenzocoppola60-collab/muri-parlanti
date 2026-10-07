@@ -10,8 +10,8 @@ import { caricaApiVideo, formattaSecondi, type YTPlayer } from "@/lib/youtube";
  * l'utente sceglie il pezzo da tenere agendo su UNA sola barra a forma di onda
  * sonora. Per non sbagliare mai bersaglio, le tre zone sono elementi distinti:
  *  - il CORPO della finestra (in mezzo) sposta la parte scelta;
- *  - la MANIGLIA SINISTRA cambia l'inizio e allarga/restringe da quel lato;
- *  - la MANIGLIA DESTRA cambia la fine e allarga/restringe da quell'altro lato.
+ *  - la MANOPOLA SINISTRA (in basso) cambia l'inizio e allarga/restringe da quel lato;
+ *  - la MANOPOLA DESTRA (in basso) cambia la fine e allarga/restringe da quell'altro lato.
  *
  * La durata e' libera da 5 a 30 secondi (se il brano e' piu' corto di 5s la
  * finestra coincide con tutto il brano).
@@ -318,26 +318,26 @@ export default function PorzioneYouTube({
               }}
             />
 
-            {/* Maniglia sinistra: presa dedicata (non si confonde col centro). */}
+            {/* Manopola sinistra: presa dedicata in basso, non si confonde col centro. */}
             <button
               type="button"
               aria-label={`${etichette.istruzioni} — ${etichette.durata}`}
               onPointerDown={(e) => iniziaTrascina("sinistra", e)}
-              className="absolute inset-y-0 z-20 flex w-7 -translate-x-1/2 touch-none items-center justify-center"
+              className="absolute bottom-0 z-20 flex h-8 w-8 -translate-x-1/2 touch-none items-end justify-center pb-1"
               style={{ left: `calc(${fracInizio * 100}% + 6px)` }}
             >
-              <span className="h-10 w-2.5 rounded-full bg-amber-600 shadow ring-2 ring-white/70" />
+              <span className="h-5 w-5 rounded-full bg-amber-600 shadow-md ring-2 ring-white/80" />
             </button>
 
-            {/* Maniglia destra. */}
+            {/* Manopola destra: presa dedicata in basso. */}
             <button
               type="button"
               aria-label={`${etichette.istruzioni} — ${etichette.durata}`}
               onPointerDown={(e) => iniziaTrascina("destra", e)}
-              className="absolute inset-y-0 z-20 flex w-7 -translate-x-1/2 touch-none items-center justify-center"
+              className="absolute bottom-0 z-20 flex h-8 w-8 -translate-x-1/2 touch-none items-end justify-center pb-1"
               style={{ left: `calc(${fracFine * 100}% - 6px)` }}
             >
-              <span className="h-10 w-2.5 rounded-full bg-amber-600 shadow ring-2 ring-white/70" />
+              <span className="h-5 w-5 rounded-full bg-amber-600 shadow-md ring-2 ring-white/80" />
             </button>
           </div>
 
