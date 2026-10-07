@@ -15,7 +15,8 @@ import { useLingua } from "@/lib/i18n";
  *
  * Stile "storia di Instagram": si cerca un brano per titolo o artista, i
  * risultati compaiono subito sotto e, toccandone uno, si sceglie la parte con
- * UNA sola barra a forma di onda sonora (massimo 30 secondi). Non si vede mai
+ * UNA sola barra a forma di onda sonora (durata libera da 5 a 30 secondi).
+ * Non si vede mai
  * nessun video: si ascolta e basta.
  */
 
@@ -166,6 +167,7 @@ export default function ScegliCanzone({
                   onCambia={aggiornaPorzione}
                   etichette={{
                     istruzioni: t("scegli.istruzioni"),
+                    durata: t("scegli.durata"),
                     riproduci: t("scegli.riproduci"),
                     pausa: t("scegli.pausa"),
                     carico: t("scegli.caricoPlayer"),

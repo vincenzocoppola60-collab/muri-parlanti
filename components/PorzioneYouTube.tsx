@@ -7,13 +7,16 @@ import { caricaApiVideo, formattaSecondi, type YTPlayer } from "@/lib/youtube";
  * Scelta della parte della canzone, in stile "storia di Instagram".
  *
  * NON si vede nessun video: la canzone suona (audio) da un player nascosto e
- * l'utente sceglie il pezzo da tenere trascinando UNA sola barra a forma di
- * onda sonora, esattamente come si fa nei video/instagram stories.
+ * l'utente sceglie il pezzo da tenere agendo su UNA sola barra a forma di onda
+ * sonora, come nelle storie:
+ *  - trascinando il CENTRO della finestra la si sposta lungo la canzone;
+ *  - tirando i due BORDI si allarga o si stringe la finestra.
  *
- * La finestra selezionata e' al massimo di 30 secondi; se il brano e' piu'
- * corto, la finestra coincide con tutto il brano.
+ * La durata e' libera da 5 a 30 secondi (se il brano e' piu' corto di 5s la
+ * finestra coincide con tutto il brano).
  */
 
+const MIN_PORZIONE = 5;
 const MAX_PORZIONE = 30;
 const N_BARRE = 56;
 
@@ -26,6 +29,7 @@ export default function PorzioneYouTube({
   onCambia: (p: { inizio: number; durata: number; fine: number }) => void;
   etichette: {
     istruzioni: string;
+    durata: string;
     riproduci: string;
     pausa: string;
     carico: string;
@@ -36,13 +40,14 @@ export default function PorzioneYouTube({
   const player = useRef<YTPlayer | null>(null);
   const timer = useRef<number | null>(null);
   const barra = useRef<HTMLDivElement>(null);
-  const trascino = useRef(false);
+  const modo = useRef<"sposta" | "sinistra" | "destra" | null>(null);
   const avviato = useRef(false);
 
   const [pronto, setPronto] = useState(false);
   const [errore, setErrore] = useState(false);
   const [durataBrano, setDurataBrano] = useState(0);
   const [inizio, setInizio] = useState(0);
+  const [durataScelta, setDurataScelta] = useState(MAX_PORZIONE);
   const [inRiproduzione, setInRiproduzione] = useState(false);
 
   // Onda sonora finta ma stabile (sempre uguale per lo stesso brano): serve
@@ -58,14 +63,17 @@ export default function PorzioneYouTube({
       h ^= h << 13;
       h ^= h >>> 17;
       h ^= h << 5;
-      out.push(0.22 + ((h >>> 0) % 1000) / 1000 * 0.78);
+      out.push(0.22 + (((h >>> 0) % 1000) / 1000) * 0.78);
     }
     return out;
   }, [videoId]);
 
-  const finestra = durataBrano > 0 ? Math.min(MAX_PORZIONE, durataBrano) : MAX_PORZIONE;
-  const spostabile = durataBrano - finestra > 0.5;
+  // Limiti della finestra: mai oltre la lunghezza del brano.
+  const durataMin = Math.min(MIN_PORZIONE, durataBrano || MIN_PORZIONE);
+  const durataMax = Math.min(MAX_PORZIONE, durataBrano || MAX_PORZIONE);
+  const finestra = Math.min(Math.max(durataScelta, durataMin), durataMax);
   const fine = Math.min(inizio + finestra, durataBrano);
+  const puoiAllargare = durataMax > durataMin;
 
   const idxInizio = durataBrano > 0 ? (inizio / durataBrano) * N_BARRE : 0;
   const idxFine = durataBrano > 0 ? (fine / durataBrano) * N_BARRE : N_BARRE;
@@ -89,7 +97,10 @@ export default function PorzioneYouTube({
               if (annullato) return;
               const d = Math.floor(player.current?.getDuration() ?? 0);
               setPronto(true);
-              if (d > 0) setDurataBrano(d);
+              if (d > 0) {
+                setDurataBrano(d);
+                setDurataScelta((c) => Math.min(Math.max(c, MIN_PORZIONE), d));
+              }
             },
           },
         });
@@ -145,8 +156,7 @@ export default function PorzioneYouTube({
     timer.current = window.setInterval(() => {
       const pl = player.current;
       if (!pl) return;
-      const t = pl.getCurrentTime();
-      if (t >= limite - 0.15) {
+      if (pl.getCurrentTime() >= limite - 0.15) {
         pl.pauseVideo();
         setInRiproduzione(false);
         fermaTimer();
@@ -160,32 +170,67 @@ export default function PorzioneYouTube({
     fermaTimer();
   }
 
-  function muovi(clientX: number) {
+  /** Secondo della canzone sotto il dito, in base alla posizione orizzontale. */
+  function secondoDaX(clientX: number): number | null {
     const el = barra.current;
-    if (!el || durataBrano <= 0) return;
+    if (!el || durataBrano <= 0) return null;
     const r = el.getBoundingClientRect();
     const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-    const nuovo = Math.min(
-      Math.max(f * durataBrano - finestra / 2, 0),
-      Math.max(0, durataBrano - finestra)
-    );
-    setInizio(nuovo);
+    return f * durataBrano;
+  }
+
+  function aggiorna(t: number) {
+    const m = modo.current;
+    if (m === "sposta") {
+      const nuovo = Math.min(
+        Math.max(t - finestra / 2, 0),
+        Math.max(0, durataBrano - finestra)
+      );
+      setInizio(nuovo);
+    } else if (m === "sinistra") {
+      // Il bordo sinistro si muove; quello destro resta fermo.
+      const nuovoInizio = Math.min(
+        Math.max(t, fine - durataMax, 0),
+        Math.max(0, fine - durataMin)
+      );
+      setInizio(nuovoInizio);
+      setDurataScelta(fine - nuovoInizio);
+    } else if (m === "destra") {
+      // Il bordo destro si muove; quello sinistro resta fermo.
+      const nuovoFine = Math.max(
+        Math.min(t, inizio + durataMax, durataBrano),
+        inizio + durataMin
+      );
+      setDurataScelta(nuovoFine - inizio);
+    }
   }
 
   function iniziaTrascina(e: React.PointerEvent) {
-    if (!spostabile) return;
-    trascino.current = true;
+    const t = secondoDaX(e.clientX);
+    if (t === null) return;
+    const r = barra.current!.getBoundingClientRect();
+    // Zona "maniglia" in secondi, corrispondente a ~18 px ai due lati.
+    const soglia = (18 / r.width) * durataBrano;
+    if (Math.abs(t - inizio) <= soglia) {
+      modo.current = "sinistra";
+    } else if (Math.abs(t - fine) <= soglia) {
+      modo.current = "destra";
+    } else {
+      modo.current = "sposta";
+    }
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
-    muovi(e.clientX);
+    aggiorna(t);
   }
 
   function duranteTrascina(e: React.PointerEvent) {
-    if (trascino.current) muovi(e.clientX);
+    if (!modo.current) return;
+    const t = secondoDaX(e.clientX);
+    if (t !== null) aggiorna(t);
   }
 
   function finisciTrascina() {
-    if (!trascino.current) return;
-    trascino.current = false;
+    if (!modo.current) return;
+    modo.current = null;
     if (inRiproduzione) avvia();
   }
 
@@ -221,7 +266,7 @@ export default function PorzioneYouTube({
             {etichette.istruzioni}
           </p>
 
-          {/* La barra: trascinala per scegliere la parte (stile storie). */}
+          {/* La barra: sposta la finestra dal centro, cambia durata dai bordi. */}
           <div
             ref={barra}
             role="slider"
@@ -237,12 +282,11 @@ export default function PorzioneYouTube({
             onKeyDown={(e) => {
               if (e.key === "ArrowLeft") setInizio((v) => Math.max(0, v - 1));
               if (e.key === "ArrowRight")
-                setInizio((v) => Math.min(Math.max(0, durataBrano - finestra), v + 1));
+                setInizio((v) =>
+                  Math.min(Math.max(0, durataBrano - finestra), v + 1)
+                );
             }}
-            className={
-              "relative flex h-24 items-end gap-[2px] overflow-hidden rounded-xl bg-stone-900/5 px-1.5 py-1.5 " +
-              (spostabile ? "cursor-grab touch-none select-none" : "")
-            }
+            className="relative flex h-24 cursor-grab touch-none select-none items-end gap-[2px] overflow-hidden rounded-xl bg-stone-900/5 px-1.5 py-1.5 active:cursor-grabbing"
           >
             {barre.map((h, i) => {
               const dentro = i >= idxInizio && i < idxFine;
@@ -257,14 +301,17 @@ export default function PorzioneYouTube({
                 />
               );
             })}
-            {/* Cornice della finestra scelta (i 30 secondi). */}
+            {/* Cornice della finestra scelta, con i due bordi trascinabili. */}
             <span
               className="pointer-events-none absolute inset-y-0 rounded-lg border-2 border-amber-600"
               style={{
                 left: `calc(${fracInizio * 100}% + 6px)`,
                 width: `calc(${fracFinestra * 100}% - 12px)`,
               }}
-            />
+            >
+              <span className="absolute -left-1 top-1/2 h-8 w-2 -translate-y-1/2 rounded-full bg-amber-600 shadow" />
+              <span className="absolute -right-1 top-1/2 h-8 w-2 -translate-y-1/2 rounded-full bg-amber-600 shadow" />
+            </span>
           </div>
 
           <div className="mt-2 flex items-center justify-between">
@@ -276,9 +323,34 @@ export default function PorzioneYouTube({
               {inRiproduzione ? etichette.pausa : etichette.riproduci}
             </button>
             <span className="tabular-nums text-xs font-semibold text-stone-700">
-              {formattaSecondi(inizio)} – {formattaSecondi(fine)}
+              {formattaSecondi(inizio)} – {formattaSecondi(fine)} ·{" "}
+              {Math.round(finestra)}s
             </span>
           </div>
+
+          {puoiAllargare && (
+            <div className="mt-2">
+              <label className="mb-1 flex items-center justify-between text-xs font-semibold text-stone-700">
+                <span>{etichette.durata}</span>
+                <span className="tabular-nums">{Math.round(finestra)}s</span>
+              </label>
+              <input
+                type="range"
+                min={durataMin}
+                max={durataMax}
+                step={1}
+                value={finestra}
+                onChange={(e) => {
+                  const d = Number(e.target.value);
+                  setDurataScelta(d);
+                  setInizio((v) =>
+                    Math.min(v, Math.max(0, durataBrano - d))
+                  );
+                }}
+                className="w-full accent-amber-600"
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
