@@ -181,3 +181,178 @@ export function analizzaCanzone(ingresso: string): Canzone | null {
     deezer(host, u)
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Ricerca in-app (stile "music sticker") e scelta di una porzione.    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Con la ricerca in-app l'utente non incolla piu' un link: sceglie un
+ * brano da un elenco e decide da quale secondo far partire l'ascolto
+ * (porzione di al massimo 30 secondi, come nelle storie di Instagram).
+ *
+ * La scelta viene salvata su postit.canzone_url come piccola stringa JSON,
+ * cosi' non serve nessuna nuova colonna ne' migrazione aggiuntiva. I vecchi
+ * post-it con un semplice link continuano a funzionare: qui sotto riconosciamo
+ * entrambi i formati.
+ */
+
+/** Durata massima della porzione che si puo' far sentire (secondi). */
+export const MAX_PORZIONE = 30;
+
+/** Brano trovato con la ricerca, prima della scelta della porzione. */
+export type RisultatoCanzone = {
+  servizio: "youtube" | "apple";
+  /** id del video YouTube oppure id del brano iTunes. */
+  id: string;
+  titolo: string;
+  artista: string;
+  /** URL della copertina (o null). */
+  copertina: string | null;
+  /** Durata del brano in secondi (per Apple: la durata dell'anteprima, 30). */
+  durataSec: number | null;
+  /** URL dell'anteprima audio (Apple/iTunes), altrimenti null. */
+  anteprimaUrl: string | null;
+};
+
+/** Scelta salvata su postit.canzone_url (JSON). */
+export type ClipCanzone = {
+  /** Versione del formato: ci permette di evolvere senza rompere i vecchi. */
+  v: 1;
+  servizio: "youtube" | "apple";
+  id: string;
+  titolo: string;
+  artista: string;
+  copertina: string | null;
+  /** Secondo da cui parte l'ascolto. */
+  inizio: number;
+  /** Secondo in cui finisce l'ascolto (YouTube) o null (anteprima fissa). */
+  fine: number | null;
+  /** URL dell'anteprima audio (Apple), altrimenti null. */
+  anteprima: string | null;
+};
+
+/** Player pronto da mostrare, ricavato da un link o da una scelta JSON. */
+export type Player =
+  | { tipo: "embed"; embedUrl: string; altezza: number; etichetta: string }
+  | {
+      tipo: "clip-youtube";
+      id: string;
+      inizio: number;
+      fine: number | null;
+      etichetta: string;
+    }
+  | { tipo: "clip-audio"; src: string; inizio: number; etichetta: string };
+
+/** Serializza la scelta per salvarla su postit.canzone_url. */
+export function serializzaClip(clip: ClipCanzone): string {
+  return JSON.stringify(clip);
+}
+
+/** Legge una scelta JSON salvata su postit.canzone_url (o null se non e' JSON). */
+export function leggiClip(valore: string | null | undefined): ClipCanzone | null {
+  const s = (valore ?? "").trim();
+  if (!s.startsWith("{")) return null;
+  let dati: unknown;
+  try {
+    dati = JSON.parse(s);
+  } catch {
+    return null;
+  }
+  if (!dati || typeof dati !== "object") return null;
+  const o = dati as Record<string, unknown>;
+  if (o.v !== 1) return null;
+  const servizio = o.servizio;
+  if (servizio !== "youtube" && servizio !== "apple") return null;
+  const id = typeof o.id === "string" ? o.id : "";
+  if (!id) return null;
+  const num = (x: unknown, difetto: number) =>
+    typeof x === "number" && Number.isFinite(x) && x >= 0 ? x : difetto;
+  const testo = (x: unknown) => (typeof x === "string" ? x : "");
+  const nullo = (x: unknown) => (typeof x === "string" && x ? x : null);
+  return {
+    v: 1,
+    servizio,
+    id,
+    titolo: testo(o.titolo),
+    artista: testo(o.artista),
+    copertina: nullo(o.copertina),
+    inizio: num(o.inizio, 0),
+    fine: o.fine === null ? null : num(o.fine, 0),
+    anteprima: nullo(o.anteprima),
+  };
+}
+
+/**
+ * Normalizza un valore scelto nell'editor (link oppure JSON) nella forma da
+ * salvare: il link canonico del servizio oppure il JSON ripulito.
+ */
+export function normalizzaCanzone(valore: string): string | null {
+  const clip = leggiClip(valore);
+  if (clip) return serializzaClip(clip);
+  const c = analizzaCanzone(valore);
+  return c ? c.url : null;
+}
+
+/** Descrizione breve del brano scelto, per la scheda nell'editor. */
+export function descrizioneCanzone(valore: string): string | null {
+  const clip = leggiClip(valore);
+  if (clip) {
+    const base = clip.titolo || clip.id;
+    return clip.artista ? `${base} · ${clip.artista}` : base;
+  }
+  const c = analizzaCanzone(valore);
+  return c ? c.etichetta : null;
+}
+
+/** URL del player YouTube di una porzione (start/end). */
+export function embedClipYoutube(
+  id: string,
+  inizio: number,
+  fine: number | null
+): string {
+  const p = new URLSearchParams();
+  if (inizio > 0) p.set("start", String(Math.floor(inizio)));
+  if (fine && fine > inizio) p.set("end", String(Math.floor(fine)));
+  p.set("rel", "0");
+  p.set("modestbranding", "1");
+  p.set("playsinline", "1");
+  return `https://www.youtube.com/embed/${id}?${p.toString()}`;
+}
+
+/**
+ * Costruisce il player da mostrare sul muro a partire dal valore salvato
+ * (link storico oppure JSON della ricerca). Ritorna null se non c'e' nulla
+ * di riproducibile.
+ */
+export function playerDaCanzone(valore: string | null | undefined): Player | null {
+  const clip = leggiClip(valore);
+  if (clip) {
+    if (clip.servizio === "youtube") {
+      return {
+        tipo: "clip-youtube",
+        id: clip.id,
+        inizio: clip.inizio,
+        fine: clip.fine,
+        etichetta: "YouTube",
+      };
+    }
+    if (clip.anteprima) {
+      return {
+        tipo: "clip-audio",
+        src: clip.anteprima,
+        inizio: clip.inizio,
+        etichetta: "Apple Music",
+      };
+    }
+    return null;
+  }
+  const c = analizzaCanzone(valore ?? "");
+  if (!c) return null;
+  return {
+    tipo: "embed",
+    embedUrl: c.embedUrl,
+    altezza: c.altezza,
+    etichetta: c.etichetta,
+  };
+}
