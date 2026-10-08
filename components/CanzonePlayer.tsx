@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { caricaApiVideo, type YTPlayer } from "@/lib/youtube";
 import { playerDaCanzone, type Player } from "@/lib/canzone";
 import { useLingua } from "@/lib/i18n";
+import { prendiPalco, lasciaPalco } from "@/lib/riproduzione";
 
 /**
  * Scheda della canzone allegata a un post-it, stile "mini player".
@@ -12,11 +13,12 @@ import { useLingua } from "@/lib/i18n";
  * - la COPERTINA a sinistra, con un tasto PLAY trasparente sopra: al tocco
  *   diventa PAUSA (e viceversa);
  * - il TITOLO del brano per esteso (va a capo invece di essere tagliato);
- * - l'ARTISTA e il nome del servizio.
+ * - l'ARTISTA sotto il titolo.
  *
  * Niente zoom a schermo intero: la scheda resta dentro il post-it.
  *
- * La riproduzione e' sempre AUDIO (max 30s):
+ * Una sola traccia alla volta: chi parte ferma quello che stava suonando
+ * (vedi lib/riproduzione). La riproduzione e' sempre AUDIO (max 30s):
  * - clip YouTube: player nascosto controllato via API;
  * - anteprima audio (Apple/Spotify): <audio> nascosto;
  * - link storico (solo embed ufficiale): al tocco si apre l'embed in linea.
@@ -91,14 +93,23 @@ function Scheda({
             {player.artista}
           </p>
         )}
-        <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-stone-500">
-          {player.etichetta}
-        </p>
       </div>
 
       {children}
     </div>
   );
+}
+
+/**
+ * Prende il "palco" finche' `suona` e' vero: cosi' partendo ferma chi suonava.
+ * Rilascia il palco (o lo cede) quando smette o quando il post-it sparisce.
+ */
+function usePalco(suona: boolean, ferma: () => void) {
+  useEffect(() => {
+    if (!suona) return;
+    prendiPalco(ferma);
+    return () => lasciaPalco(ferma);
+  }, [suona, ferma]);
 }
 
 /** YouTube: player nascosto, si sente solo la porzione scelta (max 30s). */
@@ -115,6 +126,22 @@ function MiniYoutube({
 
   const limite =
     player.fine && player.fine > player.inizio ? player.fine : player.inizio + 30;
+
+  // Unica funzione di stop (identita' stabile): usata dal tasto e dal palco.
+  const ferma = useCallback(() => {
+    if (timer.current) {
+      window.clearInterval(timer.current);
+      timer.current = null;
+    }
+    try {
+      pl.current?.pauseVideo();
+    } catch {
+      // player non ancora pronto
+    }
+    setSuona(false);
+  }, []);
+
+  usePalco(suona, ferma);
 
   useEffect(() => {
     let annullato = false;
@@ -140,7 +167,7 @@ function MiniYoutube({
       });
     return () => {
       annullato = true;
-      if (timer.current) window.clearInterval(timer.current);
+      ferma();
       try {
         pl.current?.destroy();
       } catch {
@@ -148,19 +175,12 @@ function MiniYoutube({
       }
       pl.current = null;
     };
-  }, [player.id]);
-
-  function fermaTimer() {
-    if (timer.current) {
-      window.clearInterval(timer.current);
-      timer.current = null;
-    }
-  }
+  }, [player.id, ferma]);
 
   function avvia() {
     const p = pl.current;
     if (!p) return;
-    fermaTimer();
+    if (timer.current) window.clearInterval(timer.current);
     p.seekTo(player.inizio, true);
     p.playVideo();
     setSuona(true);
@@ -168,17 +188,9 @@ function MiniYoutube({
       const cur = pl.current;
       if (!cur) return;
       if (cur.getCurrentTime() >= limite - 0.15) {
-        cur.pauseVideo();
-        setSuona(false);
-        fermaTimer();
+        ferma();
       }
     }, 200);
-  }
-
-  function pausa() {
-    pl.current?.pauseVideo();
-    setSuona(false);
-    fermaTimer();
   }
 
   return (
@@ -186,7 +198,7 @@ function MiniYoutube({
       player={player}
       suona={suona}
       disabilitato={!pronto}
-      onToggle={suona ? pausa : avvia}
+      onToggle={suona ? ferma : avvia}
     >
       <div
         aria-hidden
@@ -215,6 +227,16 @@ function MiniAudio({
   const [suona, setSuona] = useState(false);
   const fine = player.durata ? player.inizio + player.durata : null;
 
+  const ferma = useCallback(() => {
+    const a = rif.current;
+    if (a) a.pause();
+    setSuona(false);
+  }, []);
+
+  usePalco(suona, ferma);
+  // Se il post-it sparisce mentre suona, fermiamo l'audio.
+  useEffect(() => () => ferma(), [ferma]);
+
   useEffect(() => {
     const a = rif.current;
     if (!a) return;
@@ -242,8 +264,7 @@ function MiniAudio({
           // Autoplay bloccato: resta in pausa.
         });
     } else {
-      a.pause();
-      setSuona(false);
+      ferma();
     }
   }
 
@@ -258,9 +279,8 @@ function MiniAudio({
         onTimeUpdate={(e) => {
           const a = e.currentTarget;
           if (fine && a.currentTime >= fine) {
-            a.pause();
+            ferma();
             a.currentTime = player.inizio;
-            setSuona(false);
           }
         }}
       />
@@ -275,9 +295,19 @@ function MiniEmbed({
   player: Extract<Player, { tipo: "embed" }>;
 }) {
   const [aperto, setAperto] = useState(false);
+
+  // Chiudere l'embed (smontare l'iframe) ferma la riproduzione: vale come stop.
+  const ferma = useCallback(() => setAperto(false), []);
+
+  usePalco(aperto, ferma);
+
   return (
     <div>
-      <Scheda player={player} suona={aperto} onToggle={() => setAperto((v) => !v)} />
+      <Scheda
+        player={player}
+        suona={aperto}
+        onToggle={() => setAperto((v) => !v)}
+      />
       {aperto && (
         <iframe
           src={player.embedUrl}
