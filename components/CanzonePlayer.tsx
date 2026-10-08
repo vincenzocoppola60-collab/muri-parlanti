@@ -85,11 +85,11 @@ function Scheda({
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className="break-words text-[11px] font-bold leading-tight text-stone-900">
+        <p className="break-words text-[10px] font-semibold leading-snug text-stone-900">
           {player.titolo ?? t("postit.canzone")}
         </p>
         {player.artista && (
-          <p className="break-words text-[10px] leading-tight text-stone-600">
+          <p className="break-words text-[9px] leading-snug text-stone-500">
             {player.artista}
           </p>
         )}

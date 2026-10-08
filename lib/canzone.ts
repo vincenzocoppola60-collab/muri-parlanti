@@ -340,8 +340,9 @@ export function normalizzaCanzone(valore: string): string | null {
 export function descrizioneCanzone(valore: string): string | null {
   const clip = leggiClip(valore);
   if (clip) {
-    const base = clip.titolo || clip.id;
-    return clip.artista ? `${base} · ${clip.artista}` : base;
+    const artista = clip.artista || null;
+    const base = pulisciTitolo(clip.titolo || null, artista) || clip.titolo || clip.id;
+    return artista ? `${base} · ${artista}` : base;
   }
   const c = analizzaCanzone(valore);
   return c ? c.etichetta : null;
@@ -379,6 +380,25 @@ export function embedClipYoutube(
 }
 
 /**
+ * Toglie dal titolo l'eventuale nome dell'artista che lo precede (su YouTube
+ * il titolo e' spesso "Artista - Titolo"). Cosi' nella scheda resta solo il
+ * nome della traccia e l'artista compare una volta sola, nella riga sotto.
+ * Se non c'e' una corrispondenza sicura, il titolo resta invariato.
+ */
+export function pulisciTitolo(
+  titolo: string | null,
+  artista: string | null
+): string | null {
+  if (!titolo) return titolo;
+  const t = titolo.trim();
+  const a = (artista ?? "").trim();
+  if (!a || t.length <= a.length) return titolo;
+  if (t.slice(0, a.length).toLowerCase() !== a.toLowerCase()) return titolo;
+  const resto = t.slice(a.length).replace(/^\s*[-\u2013\u2014:|\u2022\u00b7]\s*/, "").trim();
+  return resto.length >= 2 ? resto : titolo;
+}
+
+/**
  * Costruisce il player da mostrare sul muro a partire dal valore salvato
  * (link storico oppure JSON della ricerca). Ritorna null se non c'e' nulla
  * di riproducibile.
@@ -386,8 +406,8 @@ export function embedClipYoutube(
 export function playerDaCanzone(valore: string | null | undefined): Player | null {
   const clip = leggiClip(valore);
   if (clip) {
-    const titolo = clip.titolo || null;
     const artista = clip.artista || null;
+    const titolo = pulisciTitolo(clip.titolo || null, artista);
     const copertina = clip.copertina;
     if (clip.servizio === "youtube") {
       const fine =
