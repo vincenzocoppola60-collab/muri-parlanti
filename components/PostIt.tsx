@@ -198,29 +198,35 @@ export default function PostItView({
         )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
       <footer className="mt-3 flex items-center justify-between gap-2 text-stone-700">
-        {mio ? (
-          <Link
-            href={`/profilo/${postit.user_id}`}
-            title={t("postit.tuoPensiero", { nome: postit.nickname })}
-            className="flex items-center gap-1.5 font-bold text-stone-900 underline decoration-stone-500 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
-          >
-            ~ {t("postit.tu")}
-            <span className="rounded-full bg-stone-900/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-800">
-              {t("postit.tuo")}
-            </span>
-          </Link>
-        ) : postit.user_id ? (
-          <Link
-            href={`/profilo/${postit.user_id}`}
-            title={t("postit.vediProfilo")}
-            className="font-semibold underline decoration-stone-400 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
-          >
-            ~ {postit.nickname}
-          </Link>
-        ) : (
-          <span className="font-semibold">~ {postit.nickname}</span>
+        <div className="min-w-0 flex-1">
+          {mio ? (
+            <Link
+              href={`/profilo/${postit.user_id}`}
+              title={t("postit.tuoPensiero", { nome: postit.nickname })}
+              className="flex items-center gap-1.5 font-bold text-stone-900 underline decoration-stone-500 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
+            >
+              ~ {t("postit.tu")}
+              <span className="rounded-full bg-stone-900/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-800">
+                {t("postit.tuo")}
+              </span>
+            </Link>
+          ) : postit.user_id ? (
+            <Link
+              href={`/profilo/${postit.user_id}`}
+              title={t("postit.vediProfilo")}
+              className="font-semibold underline decoration-stone-400 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
+            >
+              ~ {postit.nickname}
+            </Link>
+          ) : (
+            <span className="font-semibold">~ {postit.nickname}</span>
+          )}
+        </div>
+        {data && (
+          <time className="whitespace-nowrap text-xs opacity-70" aria-label={data}>
+            {data}
+          </time>
         )}
-        {data && <time className="text-xs opacity-70">{data}</time>}
       </footer>
     </article>
   );
