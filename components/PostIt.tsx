@@ -197,8 +197,8 @@ export default function PostItView({
           document.body
         )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
-      <footer className="mt-3 flex items-center justify-between gap-2 text-stone-700">
-        <div className="min-w-0 flex-1">
+      <footer className="mt-3 flex flex-col gap-0.5 text-stone-700 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        <div className="min-w-0 truncate">
           {mio ? (
             <Link
               href={`/profilo/${postit.user_id}`}
@@ -223,7 +223,10 @@ export default function PostItView({
           )}
         </div>
         {data && (
-          <time className="whitespace-nowrap text-xs opacity-70" aria-label={data}>
+          <time
+            className="whitespace-nowrap text-[10px] leading-none opacity-70 sm:text-xs"
+            aria-label={data}
+          >
             {data}
           </time>
         )}
