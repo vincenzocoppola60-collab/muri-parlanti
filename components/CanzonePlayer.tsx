@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import AudioPorzione from "@/components/AudioPorzione";
 import PlayerAudioYoutube from "@/components/PlayerAudioYoutube";
@@ -19,7 +19,8 @@ import { useLingua } from "@/lib/i18n";
  * spariva). Percio' il player si apre in un OVERLAY a schermo tramite un
  * portale su <body>: cosi' esce dal flusso della card (larga pochi pixel),
  * copre tutto e titolo, artista e controlli restano leggibili. Il portale
- * compare solo dopo il mount, quindi server e client restano identici.
+ * compare solo dopo un click (quindi solo lato client), quindi server e
+ * client restano identici.
  *
  * La canzone parte sempre e solo in AUDIO: nessun video viene mostrato, ne'
  * nell'editor ne' sul muro. Si sente la porzione scelta (max 30s).
@@ -27,12 +28,7 @@ import { useLingua } from "@/lib/i18n";
 export default function CanzonePlayer({ url }: { url: string }) {
   const { t } = useLingua();
   const [aperto, setAperto] = useState(false);
-  const [montato, setMontato] = useState(false);
   const player = playerDaCanzone(url);
-
-  useEffect(() => {
-    setMontato(true);
-  }, []);
 
   if (!player) return null;
 
@@ -47,8 +43,7 @@ export default function CanzonePlayer({ url }: { url: string }) {
         <span className="flex-1 truncate">{t("postit.ascolta")}</span>
       </button>
 
-      {montato &&
-        aperto &&
+      {aperto &&
         createPortal(
           <div
             className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-950/90 p-4 backdrop-blur-sm"
