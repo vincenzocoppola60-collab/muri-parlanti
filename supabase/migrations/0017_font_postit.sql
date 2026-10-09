@@ -5,7 +5,8 @@
 --
 -- PERCHE' SERVE
 --   Aggiunge la colonna `font` (varchar) alla tabella `postit`, per salvare
---   il font scelto dall'utente (uno dei 20 font OFL). Il font e' parte
+--   il font scelto dall'utente (uno dei font OFL, categoria a mano/scrittura/graffiti).
+--   Il font e' parte
 --   dell'identita' visiva del pensiero, come lo stile grafico.
 --
 --   La colonna e' nullable: i post-it vecchi (o quelli senza scelta) restano

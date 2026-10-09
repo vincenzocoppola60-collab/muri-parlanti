@@ -17,12 +17,7 @@ import { caricaProgresso } from "@/lib/progresso";
 import { statoLivello } from "@/lib/livelli";
 import { stileSbloccato } from "@/lib/stili";
 import { classiStile, DecorazioniStile } from "@/components/StilePostit";
-import {
-  cssFontFamily,
-  eCodiceFont,
-  fontDaCodice,
-  fontSbloccato,
-} from "@/lib/fonti";
+import { cssFontFamily, eCodiceFont, fontDaCodice } from "@/lib/fonti";
 import ScegliCanzone from "@/components/ScegliCanzone";
 import ScegliStile from "@/components/ScegliStile";
 import ScegliFont from "@/components/ScegliFont";
@@ -120,11 +115,10 @@ export default function PostItEditor({
   // altri solo se la variante e' sbloccata al loro livello.
   const stileValido =
     stile != null && (adminAttivo || stileSbloccato(stile, livello));
-  // Font effettivo: deve essere un codice noto e sbloccato al livello
-  // (l'amministratore ha via libera). Vedi lib/fonti.ts.
+  // Font effettivo: basta un codice noto. I font NON dipendono dal livello
+  // (tutti disponibili subito). Vedi lib/fonti.ts.
   const fontValido = eCodiceFont(font) ? font : null;
-  const fontApplicabile =
-    fontValido != null && (adminAttivo || fontSbloccato(fontValido, livello));
+  const fontApplicabile = fontValido != null;
 
   // Libera l'URL di anteprima quando cambia o alla chiusura dell'editor.
   useEffect(() => {
@@ -479,8 +473,6 @@ export default function PostItEditor({
       {pickerFont && (
         <ScegliFont
           valore={font}
-          livelloUtente={livello}
-          amministratore={adminAttivo}
           onScegli={(valore) => {
             setFont(valore);
             setPickerFont(false);
