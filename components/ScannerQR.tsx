@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import jsQR from "jsqr";
 import { nomeLuogo, slugDaTesto } from "@/lib/luoghi";
 import { salvaMuro } from "@/lib/mieiMuri";
@@ -52,6 +53,7 @@ function messaggioErrore(e: unknown, t: T): string {
 
 export default function ScannerQR() {
   const { t } = useLingua();
+  const router = useRouter();
   const [stato, setStato] = useState<Stato>("inattivo");
   const [errore, setErrore] = useState("");
   const [slugTrovato, setSlugTrovato] = useState("");
@@ -75,6 +77,53 @@ export default function ScannerQR() {
   useEffect(() => {
     return () => ferma();
   }, []);
+
+  /**
+   * Interpreta il testo decodificato da un QR.
+   * - Un URL /muro/<slug> o uno slug semplice identificano un muro preciso.
+   * - Un URL dello stesso sito (es. il QR UNICO che punta a /apri) va aperto
+   *   così com'e': la pagina /apri chiede la posizione e apre il muro giusto,
+   *   esattamente come fa l'app Fotocamera dello smartphone.
+   */
+  function destinazione(
+    raw: string
+  ): { tipo: "muro"; slug: string } | { tipo: "url"; url: string } | null {
+    const testo = raw.trim();
+    if (!testo) return null;
+
+    const slug = slugDaTesto(testo);
+    if (slug) return { tipo: "muro", slug };
+
+    let u: URL | null = null;
+    try {
+      u = new URL(testo);
+    } catch {
+      try {
+        u = new URL(testo, window.location.origin);
+      } catch {
+        u = null;
+      }
+    }
+    if (u && u.origin === window.location.origin) {
+      return { tipo: "url", url: u.pathname + u.search + u.hash };
+    }
+    return null;
+  }
+
+  /** Applica un testo decodificato. Ritorna true se ha gestito il codice. */
+  function applica(raw: string): boolean {
+    const d = destinazione(raw);
+    if (!d) return false;
+    ferma();
+    if (d.tipo === "muro") {
+      salvaMuro(d.slug, nomeLuogo(d.slug));
+      setSlugTrovato(d.slug);
+      setStato("trovato");
+    } else {
+      router.push(d.url);
+    }
+    return true;
+  }
 
   async function avvia() {
     setStato("avvio");
@@ -133,16 +182,7 @@ export default function ScannerQR() {
           const codice = jsQR(dati.data, dati.width, dati.height, {
             inversionAttempts: "dontInvert",
           });
-          if (codice?.data) {
-            const s = slugDaTesto(codice.data);
-            if (s) {
-              salvaMuro(s, nomeLuogo(s));
-              setSlugTrovato(s);
-              setStato("trovato");
-              ferma();
-              return;
-            }
-          }
+          if (codice?.data && applica(codice.data)) return;
         } catch {
           // Frame illeggibile: continua al prossimo.
         }
@@ -176,14 +216,9 @@ export default function ScannerQR() {
       const codice = jsQR(dati.data, dati.width, dati.height, {
         inversionAttempts: "attemptBoth",
       });
-      const s = codice?.data ? slugDaTesto(codice.data) : "";
-      if (!s) {
+      if (!codice?.data || !applica(codice.data)) {
         setErrore(t("scan.noQrFoto"));
-        return;
       }
-      salvaMuro(s, nomeLuogo(s));
-      setSlugTrovato(s);
-      setStato("trovato");
     } catch (e) {
       setErrore(e instanceof Error ? e.message : t("scan.erroreSconosciuto"));
     }
@@ -191,14 +226,9 @@ export default function ScannerQR() {
 
   function inviaManuale(ev: React.FormEvent) {
     ev.preventDefault();
-    const s = slugDaTesto(testo.trim());
-    if (!s) {
+    if (!applica(testo.trim())) {
       setErrore(t("scan.testoNonRiconosciuto"));
-      return;
     }
-    salvaMuro(s, nomeLuogo(s));
-    setSlugTrovato(s);
-    setStato("trovato");
   }
 
   return (
