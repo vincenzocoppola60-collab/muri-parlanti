@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { PostIt } from "@/lib/postit";
@@ -14,6 +19,7 @@ import {
   numeroStile,
   DecorazioniStile,
 } from "@/components/StilePostit";
+import { cssFontFamily, eCodiceFont } from "@/lib/fonti";
 
 const SFONDI = ["/images/1.webp", "/images/3.webp"];
 
@@ -44,13 +50,20 @@ export default function PostItView({
   // Variante grafica scelta dall'amministratore (null = design classico).
   const stile = numeroStile(postit.stile);
   const classiVariante = classiStile(postit.stile);
+  // Font del testo scelto dall'autore (null = predefinito).
+  const font = eCodiceFont(postit.font) ? postit.font : null;
 
   // "Tu" al posto del nickname SOLO per l'autore connesso. Calcolato nel
   // browser dopo il mount: cosi' l'HTML del server (nickname) coincide con
   // il primo render del client e non ci sono divergenze di idratazione.
   const { utente } = useAuth();
   const { t, lingua, traduciPubblici } = useLingua();
-  const [montato, setMontato] = useState(false);
+  // Rileva in modo sicuro l'idratazione sul client (evita mismatch SSR).
+  const montato = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   // Teniamo anche la chiave della richiesta: se cambia la lingua (o il testo),
   // una traduzione vecchia viene semplicemente ignorata invece che azzerata.
   const [trad, setTrad] = useState<{ chiave: string; testo: string } | null>(
@@ -58,9 +71,6 @@ export default function PostItView({
   );
   const [mostraOriginale, setMostraOriginale] = useState(false);
   const [zoomFoto, setZoomFoto] = useState(false);
-  useEffect(() => {
-    setMontato(true);
-  }, []);
   const mio =
     montato && !!utente && postit.user_id != null && postit.user_id === utente.id;
 
@@ -131,7 +141,10 @@ export default function PostItView({
           {data}
         </time>
       )}
-      <p className="postit-testo whitespace-pre-wrap break-words text-sm leading-snug text-stone-900">
+      <p
+        className="postit-testo whitespace-pre-wrap break-words text-sm leading-snug text-stone-900"
+        style={font ? { fontFamily: cssFontFamily(font) } : undefined}
+      >
         {testoMostrato}
       </p>
       {tradotto && (

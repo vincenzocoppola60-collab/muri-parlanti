@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Alias "scritta" -> Caveat: unico util Tailwind (font-scritta) usato per i
+     titoli. Gli altri 16 font OFL sono esposti da next/font come variabili CSS
+     (--font-*) sul <html> e usati inline dai post-it (vedi lib/fonti.ts); non
+     vanno ridichiarati qui o si crea un ciclo (--font-x: var(--font-x)). */
   --font-scritta: var(--font-caveat);
 }
 

@@ -1,6 +1,7 @@
 import { getSupabase } from "@/lib/supabase";
 import { getClienteAuth } from "@/lib/clienteAuth";
 import { verificaContenuto } from "@/lib/moderazione";
+import { eCodiceFont } from "@/lib/fonti";
 
 export type PostIt = {
   id: string;
@@ -19,6 +20,11 @@ export type PostIt = {
    * null / assente = design classico (sfondo + nastro). Vedi StilePostit.tsx.
    */
   stile?: number | null;
+  /**
+   * Codice del font del testo (es. "caveat", "rock-salt"). null / assente =
+   * font predefinito. Vedi lib/fonti.ts.
+   */
+  font?: string | null;
 };
 
 export type EsitoPostIt =
@@ -214,6 +220,10 @@ async function inserisci(
  * stile: variante grafica (1..16), riservata all'amministratore. Se la
  * colonna non esiste ancora (migrazione 0014 non eseguita) il post-it viene
  * pubblicato comunque con il design classico.
+ *
+ * font: codice del font del testo (vedi lib/fonti.ts). Se la colonna non
+ * esiste ancora (migrazione 0017 non eseguita) il post-it viene pubblicato
+ * comunque con il font predefinito.
  */
 export async function attaccaPostit(input: {
   testo: string;
@@ -223,6 +233,7 @@ export async function attaccaPostit(input: {
   fotoUrl?: string | null;
   canzoneUrl?: string | null;
   stile?: number | null;
+  font?: string | null;
 }): Promise<EsitoPostIt> {
   const testo = input.testo.trim();
   if (!testo) {
@@ -252,6 +263,8 @@ export async function attaccaPostit(input: {
     input.stile == null || !Number.isFinite(Math.round(Number(input.stile)))
       ? null
       : Math.round(Number(input.stile));
+  // Si invia il font solo se e' un codice noto (vedi lib/fonti.ts).
+  const fontOk = eCodiceFont(input.font);
   const base: Record<string, unknown> = {
     testo,
     nickname,
@@ -264,6 +277,7 @@ export async function attaccaPostit(input: {
   if (fotoUrl) opzionali.push({ foto_url: fotoUrl });
   if (canzoneUrl) opzionali.push({ canzone_url: canzoneUrl });
   if (stile != null) opzionali.push({ stile });
+  if (fontOk) opzionali.push({ font: input.font });
 
   // Tentativi dal piu' completo al piu' compatibile: un sottoinsieme per
   // ogni combinazione di colonne facoltative, cosi' se una colonna non esiste

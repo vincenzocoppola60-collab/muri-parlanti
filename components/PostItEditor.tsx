@@ -17,8 +17,15 @@ import { caricaProgresso } from "@/lib/progresso";
 import { statoLivello } from "@/lib/livelli";
 import { stileSbloccato } from "@/lib/stili";
 import { classiStile, DecorazioniStile } from "@/components/StilePostit";
+import {
+  cssFontFamily,
+  eCodiceFont,
+  fontDaCodice,
+  fontSbloccato,
+} from "@/lib/fonti";
 import ScegliCanzone from "@/components/ScegliCanzone";
 import ScegliStile from "@/components/ScegliStile";
+import ScegliFont from "@/components/ScegliFont";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 
@@ -48,6 +55,10 @@ export default function PostItEditor({
   const [livello, setLivello] = useState(0);
   const [stile, setStile] = useState<number | null>(null);
   const [pickerStile, setPickerStile] = useState(false);
+  // Font del testo: si sceglie dall'editor (utenti con account), si sblocca
+  // salendo di livello (vedi lib/fonti.ts).
+  const [font, setFont] = useState<string | null>(null);
+  const [pickerFont, setPickerFont] = useState(false);
   const [inviando, setInviando] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -109,6 +120,11 @@ export default function PostItEditor({
   // altri solo se la variante e' sbloccata al loro livello.
   const stileValido =
     stile != null && (adminAttivo || stileSbloccato(stile, livello));
+  // Font effettivo: deve essere un codice noto e sbloccato al livello
+  // (l'amministratore ha via libera). Vedi lib/fonti.ts.
+  const fontValido = eCodiceFont(font) ? font : null;
+  const fontApplicabile =
+    fontValido != null && (adminAttivo || fontSbloccato(fontValido, livello));
 
   // Libera l'URL di anteprima quando cambia o alla chiusura dell'editor.
   useEffect(() => {
@@ -206,6 +222,8 @@ export default function PostItEditor({
       canzoneUrl: canzoneOk ?? null,
       // Si invia lo stile solo se e' applicabile (admin o variante sbloccata).
       stile: stileValido ? stile : null,
+      // Idem per il font: solo se e' un codice noto e sbloccato al livello.
+      font: fontApplicabile ? fontValido : null,
     });
     setInviando(false);
 
@@ -253,6 +271,9 @@ export default function PostItEditor({
           rows={5}
           placeholder={t("editor.placeholder")}
           className="w-full resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
+          style={
+            fontApplicabile ? { fontFamily: cssFontFamily(fontValido) } : undefined
+          }
         />
         <p className="mt-1 text-right text-xs text-stone-700/70">
           {testo.length}/{MAX_TESTO}
@@ -375,7 +396,7 @@ export default function PostItEditor({
             varianti (con i lucchetti su quelle da sbloccare) e applica
             l'anteprima dal vivo al modulo stesso. */}
         {puoUsareStile && (
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setPickerStile(true)}
@@ -384,6 +405,23 @@ export default function PostItEditor({
               🎨 {t("editor.stile")}
               <span className="text-xs font-normal text-stone-600/80">
                 {stile ? `· ${stile}` : t("editor.stileScegli")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPickerFont(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+              style={
+                fontApplicabile
+                  ? { fontFamily: cssFontFamily(fontValido) }
+                  : undefined
+              }
+            >
+              ✍️ {t("editor.font")}
+              <span className="text-xs font-normal text-stone-600/80">
+                {fontApplicabile
+                  ? fontDaCodice(fontValido)?.nome
+                  : t("editor.fontScegli")}
               </span>
             </button>
           </div>
@@ -435,6 +473,19 @@ export default function PostItEditor({
             setPickerStile(false);
           }}
           onChiudi={() => setPickerStile(false)}
+        />
+      )}
+
+      {pickerFont && (
+        <ScegliFont
+          valore={font}
+          livelloUtente={livello}
+          amministratore={adminAttivo}
+          onScegli={(valore) => {
+            setFont(valore);
+            setPickerFont(false);
+          }}
+          onChiudi={() => setPickerFont(false)}
         />
       )}
     </div>
