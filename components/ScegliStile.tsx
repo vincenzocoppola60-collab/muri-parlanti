@@ -106,14 +106,37 @@ export default function ScegliStile({
         </div>
 
         {!amministratore && (
-          <p className="mt-4 text-center text-xs text-stone-400">
-            {prossimo
-              ? t("editor.stileSalita", {
-                  stile: prossimo.stile,
-                  nome: t(`livello.${prossimo.livello}`),
-                })
-              : t("editor.stileTutti")}
-          </p>
+          <>
+            <p className="mt-4 text-center text-xs text-stone-400">
+              {prossimo
+                ? t("editor.stileSalita", {
+                    stile: prossimo.stile,
+                    nome: t(`livello.${prossimo.livello}`),
+                  })
+                : t("editor.stileTutti")}
+            </p>
+
+            {/* Come sbloccare */}
+            <div className="mt-4 rounded-lg bg-stone-950/40 p-3 text-xs text-stone-300">
+              <p className="mb-2 font-semibold text-amber-100">
+                {t("editor.stileComeSbloccare")}
+              </p>
+              <ul className="space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <span aria-hidden>🏛️</span>
+                  <span>{t("editor.stileVisitaMuro", { xp: 10 })}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span aria-hidden>📝</span>
+                  <span>{t("editor.stilePrimoPensiero", { xp: 15 })}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span aria-hidden>🎁</span>
+                  <span>{t("editor.stileBonusLivello")}</span>
+                </li>
+              </ul>
+            </div>
+          </>
         )}
         <p className="mt-1 text-center text-xs text-stone-400">
           {t("editor.stileInfo")}
