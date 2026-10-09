@@ -175,11 +175,11 @@ export default function Wall({
           {t("muro.vuoto")}
         </p>
       ) : (
-        /* 3 colonne, riempimento per RIGHE: riga 1 = 1°-2°-3°, riga 2 =
-           4°-5°-6°, e cosi' via. Il postito piu' nuovo (primo della lista) e'
-           sempre in ALTO A SINISTRA: quando ne arriva uno nuovo, la sequenza
-           scorre verso destra e passa alla riga successiva. */
-        <section className="mx-auto mt-8 grid max-w-3xl grid-cols-3 items-start gap-3 px-4 pb-36">
+        /* 2 colonne su telefono, 3 da 'sm' in su: a 3 colonne su un iPhone
+           (circa 119px l'una) le schede canzone e le date risultano strette e
+           il testo si spezza a meta' parola. Riempimento per RIGHE: il postito
+           piu' nuovo (primo della lista) resta in ALTO A SINISTRA. */
+        <section className="mx-auto mt-8 grid max-w-3xl grid-cols-2 items-start gap-3 px-4 pb-36 sm:grid-cols-3">
           {lista.map((p, i) => (
             <PostItView
               key={p.id}

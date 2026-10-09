@@ -105,23 +105,10 @@ export default function PostItView({
         <time
           dateTime={postit.creato_il}
           aria-label={data}
-          className="absolute right-2 top-1.5 z-10 whitespace-nowrap text-[10px] leading-none text-stone-700 opacity-80 sm:text-xs"
+          className="absolute right-1 top-3 z-10 whitespace-nowrap text-[10px] leading-none text-stone-700 opacity-80 sm:right-2 sm:top-1.5 sm:text-xs"
         >
           {data}
         </time>
-      )}
-      {/* Cuore in BASSO a destra (prima stava in alto a destra). */}
-      {onPreferito && (
-        <button
-          type="button"
-          onClick={onPreferito}
-          aria-label={
-            preferito ? t("postit.preferitoRimuovi") : t("postit.preferitoAggiungi")
-          }
-          className="absolute bottom-1.5 right-1.5 z-10 rounded-full px-1.5 py-0.5 text-base leading-none transition hover:scale-125 active:scale-90"
-        >
-          <span aria-hidden>{preferito ? "❤️" : "🤍"}</span>
-        </button>
       )}
       <p className="whitespace-pre-wrap break-words text-sm leading-snug text-stone-900">
         {testoMostrato}
@@ -208,7 +195,7 @@ export default function PostItView({
           document.body
         )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
-      <footer className="mt-3 pr-8 text-stone-700">
+      <footer className="mt-3 flex items-center justify-between gap-1 text-xs text-stone-700">
         <div className="min-w-0 truncate">
           {mio ? (
             <Link
@@ -233,6 +220,19 @@ export default function PostItView({
             <span className="font-semibold">~ {postit.nickname}</span>
           )}
         </div>
+        {/* Cuore in BASSO a destra, accanto all'autore (stessa riga). */}
+        {onPreferito && (
+          <button
+            type="button"
+            onClick={onPreferito}
+            aria-label={
+              preferito ? t("postit.preferitoRimuovi") : t("postit.preferitoAggiungi")
+            }
+            className="shrink-0 rounded-full px-0.5 py-0.5 text-sm leading-none transition hover:scale-125 active:scale-90"
+          >
+            <span aria-hidden>{preferito ? "❤️" : "🤍"}</span>
+          </button>
+        )}
       </footer>
     </article>
   );

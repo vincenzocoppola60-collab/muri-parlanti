@@ -50,14 +50,14 @@ function Scheda({
 }) {
   const { t } = useLingua();
   return (
-    <div className="relative mt-2 -mx-2.5 flex items-center gap-2 rounded-lg border border-stone-900/10 bg-white/85 p-1.5 shadow-sm">
+    <div className="relative mt-2 flex items-center gap-2 overflow-hidden rounded-lg border border-stone-900/10 bg-white/85 p-1.5 shadow-sm">
       <button
         type="button"
         onClick={onToggle}
         disabled={disabilitato}
         aria-label={t("postit.ascolta")}
         aria-pressed={suona}
-        className="group relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-stone-900/15 disabled:opacity-50"
+        className="group relative h-8 w-8 shrink-0 overflow-hidden rounded-md bg-stone-900/15 disabled:opacity-50"
       >
         {player.copertina ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -85,11 +85,11 @@ function Scheda({
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className="break-words text-[10px] font-semibold leading-snug text-stone-900">
+        <p className="break-words text-[10px] font-semibold leading-tight text-stone-900 line-clamp-2">
           {player.titolo ?? t("postit.canzone")}
         </p>
         {player.artista && (
-          <p className="break-words text-[9px] leading-snug text-stone-500">
+          <p className="break-words text-[9px] leading-tight text-stone-500 line-clamp-2">
             {player.artista}
           </p>
         )}
