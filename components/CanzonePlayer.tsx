@@ -57,7 +57,7 @@ function Scheda({
         disabled={disabilitato}
         aria-label={t("postit.ascolta")}
         aria-pressed={suona}
-        className="group relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-stone-900/15 disabled:opacity-50"
+        className="group relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-stone-900/15 disabled:opacity-50"
       >
         {player.copertina ? (
           // eslint-disable-next-line @next/next/no-img-element

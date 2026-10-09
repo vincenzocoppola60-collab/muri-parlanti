@@ -340,8 +340,8 @@ export function normalizzaCanzone(valore: string): string | null {
 export function descrizioneCanzone(valore: string): string | null {
   const clip = leggiClip(valore);
   if (clip) {
-    const artista = clip.artista || null;
-    const base = pulisciTitolo(clip.titolo || null, artista) || clip.titolo || clip.id;
+    const { titolo, artista } = scomponiCanzone(clip.titolo || null, clip.artista || null);
+    const base = titolo || clip.titolo || clip.id;
     return artista ? `${base} · ${artista}` : base;
   }
   const c = analizzaCanzone(valore);
@@ -380,22 +380,76 @@ export function embedClipYoutube(
 }
 
 /**
- * Toglie dal titolo l'eventuale nome dell'artista che lo precede (su YouTube
- * il titolo e' spesso "Artista - Titolo"). Cosi' nella scheda resta solo il
- * nome della traccia e l'artista compare una volta sola, nella riga sotto.
- * Se non c'e' una corrispondenza sicura, il titolo resta invariato.
+ * Parole tipiche delle indicazioni tra parentesi che NON fanno parte del nome
+ * della traccia ("(Official Video)", "(Audio)", "(Lyric Video)"...).
  */
-export function pulisciTitolo(
+const PARENTESI_DESCRITTIVE =
+  /(official|video|audio|lyric|visual|hd|4k|mv|clip|remix|version|edit|prod\.?|explicit|clean|trailer|performance|live|instrumental)/i;
+
+/**
+ * Ripulisce titolo e artista di una traccia per la scheda del post-it:
+ * - toglie dal titolo il nome dell'artista che lo precede ("Artista - Titolo"),
+ *   ormai ripetuto nella riga sotto;
+ * - toglie le indicazioni tra parentesi descrittive ("(Official Video)",
+ *   "(Audio)"...);
+ * - sposta il featuring ("ft."/"feat."/"featuring"/"with") dal titolo alla
+ *   riga dell'artista, che diventa "Artista ft. Ospite".
+ *
+ * Le MAIUSCOLE originali restano invariate. Se non riconosce nulla, lascia il
+ * valore di partenza.
+ */
+export function scomponiCanzone(
   titolo: string | null,
   artista: string | null
-): string | null {
-  if (!titolo) return titolo;
-  const t = titolo.trim();
+): { titolo: string | null; artista: string | null } {
+  const originale = (titolo ?? "").trim();
+  if (!originale) return { titolo, artista };
+
+  let t = originale;
   const a = (artista ?? "").trim();
-  if (!a || t.length <= a.length) return titolo;
-  if (t.slice(0, a.length).toLowerCase() !== a.toLowerCase()) return titolo;
-  const resto = t.slice(a.length).replace(/^\s*[-\u2013\u2014:|\u2022\u00b7]\s*/, "").trim();
-  return resto.length >= 2 ? resto : titolo;
+
+  // 1) "Artista - Titolo" -> "Titolo"
+  if (
+    a &&
+    t.length > a.length &&
+    t.slice(0, a.length).toLowerCase() === a.toLowerCase()
+  ) {
+    const dopo = t
+      .slice(a.length)
+      .replace(/^\s*[-\u2013\u2014:|\u2022\u00b7]\s*/, "")
+      .trim();
+    if (dopo.length >= 2) t = dopo;
+  }
+
+  // 2) featuring -> riga artista
+  let featuring = "";
+  const mft = /\s*(?:[([]\s*)?(?:ft\.?|feat\.?|featuring|with)\s+([^)\]]+?)\s*[)\]]?\s*$/i.exec(t);
+  if (mft) {
+    featuring = mft[1].trim();
+    t = t.slice(0, mft.index).trim();
+  }
+
+  // 3) parentesi descrittive via (solo se contengono una parola tipica, per non
+  //    cancellare titoli che usano le parentesi di proposito)
+  t = t
+    .replace(/\(([^)]*)\)/g, (m, dentro) =>
+      PARENTESI_DESCRITTIVE.test(dentro) ? " " : m
+    )
+    .replace(/\[([^\]]*)\]/g, (m, dentro) =>
+      PARENTESI_DESCRITTIVE.test(dentro) ? " " : m
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  t = t.replace(/\s*[-\u2013\u2014:|\u2022\u00b7]\s*$/, "").trim();
+
+  const titoloPulito = t.length >= 2 ? t : originale;
+
+  let artistaFinale: string | null = a || null;
+  if (featuring) {
+    artistaFinale = a ? `${a} ft. ${featuring}` : featuring;
+  }
+
+  return { titolo: titoloPulito, artista: artistaFinale };
 }
 
 /**
@@ -406,8 +460,7 @@ export function pulisciTitolo(
 export function playerDaCanzone(valore: string | null | undefined): Player | null {
   const clip = leggiClip(valore);
   if (clip) {
-    const artista = clip.artista || null;
-    const titolo = pulisciTitolo(clip.titolo || null, artista);
+    const { titolo, artista } = scomponiCanzone(clip.titolo || null, clip.artista || null);
     const copertina = clip.copertina;
     if (clip.servizio === "youtube") {
       const fine =

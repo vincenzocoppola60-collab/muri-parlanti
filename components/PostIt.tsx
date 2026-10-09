@@ -100,6 +100,17 @@ export default function PostItView({
         aria-hidden
         className="nastro absolute -top-2.5 left-1/2 h-5 w-12 -translate-x-1/2 bg-amber-100/70 shadow-sm backdrop-blur-[1px]"
       />
+      {/* Data in ALTO a destra (prima stava nel footer). */}
+      {data && (
+        <time
+          dateTime={postit.creato_il}
+          aria-label={data}
+          className="absolute right-2 top-1.5 z-10 whitespace-nowrap text-[10px] leading-none text-stone-700 opacity-80 sm:text-xs"
+        >
+          {data}
+        </time>
+      )}
+      {/* Cuore in BASSO a destra (prima stava in alto a destra). */}
       {onPreferito && (
         <button
           type="button"
@@ -107,7 +118,7 @@ export default function PostItView({
           aria-label={
             preferito ? t("postit.preferitoRimuovi") : t("postit.preferitoAggiungi")
           }
-          className="absolute right-1.5 top-1 z-10 rounded-full px-1.5 py-0.5 text-base leading-none transition hover:scale-125 active:scale-90"
+          className="absolute bottom-1.5 right-1.5 z-10 rounded-full px-1.5 py-0.5 text-base leading-none transition hover:scale-125 active:scale-90"
         >
           <span aria-hidden>{preferito ? "❤️" : "🤍"}</span>
         </button>
@@ -197,7 +208,7 @@ export default function PostItView({
           document.body
         )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
-      <footer className="mt-3 flex flex-col gap-0.5 text-stone-700 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+      <footer className="mt-3 pr-8 text-stone-700">
         <div className="min-w-0 truncate">
           {mio ? (
             <Link
@@ -222,14 +233,6 @@ export default function PostItView({
             <span className="font-semibold">~ {postit.nickname}</span>
           )}
         </div>
-        {data && (
-          <time
-            className="whitespace-nowrap text-[10px] leading-none opacity-70 sm:text-xs"
-            aria-label={data}
-          >
-            {data}
-          </time>
-        )}
       </footer>
     </article>
   );
