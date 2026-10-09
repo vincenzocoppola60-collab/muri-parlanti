@@ -64,3 +64,19 @@ next-env.d.ts
 # Deliverable di stampa rigenerabili
 sticker-*.png
 sticker-*.pdf
+
+# --- Deliverable di design/stampa rigenerabili: NON versionati ---
+# PDF/PNG/HTML delle varianti post-it, script che li generano, font usati
+# solo dalle pagine di design, loghi/manifesti, sticker e backup locali.
+/design-postit-*
+/muri-parlanti-logo*
+/manifesto-*
+/sticker2-*
+/sticker-qr/
+/sticker_art.py
+/make_sticker2.py
+/make_manifesto.py
+/gen_*_pdf.cjs
+/backup-*.json
+/__pycache__/
+/fonts/

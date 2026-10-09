@@ -101,6 +101,9 @@ const IT: Parole = {
   "editor.rimuoviFoto": "Rimuovi la foto",
   "editor.anteprimaFoto": "Anteprima della foto",
   "editor.attacca": "Attacca",
+  "editor.stile": "Stile",
+  "editor.stileScegli": "Scegli uno stile",
+  "editor.stileAdmin": "Solo l'amministratore puo' cambiare lo stile del post-it.",
   "editor.attaccando": "Attacco...",
   "editor.caricoFoto": "Carico foto...",
   "editor.annulla": "Annulla",
@@ -149,6 +152,12 @@ const IT: Parole = {
     "Link non riconosciuto.",
   "editor.erroreFoto":
     "Non sono riuscito a caricare la foto ({msg}). Riprova o rimuovila.",
+  "mod.nsfw":
+    "Questo contenuto sembra di natura sessuale e non e' ammesso sul muro.",
+  "mod.linguaggio":
+    "Il pensiero contiene parole offensive e non puo' essere pubblicato.",
+  "mod.link":
+    "I link non sono ammessi nei pensieri. La musica va nel campo canzone.",
   "popup.titolo": "Grazie per il tuo primo pensiero",
   "popup.testo":
     "Il tuo post-it è sul muro. Salva Muri Parlanti sulla Home del telefono: si apre a schermo intero e ritrovi subito i tuoi muri, senza installare nulla.",
@@ -511,6 +520,9 @@ const EN: Parole = {
   "editor.rimuoviFoto": "Remove the photo",
   "editor.anteprimaFoto": "Photo preview",
   "editor.attacca": "Post it",
+  "editor.stile": "Style",
+  "editor.stileScegli": "Choose a style",
+  "editor.stileAdmin": "Only the admin can change the post-it style.",
   "editor.attaccando": "Posting...",
   "editor.caricoFoto": "Uploading photo...",
   "editor.annulla": "Cancel",
@@ -559,6 +571,10 @@ const EN: Parole = {
     "Link not recognised.",
   "editor.erroreFoto":
     "I could not upload the photo ({msg}). Try again or remove it.",
+  "mod.nsfw": "This content looks sexual and is not allowed on the wall.",
+  "mod.linguaggio":
+    "Your thought contains offensive words and cannot be posted.",
+  "mod.link": "Links are not allowed in thoughts. Music goes in the song field.",
   "popup.titolo": "Thanks for your first thought",
   "popup.testo":
     "Your note is on the wall. Save Muri Parlanti to your phone's Home screen: it opens full screen and you can get straight back to your walls, with nothing to install.",
@@ -922,6 +938,9 @@ const ES: Parole = {
   "editor.rimuoviFoto": "Quitar la foto",
   "editor.anteprimaFoto": "Vista previa de la foto",
   "editor.attacca": "Publicar",
+  "editor.stile": "Estilo",
+  "editor.stileScegli": "Elige un estilo",
+  "editor.stileAdmin": "Solo el administrador puede cambiar el estilo del post-it.",
   "editor.attaccando": "Publicando...",
   "editor.caricoFoto": "Subiendo foto...",
   "editor.annulla": "Cancelar",
@@ -970,6 +989,12 @@ const ES: Parole = {
     "Enlace no reconocido.",
   "editor.erroreFoto":
     "No he podido subir la foto ({msg}). Inténtalo de nuevo o quítala.",
+  "mod.nsfw":
+    "Este contenido parece de naturaleza sexual y no está permitido en el muro.",
+  "mod.linguaggio":
+    "Tu pensamiento contiene palabras ofensivas y no se puede publicar.",
+  "mod.link":
+    "No se permiten enlaces en los pensamientos. La música va en el campo canción.",
   "popup.titolo": "Gracias por tu primer pensamiento",
   "popup.testo":
     "Tu nota está en el muro. Guarda Muri Parlanti en la pantalla de inicio del móvil: se abre a pantalla completa y vuelves enseguida a tus muros, sin instalar nada.",
@@ -1333,6 +1358,9 @@ const FR: Parole = {
   "editor.rimuoviFoto": "Retirer la photo",
   "editor.anteprimaFoto": "Aperçu de la photo",
   "editor.attacca": "Publier",
+  "editor.stile": "Style",
+  "editor.stileScegli": "Choisis un style",
+  "editor.stileAdmin": "Seul l'administrateur peut changer le style du post-it.",
   "editor.attaccando": "Publication...",
   "editor.caricoFoto": "Envoi de la photo...",
   "editor.annulla": "Annuler",
@@ -1381,6 +1409,12 @@ const FR: Parole = {
     "Lien non reconnu.",
   "editor.erroreFoto":
     "Je n'ai pas pu envoyer la photo ({msg}). Réessayez ou retirez-la.",
+  "mod.nsfw":
+    "Ce contenu semble de nature sexuelle et n'est pas autorisé sur le mur.",
+  "mod.linguaggio":
+    "Votre pensée contient des mots offensants et ne peut pas être publiée.",
+  "mod.link":
+    "Les liens ne sont pas autorisés dans les pensées. La musique va dans le champ chanson.",
   "popup.titolo": "Merci pour votre première pens��e",
   "popup.testo":
     "Votre note est sur le mur. Enregistrez Muri Parlanti sur l'écran d'accueil du téléphone : elle s'ouvre en plein écran et vous retrouvez vos murs tout de suite, sans rien installer.",
@@ -1744,6 +1778,9 @@ const DE: Parole = {
   "editor.rimuoviFoto": "Foto entfernen",
   "editor.anteprimaFoto": "Fotovorschau",
   "editor.attacca": "Anheften",
+  "editor.stile": "Stil",
+  "editor.stileScegli": "Waehle einen Stil",
+  "editor.stileAdmin": "Nur der Administrator kann den Stil des Post-its aendern.",
   "editor.attaccando": "Wird angeheftet...",
   "editor.caricoFoto": "Foto wird hochgeladen...",
   "editor.annulla": "Abbrechen",
@@ -1792,6 +1829,12 @@ const DE: Parole = {
     "Link nicht erkannt.",
   "editor.erroreFoto":
     "Ich konnte das Foto nicht hochladen ({msg}). Versuche es erneut oder entferne es.",
+  "mod.nsfw":
+    "Dieser Inhalt wirkt sexuell und ist an der Wand nicht erlaubt.",
+  "mod.linguaggio":
+    "Dein Gedanke enthält beleidigende Worte und kann nicht veröffentlicht werden.",
+  "mod.link":
+    "Links sind in Gedanken nicht erlaubt. Musik gehört in das Lied-Feld.",
   "popup.titolo": "Danke für deinen ersten Gedanken",
   "popup.testo":
     "Deine Notiz hängt an der Wand. Speichere Muri Parlanti auf dem Startbildschirm deines Handys: sie öffnet sich im Vollbild und du bist sofort wieder bei deinen Wänden – ganz ohne Installation.",

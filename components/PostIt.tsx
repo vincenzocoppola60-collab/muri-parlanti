@@ -9,6 +9,11 @@ import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { traduciTesto } from "@/lib/traduzione";
 import CanzonePlayer from "@/components/CanzonePlayer";
+import {
+  classiStile,
+  numeroStile,
+  DecorazioniStile,
+} from "@/components/StilePostit";
 
 const SFONDI = ["/images/1.webp", "/images/3.webp"];
 
@@ -36,6 +41,9 @@ export default function PostItView({
   const rot = (h % 9) - 4; // da -4deg a +4deg
   const sfondo = SFONDI[h % SFONDI.length];
   const data = formattaData(postit.creato_il);
+  // Variante grafica scelta dall'amministratore (null = design classico).
+  const stile = numeroStile(postit.stile);
+  const classiVariante = classiStile(postit.stile);
 
   // "Tu" al posto del nickname SOLO per l'autore connesso. Calcolato nel
   // browser dopo il mount: cosi' l'HTML del server (nickname) coincide con
@@ -86,20 +94,33 @@ export default function PostItView({
     <article
       className={
         "postit relative rounded-[3px] px-3 pb-2.5 pt-6 shadow-[0_6px_14px_rgba(0,0,0,0.4)] " +
+        classiVariante +
+        " " +
         (animate ? "animate-attacca" : "animate-comparsa")
       }
       style={
         {
           "--rot": `${rot}deg`,
-          backgroundImage: `url(${sfondo})`,
-          backgroundSize: "cover",
+          // Con uno stile attivo il foglio lo disegna .stile-sheet: niente
+          // immagine di sfondo inline (che avrebbe priorita' sulla classe).
+          ...(stile
+            ? {}
+            : {
+                backgroundImage: `url(${sfondo})`,
+                backgroundSize: "cover",
+              }),
         } as CSSProperties
       }
     >
-      <span
-        aria-hidden
-        className="nastro absolute -top-2.5 left-1/2 h-5 w-12 -translate-x-1/2 bg-amber-100/70 shadow-sm backdrop-blur-[1px]"
-      />
+      {stile && <span className="stile-sheet" aria-hidden />}
+      {stile && <DecorazioniStile stile={stile} />}
+      {/* Nastro del design classico: solo quando non c'e' una variante. */}
+      {!stile && (
+        <span
+          aria-hidden
+          className="nastro absolute -top-2.5 left-1/2 h-5 w-12 -translate-x-1/2 bg-amber-100/70 shadow-sm backdrop-blur-[1px]"
+        />
+      )}
       {/* Data in ALTO a destra (prima stava nel footer). */}
       {data && (
         <time
@@ -110,7 +131,7 @@ export default function PostItView({
           {data}
         </time>
       )}
-      <p className="whitespace-pre-wrap break-words text-sm leading-snug text-stone-900">
+      <p className="postit-testo whitespace-pre-wrap break-words text-sm leading-snug text-stone-900">
         {testoMostrato}
       </p>
       {tradotto && (

@@ -90,3 +90,552 @@ body {
 .animate-comparsa {
   animation: comparsa 0.5s ease both;
 }
+
+/* ============================================================
+   Stili del post-it (16 varianti) — scelti dall'amministratore.
+   Vedi components/StilePostit.tsx. Ogni variante e' la classe
+   `.stile-N`; il "foglio" e' <span class="stile-sheet"> (sfondo +
+   strappo via clip-path) e le decorazioni (nastro, graffetta,
+   buchi...) sono figli che possono sporgere dal bordo.
+   ============================================================ */
+
+/* --- base comune quando uno stile e' attivo --- */
+.stile-attivo {
+  /* Il post-it classico usa un'immagine di sfondo + ombra rettangolare:
+     con lo stile attivo il foglio lo disegna .stile-sheet e l'ombra segue
+     la sagoma strappata grazie al filtro sul contenitore. */
+  background-image: none !important;
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 12px 13px rgba(0, 0, 0, 0.3));
+  min-height: 170px;
+}
+.postit.stile-attivo:hover {
+  box-shadow: none;
+}
+
+/* Il foglio sta DIETRO al testo: z-index negativo dentro lo stacking
+   context del post-it (creato da rotate/filter), cosi' non copre i
+   contenuti. Le decorazioni "sopra" usano z-index positivo. */
+.stile-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Decorazioni che stanno DIETRO al testo (fibre, buchi, righe, pieghe). */
+.stile-attivo .st-holes,
+.stile-attivo .st-margin,
+.stile-attivo .st-fold,
+.stile-attivo .st-bleed,
+.stile-attivo .st-lines {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Decorazioni che stanno SOPRA al testo (nastro, clip, graffetta, stelle). */
+.stile-attivo .st-tape,
+.stile-attivo .st-clip,
+.stile-attivo .st-star,
+.stile-attivo .st-paperclip,
+.stile-attivo .st-paint,
+.stile-attivo .st-hd,
+.stile-attivo .st-notehd {
+  position: absolute;
+  z-index: 3;
+}
+
+/* ============ 1 · quadretti a spirale + washi beige ============ */
+.stile-1.stile-attivo {
+  padding-left: 2rem;
+}
+.stile-1 .stile-sheet {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 21px, rgba(120, 140, 175, 0.32) 21px 22px),
+    repeating-linear-gradient(90deg, transparent 0 21px, rgba(120, 140, 175, 0.32) 21px 22px),
+    linear-gradient(180deg, #fdfdff, #f2f3f8);
+  clip-path: polygon(
+    1% 2%, 30% 0%, 62% 2%, 90% 0%, 99% 3%,
+    100% 30%, 98% 58%, 100% 84%, 96% 100%,
+    60% 98%, 30% 100%, 6% 99%, 0% 74%, 2% 40%, 0% 14%
+  );
+}
+.stile-1 .st-holes {
+  left: 8px;
+  top: 22px;
+  bottom: 22px;
+  width: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.stile-1 .st-tape.t1 {
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 92px;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(222, 196, 150, 0.82), rgba(206, 176, 120, 0.7));
+}
+
+/* ============ 2 · crema strappato a mano + nastro tan ============ */
+.stile-2 .stile-sheet {
+  background: linear-gradient(165deg, #fdf7ef, #f7ecdd 60%, #f1e2cd);
+  clip-path: polygon(
+    3% 4%, 9% 0%, 20% 3%, 33% 0%, 47% 3%, 61% 0%, 74% 3%, 88% 1%, 97% 6%,
+    100% 18%, 96% 32%, 100% 45%, 95% 58%, 99% 72%, 94% 86%, 96% 97%,
+    82% 94%, 66% 99%, 50% 95%, 34% 99%, 18% 95%, 6% 99%, 1% 88%,
+    5% 74%, 0% 60%, 4% 46%, 0% 32%, 4% 18%
+  );
+}
+.stile-2 .st-tape.t1 {
+  top: -26px;
+  left: 46%;
+  transform: translateX(-50%) rotate(4deg);
+  width: 40px;
+  height: 72px;
+  background: linear-gradient(180deg, rgba(196, 160, 96, 0.85), rgba(176, 138, 78, 0.72));
+  border-radius: 2px;
+}
+
+/* ============ 3 · kraft marrone + washi giallo/verde ============ */
+.stile-3 .stile-sheet {
+  background:
+    radial-gradient(70% 50% at 30% 25%, rgba(255, 240, 210, 0.35), transparent 60%),
+    linear-gradient(160deg, #d9b98a, #cfa878 55%, #c39a67);
+  clip-path: polygon(
+    2% 4%, 16% 1%, 34% 4%, 52% 1%, 70% 4%, 88% 2%, 98% 7%,
+    100% 34%, 97% 60%, 100% 82%, 94% 99%,
+    70% 96%, 46% 100%, 24% 96%, 8% 100%, 1% 80%,
+    4% 56%, 0% 34%, 3% 14%
+  );
+  box-shadow: inset 0 0 50px rgba(120, 88, 48, 0.28);
+}
+.stile-3 .st-tape.t1 {
+  top: -16px;
+  left: 42%;
+  transform: translateX(-50%) rotate(-8deg);
+  width: 78px;
+  height: 32px;
+  background: linear-gradient(180deg, rgba(214, 206, 120, 0.88), rgba(168, 178, 96, 0.78));
+}
+
+/* ============ 4 · appunti bianchi + clip nera + stelle ============ */
+.stile-4 .stile-sheet {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(120, 130, 150, 0.42) 26px 27px),
+    linear-gradient(180deg, #ffffff, #f4f5f7);
+  clip-path: polygon(
+    2% 3%, 40% 1%, 78% 3%, 99% 2%,
+    100% 36%, 98% 68%, 100% 96%,
+    62% 98%, 26% 100%, 4% 97%, 0% 66%, 3% 34%
+  );
+}
+.stile-4 .st-clip {
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 88px;
+  height: 30px;
+  background: linear-gradient(180deg, #2b2b2b, #111);
+  border-radius: 5px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35);
+}
+.stile-4 .st-clip::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 54px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.stile-4 .st-clip::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 104px;
+  height: 14px;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(180deg, #1c1c1c, #0c0c0c);
+}
+.stile-4 .st-star {
+  width: 34px;
+  height: 34px;
+  background: #141414;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+}
+.stile-4 .st-star.a { left: -16px; top: 30px; transform: rotate(-14deg); }
+.stile-4 .st-star.b { left: -8px; top: 66px; width: 26px; height: 26px; transform: rotate(10deg); }
+.stile-4 .st-star.c { right: -16px; bottom: 28px; width: 40px; height: 40px; transform: rotate(-8deg); }
+
+/* ============ 5 · carta bianca stropicciata ============ */
+.stile-5 .stile-sheet {
+  background:
+    radial-gradient(30% 22% at 20% 18%, rgba(0, 0, 0, 0.1), transparent 70%),
+    radial-gradient(26% 18% at 72% 30%, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(34% 26% at 40% 62%, rgba(0, 0, 0, 0.09), transparent 72%),
+    radial-gradient(30% 22% at 82% 78%, rgba(0, 0, 0, 0.11), transparent 72%),
+    radial-gradient(24% 20% at 55% 88%, rgba(255, 255, 255, 0.8), transparent 70%),
+    linear-gradient(150deg, #ffffff, #eef0f2 60%, #e6e8ea);
+  clip-path: polygon(
+    2% 6%, 10% 1%, 22% 5%, 36% 1%, 52% 5%, 66% 1%, 80% 5%, 92% 1%, 99% 8%,
+    96% 22%, 100% 36%, 95% 50%, 100% 64%, 95% 78%, 99% 92%,
+    86% 97%, 70% 100%, 54% 96%, 38% 100%, 22% 96%, 8% 100%, 1% 90%,
+    5% 74%, 0% 58%, 5% 44%, 0% 30%, 5% 16%
+  );
+  box-shadow: inset 0 0 40px rgba(120, 125, 130, 0.22);
+}
+.stile-5 .st-fold {
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(150, 155, 160, 0.28) 48%, transparent 50%),
+    linear-gradient(58deg, transparent 62%, rgba(150, 155, 160, 0.22) 64%, transparent 66%);
+}
+
+/* ============ 6 · finestra Paint Windows ============ */
+.stile-6.stile-attivo {
+  padding-top: 3.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  min-height: 200px;
+}
+.stile-6 .stile-sheet {
+  background: linear-gradient(180deg, #f4f4f4, #e9e9e9);
+  border: 1px solid #808080;
+  box-shadow: none;
+}
+.stile-6 .st-paint {
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.stile-6 .st-titlebar {
+  height: 22px;
+  background: linear-gradient(180deg, #0a246a, #3a6ea5);
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  color: #fff;
+  font: 12px system-ui, sans-serif;
+}
+.stile-6 .st-titlebar b { font-weight: 600; margin-left: 2px; }
+.stile-6 .st-menu {
+  height: 20px;
+  background: #ece9d8;
+  border-bottom: 1px solid #aca899;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 8px;
+  font: 11px system-ui, sans-serif;
+  color: #000;
+}
+
+/* ============ 7 · carta trasparente dietro (bleed-through) ============ */
+.stile-7.stile-attivo {
+  padding-top: 2.5rem;
+}
+.stile-7 .stile-sheet {
+  background: linear-gradient(170deg, #f6f4f0, #eeebe4 60%, #e8e4dc);
+  clip-path: polygon(
+    3% 2%, 34% 0%, 66% 3%, 97% 1%,
+    100% 28%, 97% 58%, 100% 86%, 95% 100%,
+    60% 97%, 30% 100%, 5% 98%, 0% 72%, 3% 38%
+  );
+  box-shadow: inset 0 0 34px rgba(60, 60, 60, 0.28);
+}
+.stile-7 .st-bleed {
+  inset: 8px;
+  overflow: hidden;
+  color: rgba(70, 70, 70, 0.16);
+  font-size: 13px;
+  line-height: 1.75;
+  transform: rotate(180deg);
+  mix-blend-mode: multiply;
+  font-family: Georgia, serif;
+  text-align: justify;
+}
+.stile-7 .st-bleed::before {
+  content: "the world is a book and those who do not travel read only a page. that record breaking tee shirt she sold at the store going to the old record store.";
+}
+
+/* ============ 8 · righe gialle + graffetta ============ */
+.stile-8 .stile-sheet {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(150, 150, 160, 0.5) 25px 26px),
+    linear-gradient(180deg, #fffdf3, #fbf6e4);
+  clip-path: polygon(4% 1%, 62% 0%, 99% 3%, 97% 60%, 100% 97%, 40% 100%, 2% 96%, 5% 40%);
+}
+.stile-8 .st-paperclip {
+  top: -18px;
+  left: 22px;
+  width: 22px;
+  height: 52px;
+  border: 3px solid #c9ccd2;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  transform: rotate(-6deg);
+}
+.stile-8 .st-paperclip::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 5px;
+  width: 12px;
+  height: 38px;
+  border: 2px solid #c9ccd2;
+  border-radius: 9px;
+}
+
+/* ============ 9 · quadretti + washi giallo ============ */
+.stile-9 .stile-sheet {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 21px, rgba(120, 140, 175, 0.3) 21px 22px),
+    repeating-linear-gradient(90deg, transparent 0 21px, rgba(120, 140, 175, 0.3) 21px 22px),
+    linear-gradient(180deg, #fdfdff, #f3f4f8);
+  clip-path: polygon(
+    2% 3%, 40% 0%, 78% 3%, 99% 1%,
+    100% 32%, 97% 64%, 100% 94%,
+    58% 98%, 24% 100%, 3% 97%, 0% 60%, 3% 26%
+  );
+}
+.stile-9 .st-tape.t1 {
+  top: -15px;
+  left: 44%;
+  transform: translateX(-50%) rotate(3deg);
+  width: 86px;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(228, 214, 120, 0.88), rgba(210, 192, 86, 0.74));
+}
+
+/* ============ 10 · righe blu + riga rossa margine ============ */
+.stile-10.stile-attivo {
+  padding-left: 2.5rem;
+}
+.stile-10 .stile-sheet {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(70, 110, 200, 0.55) 25px 26.5px),
+    linear-gradient(180deg, #ffffff, #f6f8ff);
+  clip-path: polygon(
+    1% 2%, 36% 0%, 70% 2%, 98% 0%,
+    100% 34%, 98% 66%, 100% 98%,
+    62% 100%, 28% 98%, 4% 100%, 0% 64%, 1% 30%
+  );
+}
+.stile-10 .st-margin {
+  left: 30px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(210, 60, 60, 0.7);
+}
+.stile-10 .st-notehd {
+  top: 12px;
+  left: 40px;
+  font-family: "Comic Sans MS", "Segoe UI", cursive;
+  font-size: 13px;
+  color: #2a3b8f;
+}
+
+/* ============ 11 · post-it rosso REMINDER ============ */
+.stile-11.stile-attivo {
+  padding-top: 3.75rem;
+}
+.stile-11 .stile-sheet {
+  background: linear-gradient(180deg, #f4867e, #ef6f66 70%, #e85f56);
+  border: 2px solid #1c1c1c;
+  border-radius: 6px;
+}
+.stile-11 .st-hd {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 190px;
+  height: 32px;
+  border-radius: 16px;
+  background: #141414;
+  color: #f2797a;
+  font-family: system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stile-11 .st-lines {
+  inset: 52px 18px 40px;
+  background: repeating-linear-gradient(180deg, transparent 0 27px, rgba(120, 40, 38, 0.5) 27px 28.5px);
+}
+.stile-11 .postit-testo {
+  color: #3a1412;
+}
+
+/* ============ 12 · pergamena vecchia quadretti ============ */
+.stile-12 .stile-sheet {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(150, 130, 95, 0.3) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, rgba(150, 130, 95, 0.3) 23px 24px),
+    radial-gradient(80% 60% at 30% 25%, rgba(255, 250, 235, 0.6), transparent 60%),
+    linear-gradient(160deg, #efe3c9, #e4d3ae 60%, #d8c49a);
+  clip-path: polygon(
+    4% 3%, 20% 0%, 38% 4%, 56% 0%, 74% 4%, 90% 1%, 99% 8%,
+    96% 24%, 100% 40%, 95% 56%, 100% 72%, 96% 88%, 99% 99%,
+    78% 96%, 58% 100%, 38% 96%, 18% 100%, 4% 97%, 0% 78%,
+    4% 60%, 0% 44%, 4% 28%, 0% 14%
+  );
+  box-shadow: inset 0 0 46px rgba(140, 110, 66, 0.3);
+}
+
+/* ============ 13 · fumetto speech bubble ============ */
+.stile-13 .stile-sheet {
+  background: linear-gradient(180deg, #ffffff, #f4f5f7);
+  border-radius: 26px;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.28));
+}
+.stile-13 .stile-sheet::after {
+  content: "";
+  position: absolute;
+  left: 44px;
+  bottom: -24px;
+  width: 0;
+  height: 0;
+  border: 16px solid transparent;
+  border-top-color: #f6f7f9;
+  border-right: 0;
+  border-left: 34px solid transparent;
+}
+.stile-13.stile-attivo {
+  filter: none;
+  margin-bottom: 18px;
+}
+
+/* ============ 14 · carta antica vintage + 2 nastri ============ */
+.stile-14 .stile-sheet {
+  background:
+    radial-gradient(60% 45% at 70% 20%, rgba(120, 90, 50, 0.22), transparent 65%),
+    radial-gradient(50% 40% at 25% 75%, rgba(110, 80, 45, 0.2), transparent 65%),
+    linear-gradient(165deg, #efe4cd, #e3d3b2 55%, #d6c39a);
+  clip-path: polygon(
+    2% 4%, 14% 0%, 30% 4%, 46% 1%, 62% 5%, 78% 1%, 92% 5%, 99% 11%,
+    97% 28%, 100% 44%, 96% 60%, 100% 76%, 95% 92%, 97% 99%,
+    80% 96%, 64% 100%, 48% 96%, 32% 100%, 16% 96%, 3% 99%, 0% 86%,
+    4% 70%, 0% 54%, 4% 38%, 0% 22%, 3% 10%
+  );
+  box-shadow: inset 0 0 44px rgba(130, 100, 60, 0.3);
+}
+.stile-14 .st-tape.t1 {
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-5deg);
+  width: 80px;
+  height: 34px;
+  background: linear-gradient(180deg, rgba(198, 160, 98, 0.86), rgba(178, 140, 80, 0.72));
+  border-radius: 2px;
+}
+.stile-14 .st-tape.t2 {
+  bottom: 6px;
+  left: -18px;
+  transform: rotate(8deg);
+  width: 58px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(226, 150, 140, 0.72), rgba(214, 128, 118, 0.6));
+}
+
+/* ============ 15 · quadretti strappati + washi rosa ============ */
+.stile-15 .stile-sheet {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 20px, rgba(120, 140, 175, 0.3) 20px 21px),
+    repeating-linear-gradient(90deg, transparent 0 20px, rgba(120, 140, 175, 0.3) 20px 21px),
+    linear-gradient(180deg, #fdfdff, #f2f3f8);
+  clip-path: polygon(
+    3% 6%, 20% 1%, 40% 5%, 60% 1%, 80% 5%, 97% 3%,
+    100% 30%, 97% 60%, 100% 90%,
+    76% 98%, 54% 100%, 32% 97%, 12% 100%, 0% 88%,
+    3% 60%, 0% 34%
+  );
+}
+.stile-15 .st-tape {
+  width: 64px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(242, 168, 196, 0.78), rgba(228, 140, 178, 0.66));
+}
+.stile-15 .st-tape.t1 { top: 4px; left: -18px; transform: rotate(-32deg); }
+.stile-15 .st-tape.t2 { bottom: 2px; right: -18px; transform: rotate(-28deg); }
+
+/* ============ 16 · righe a spirale + washi ocra ============ */
+.stile-16.stile-attivo {
+  padding-left: 2.25rem;
+}
+.stile-16 .stile-sheet {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(120, 130, 150, 0.45) 25px 26px),
+    linear-gradient(180deg, #fdfbf6, #f6f1e6);
+  clip-path: polygon(
+    2% 2%, 38% 0%, 72% 2%, 98% 0%,
+    100% 30%, 98% 62%, 100% 92%,
+    66% 98%, 34% 100%, 5% 97%, 1% 62%, 2% 28%
+  );
+}
+.stile-16 .st-holes {
+  left: 9px;
+  top: 24px;
+  bottom: 24px;
+  width: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.stile-16 .st-tape.t1 {
+  top: -17px;
+  left: 54%;
+  transform: translateX(-50%) rotate(2deg);
+  width: 84px;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(206, 150, 60, 0.9), rgba(186, 128, 44, 0.76));
+}
+.stile-16 .st-tape.t2 {
+  top: 0;
+  left: -18px;
+  transform: rotate(-30deg);
+  width: 58px;
+  height: 22px;
+  background: rgba(198, 160, 96, 0.7);
+}
+.stile-16 .st-tape.t3 {
+  bottom: 0;
+  right: -18px;
+  transform: rotate(-26deg);
+  width: 58px;
+  height: 22px;
+  background: rgba(198, 160, 96, 0.7);
+}
+
+/* I buchi (spirale) sono comuni alle varianti 1 e 16. */
+.stile-1 .st-holes i,
+.stile-16 .st-holes i {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.03) 70%), #efe7d6;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* ============ anteprime del selettore (ScegliStile) ============ */
+.stile-swatch {
+  position: relative;
+  background: #0c0a09;
+}
+.stile-swatch .stile-sheet {
+  /* Nel riquadro il foglio deve stare SOPRA lo sfondo del bottone. */
+  z-index: 0;
+}

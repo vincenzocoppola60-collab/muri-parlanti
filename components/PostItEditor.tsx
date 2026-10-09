@@ -10,7 +10,12 @@ import {
 } from "@/lib/postit";
 import { comprimiImmagine } from "@/lib/immagini";
 import { descrizioneCanzone, normalizzaCanzone } from "@/lib/canzone";
+import { verificaContenuto, chiaveMotivo } from "@/lib/moderazione";
+import { immagineNsfw } from "@/lib/nsfw";
+import { eAmministratore } from "@/lib/admin";
+import { classiStile, DecorazioniStile } from "@/components/StilePostit";
 import ScegliCanzone from "@/components/ScegliCanzone";
+import ScegliStile from "@/components/ScegliStile";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 
@@ -33,6 +38,10 @@ export default function PostItEditor({
   const [anteprima, setAnteprima] = useState<string | null>(null);
   const [canzone, setCanzone] = useState("");
   const [pickerCanzone, setPickerCanzone] = useState(false);
+  // Stile grafico del post-it: il menu "Stile" compare SOLO all'amministratore.
+  const [admin, setAdmin] = useState(false);
+  const [stile, setStile] = useState<number | null>(null);
+  const [pickerStile, setPickerStile] = useState(false);
   const [inviando, setInviando] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -48,6 +57,22 @@ export default function PostItEditor({
     }
     textareaRef.current?.focus();
   }, [utente, nicknameAccount]);
+
+  // Riconosce l'amministratore (tabella `amministratori`): solo a lui si
+  // mostra il menu "Stile". Se la migrazione 0009 non c'e', resta false.
+  useEffect(() => {
+    if (!utente) return;
+    let attivo = true;
+    eAmministratore().then((si) => {
+      if (attivo) setAdmin(si);
+    });
+    return () => {
+      attivo = false;
+    };
+  }, [utente]);
+
+  // Amministratore effettivo: serve una sessione E l'appartenenza alla tabella.
+  const adminAttivo = !!utente && admin;
 
   // Libera l'URL di anteprima quando cambia o alla chiusura dell'editor.
   useEffect(() => {
@@ -83,6 +108,16 @@ export default function PostItEditor({
     setErrore(null);
 
     const nick = nickname.trim().slice(0, MAX_NICKNAME);
+
+    // Filtro contenuti (NSFW / linguaggio / link): blocco immediato, prima di
+    // caricare la foto o toccare il database. Il motivo e' tradotto nella
+    // lingua dell'utente; la stessa regola e' replicata lato server.
+    const moderazione = verificaContenuto({ testo, nickname: nick });
+    if (!moderazione.ok) {
+      setErrore(t(chiaveMotivo(moderazione.motivo)));
+      return; // il testo scritto resta nell'editor
+    }
+
     if (!utente) {
       try {
         window.localStorage.setItem(NICKNAME_KEY, nick || "Anonimo");
@@ -108,6 +143,12 @@ export default function PostItEditor({
     if (foto) {
       try {
         const daCaricare = await comprimiImmagine(foto);
+        // Se la foto sembra di natura sessuale non la carichiamo affatto.
+        if (await immagineNsfw(daCaricare)) {
+          setInviando(false);
+          setErrore(t("mod.nsfw"));
+          return; // il testo scritto resta nell'editor
+        }
         fotoUrl = await caricaFotoPostit(daCaricare, luogo);
       } catch (err) {
         setInviando(false);
@@ -127,6 +168,8 @@ export default function PostItEditor({
       userId: utente?.id ?? null,
       fotoUrl,
       canzoneUrl: canzoneOk ?? null,
+      // Lo stile lo invia solo l'amministratore: per gli altri resta null.
+      stile: adminAttivo ? stile : null,
     });
     setInviando(false);
 
@@ -143,12 +186,25 @@ export default function PostItEditor({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/60 p-4 backdrop-blur-sm sm:items-center">
       <form
         onSubmit={invia}
-        className="postit w-full max-w-md rounded-md px-6 pb-6 pt-9 shadow-2xl"
-        style={{
-          backgroundImage: "url(/images/1.webp)",
-          backgroundSize: "cover",
-        }}
+        className={
+          "postit w-full max-w-md rounded-md px-6 pb-6 pt-9 shadow-2xl " +
+          // Anteprima dal vivo: quando l'amministratore sceglie uno stile, il
+          // modulo stesso assume subito quella grafica.
+          classiStile(adminAttivo ? stile : null)
+        }
+        style={
+          adminAttivo && stile
+            ? {}
+            : {
+                backgroundImage: "url(/images/1.webp)",
+                backgroundSize: "cover",
+              }
+        }
       >
+        {adminAttivo && stile != null && (
+          <span className="stile-sheet" aria-hidden />
+        )}
+        {adminAttivo && stile != null && <DecorazioniStile stile={stile} />}
         <label htmlFor="testo-postit" className="sr-only">
           {t("editor.titolo")}
         </label>
@@ -279,6 +335,23 @@ export default function PostItEditor({
           )}
         </div>
 
+        {/* Menu "Stile": visibile SOLO all'amministratore. Apre la griglia di
+            varianti e applica l'anteprima dal vivo al modulo stesso. */}
+        {adminAttivo && (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setPickerStile(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+            >
+              🎨 {t("editor.stile")}
+              <span className="text-xs font-normal text-stone-600/80">
+                {stile ? `· ${stile}` : t("editor.stileScegli")}
+              </span>
+            </button>
+          </div>
+        )}
+
         {errore && (
           <p className="mt-3 text-sm font-bold text-red-900">{errore}</p>
         )}
@@ -312,6 +385,17 @@ export default function PostItEditor({
             setErrore(null);
           }}
           onChiudi={() => setPickerCanzone(false)}
+        />
+      )}
+
+      {pickerStile && (
+        <ScegliStile
+          valore={stile}
+          onScegli={(valore) => {
+            setStile(valore);
+            setPickerStile(false);
+          }}
+          onChiudi={() => setPickerStile(false)}
         />
       )}
     </div>

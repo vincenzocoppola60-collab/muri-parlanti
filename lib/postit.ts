@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/supabase";
 import { getClienteAuth } from "@/lib/clienteAuth";
+import { verificaContenuto } from "@/lib/moderazione";
 
 export type PostIt = {
   id: string;
@@ -13,6 +14,11 @@ export type PostIt = {
   foto_url?: string | null;
   /** Link al brano (Spotify/YouTube/...) allegato al pensiero, se presente. */
   canzone_url?: string | null;
+  /**
+   * Variante grafica del post-it (1..16), scelta dall'amministratore.
+   * null / assente = design classico (sfondo + nastro). Vedi StilePostit.tsx.
+   */
+  stile?: number | null;
 };
 
 export type EsitoPostIt =
@@ -167,6 +173,16 @@ async function inserisci(
     .single();
 
   if (error || !data) {
+    // Il trigger di moderazione (migrazione 0013) rifiuta il contenuto con un
+    // messaggio marcato "muri_moderazione:<motivo>": qui lo trasformiamo in un
+    // avviso pulito invece dell'errore generico. (Il controllo client di solito
+    // intercetta prima, questa e' la rete di sicurezza lato server.)
+    if (error?.message?.includes("muri_moderazione")) {
+      return {
+        ok: false,
+        errore: "Il contenuto non rispetta le regole del muro e non e' stato pubblicato.",
+      };
+    }
     return {
       ok: false,
       errore: "Non sono riuscito ad attaccare il Post-it. Riprova.",
@@ -184,8 +200,12 @@ async function inserisci(
  * canzoneUrl: se presente allega il brano (link gia' riconosciuto).
  *
  * I tentativi vanno dal piu' completo al piu' compatibile: se una colonna
- * non esiste ancora (migrazione 0005, 0008 o 0012 non eseguita) si riprova
- * senza, per non bloccare mai la pubblicazione del testo.
+ * non esiste ancora (migrazione 0005, 0008, 0012 o 0014 non eseguita) si
+ * riprova senza, per non bloccare mai la pubblicazione del testo.
+ *
+ * stile: variante grafica (1..16), riservata all'amministratore. Se la
+ * colonna non esiste ancora (migrazione 0014 non eseguita) il post-it viene
+ * pubblicato comunque con il design classico.
  */
 export async function attaccaPostit(input: {
   testo: string;
@@ -194,6 +214,7 @@ export async function attaccaPostit(input: {
   userId?: string | null;
   fotoUrl?: string | null;
   canzoneUrl?: string | null;
+  stile?: number | null;
 }): Promise<EsitoPostIt> {
   const testo = input.testo.trim();
   if (!testo) {
@@ -207,9 +228,22 @@ export async function attaccaPostit(input: {
   }
 
   const nickname = input.nickname.trim().slice(0, MAX_NICKNAME) || "Anonimo";
+
+  // Filtro contenuti (NSFW / linguaggio / link): barriera lato client.
+  // La stessa regola e' replicata nel database (migrazione 0013), perche'
+  // l'insert parte dal browser e questa non e' l'unica difesa.
+  const moderazione = verificaContenuto({ testo, nickname });
+  if (!moderazione.ok) {
+    return { ok: false, errore: moderazione.errore };
+  }
+
   const userId = input.userId ?? null;
   const fotoUrl = input.fotoUrl ?? null;
   const canzoneUrl = input.canzoneUrl ?? null;
+  const stile =
+    input.stile == null || !Number.isFinite(Math.round(Number(input.stile)))
+      ? null
+      : Math.round(Number(input.stile));
   const base: Record<string, unknown> = {
     testo,
     nickname,
@@ -221,6 +255,7 @@ export async function attaccaPostit(input: {
   if (userId) opzionali.push({ user_id: userId });
   if (fotoUrl) opzionali.push({ foto_url: fotoUrl });
   if (canzoneUrl) opzionali.push({ canzone_url: canzoneUrl });
+  if (stile != null) opzionali.push({ stile });
 
   // Tentativi dal piu' completo al piu' compatibile: un sottoinsieme per
   // ogni combinazione di colonne facoltative, cosi' se una colonna non esiste
