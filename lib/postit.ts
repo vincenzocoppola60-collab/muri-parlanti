@@ -183,6 +183,14 @@ async function inserisci(
         errore: "Il contenuto non rispetta le regole del muro e non e' stato pubblicato.",
       };
     }
+    // Il trigger di sblocco stili (migrazione 0016) rifiuta uno stile non
+    // ancora sbloccato per il livello dell'autore.
+    if (error?.message?.includes("muri_stile")) {
+      return {
+        ok: false,
+        errore: "Lo stile scelto non e' sbloccato per il tuo livello.",
+      };
+    }
     return {
       ok: false,
       errore: "Non sono riuscito ad attaccare il Post-it. Riprova.",

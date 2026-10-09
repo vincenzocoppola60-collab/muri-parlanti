@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { caricaProgresso } from "@/lib/progresso";
 import { LIVELLI, statoLivello } from "@/lib/livelli";
+import { N_STILI } from "@/components/StilePostit";
+import { livelloMinimoStile, stiliSbloccati } from "@/lib/stili";
 import {
   caricaPreferiti,
   rimuoviPreferito,
@@ -30,11 +32,17 @@ export default function ProfiloCard() {
   const [pronto, setPronto] = useState(false);
 
   useEffect(() => {
-    if (!utente) {
-      setPronto(true);
-      return;
-    }
     let attivo = true;
+    if (!utente) {
+      // Nessun account: niente da caricare, l'effetto si limita a sbloccare
+      // la vista (fuori dal corpo sincrono dell'effetto).
+      Promise.resolve().then(() => {
+        if (attivo) setPronto(true);
+      });
+      return () => {
+        attivo = false;
+      };
+    }
     Promise.all([
       caricaProgresso(utente.id),
       caricaPreferiti(utente.id).catch(() => [] as Preferito[]),
@@ -88,6 +96,7 @@ export default function ProfiloCard() {
   const avatar = urlAvatar(profilo);
   const iniziale =
     (profilo?.nickname || nome || "?").trim().charAt(0).toUpperCase() || "?";
+  const stiliOk = new Set(stiliSbloccati(stato.livello.numero));
 
   return (
     <div className="mx-auto w-full max-w-md rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
@@ -233,6 +242,44 @@ export default function ProfiloCard() {
             );
           })}
         </ul>
+      </div>
+
+      {/* Stili post-it sbloccati salendo di livello */}
+      <div className="mt-6">
+        <h3 className="font-scritta text-lg text-amber-100">
+          {t("profilo.stiliTitolo")}
+        </h3>
+        <p className="mt-1 text-xs text-stone-400">
+          {t("profilo.stiliConteggio", { n: stiliOk.size, tot: N_STILI })}
+        </p>
+        <div className="mt-2 grid grid-cols-8 gap-1.5">
+          {Array.from({ length: N_STILI }, (_, i) => i + 1).map((n) => {
+            const ok = stiliOk.has(n);
+            return (
+              <span
+                key={n}
+                title={
+                  ok
+                    ? `${t("editor.stile")} ${n}`
+                    : t("editor.stileBloccato", { n: livelloMinimoStile(n) })
+                }
+                className={
+                  "stile-swatch stile-" +
+                  n +
+                  " relative flex aspect-square items-center justify-center overflow-hidden rounded " +
+                  (ok ? "" : "opacity-30 grayscale")
+                }
+              >
+                <span className="stile-sheet" aria-hidden />
+                {!ok && (
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px]">
+                    🔒
+                  </span>
+                )}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {/* Post-it preferiti */}

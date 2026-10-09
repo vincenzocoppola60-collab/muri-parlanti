@@ -13,6 +13,9 @@ import { descrizioneCanzone, normalizzaCanzone } from "@/lib/canzone";
 import { verificaContenuto, chiaveMotivo } from "@/lib/moderazione";
 import { immagineNsfw } from "@/lib/nsfw";
 import { eAmministratore } from "@/lib/admin";
+import { caricaProgresso } from "@/lib/progresso";
+import { statoLivello } from "@/lib/livelli";
+import { stileSbloccato } from "@/lib/stili";
 import { classiStile, DecorazioniStile } from "@/components/StilePostit";
 import ScegliCanzone from "@/components/ScegliCanzone";
 import ScegliStile from "@/components/ScegliStile";
@@ -38,8 +41,11 @@ export default function PostItEditor({
   const [anteprima, setAnteprima] = useState<string | null>(null);
   const [canzone, setCanzone] = useState("");
   const [pickerCanzone, setPickerCanzone] = useState(false);
-  // Stile grafico del post-it: il menu "Stile" compare SOLO all'amministratore.
+  // Stile grafico del post-it: il menu "Stile" compare agli utenti con
+  // account; le varianti si sbloccano salendo di livello. L'amministratore
+  // vede tutte le varianti senza limiti.
   const [admin, setAdmin] = useState(false);
+  const [livello, setLivello] = useState(0);
   const [stile, setStile] = useState<number | null>(null);
   const [pickerStile, setPickerStile] = useState(false);
   const [inviando, setInviando] = useState(false);
@@ -48,14 +54,20 @@ export default function PostItEditor({
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (utente) {
-      // Con l'account la firma e' il nickname del profilo (cliccabile).
-      setNickname(nicknameAccount || "");
-    } else {
-      const salvato = window.localStorage.getItem(NICKNAME_KEY);
-      if (salvato) setNickname(salvato);
-    }
+    // Il nickname viene letto da una fonte esterna (sessione o localStorage):
+    // l'aggiornamento dello stato avviene in un callback, non nel corpo
+    // sincrono dell'effetto.
+    let attivo = true;
+    const firma = utente
+      ? nicknameAccount || ""
+      : window.localStorage.getItem(NICKNAME_KEY) ?? "";
+    Promise.resolve().then(() => {
+      if (attivo) setNickname(firma);
+    });
     textareaRef.current?.focus();
+    return () => {
+      attivo = false;
+    };
   }, [utente, nicknameAccount]);
 
   // Riconosce l'amministratore (tabella `amministratori`): solo a lui si
@@ -71,8 +83,32 @@ export default function PostItEditor({
     };
   }, [utente]);
 
+  // Livello dell'utente: decide quali stili sono sbloccati. caricaProgresso
+  // riscatta anche gli eventuali bonus gia' maturati.
+  useEffect(() => {
+    let attivo = true;
+    const carica = utente
+      ? caricaProgresso(utente.id)
+          .then((res) => statoLivello(res.totaleXp).livello.numero)
+          .catch(() => 1)
+      : Promise.resolve(0);
+    carica.then((n) => {
+      if (attivo) setLivello(n);
+    });
+    return () => {
+      attivo = false;
+    };
+  }, [utente]);
+
   // Amministratore effettivo: serve una sessione E l'appartenenza alla tabella.
   const adminAttivo = !!utente && admin;
+
+  // Il menu "Stile" si mostra a chi ha un account (l'amministratore lo ignora).
+  const puoUsareStile = !!utente;
+  // Stile effettivamente applicabile: l'amministratore ha via libera, gli
+  // altri solo se la variante e' sbloccata al loro livello.
+  const stileValido =
+    stile != null && (adminAttivo || stileSbloccato(stile, livello));
 
   // Libera l'URL di anteprima quando cambia o alla chiusura dell'editor.
   useEffect(() => {
@@ -168,8 +204,8 @@ export default function PostItEditor({
       userId: utente?.id ?? null,
       fotoUrl,
       canzoneUrl: canzoneOk ?? null,
-      // Lo stile lo invia solo l'amministratore: per gli altri resta null.
-      stile: adminAttivo ? stile : null,
+      // Si invia lo stile solo se e' applicabile (admin o variante sbloccata).
+      stile: stileValido ? stile : null,
     });
     setInviando(false);
 
@@ -188,12 +224,12 @@ export default function PostItEditor({
         onSubmit={invia}
         className={
           "postit w-full max-w-md rounded-md px-6 pb-6 pt-9 shadow-2xl " +
-          // Anteprima dal vivo: quando l'amministratore sceglie uno stile, il
+          // Anteprima dal vivo: quando si sceglie uno stile applicabile, il
           // modulo stesso assume subito quella grafica.
-          classiStile(adminAttivo ? stile : null)
+          classiStile(stileValido ? stile : null)
         }
         style={
-          adminAttivo && stile
+          stileValido
             ? {}
             : {
                 backgroundImage: "url(/images/1.webp)",
@@ -201,10 +237,10 @@ export default function PostItEditor({
               }
         }
       >
-        {adminAttivo && stile != null && (
+        {stileValido && stile != null && (
           <span className="stile-sheet" aria-hidden />
         )}
-        {adminAttivo && stile != null && <DecorazioniStile stile={stile} />}
+        {stileValido && stile != null && <DecorazioniStile stile={stile} />}
         <label htmlFor="testo-postit" className="sr-only">
           {t("editor.titolo")}
         </label>
@@ -335,9 +371,10 @@ export default function PostItEditor({
           )}
         </div>
 
-        {/* Menu "Stile": visibile SOLO all'amministratore. Apre la griglia di
-            varianti e applica l'anteprima dal vivo al modulo stesso. */}
-        {adminAttivo && (
+        {/* Menu "Stile": visibile agli utenti con account. Apre la griglia di
+            varianti (con i lucchetti su quelle da sbloccare) e applica
+            l'anteprima dal vivo al modulo stesso. */}
+        {puoUsareStile && (
           <div className="mt-3">
             <button
               type="button"
@@ -391,6 +428,8 @@ export default function PostItEditor({
       {pickerStile && (
         <ScegliStile
           valore={stile}
+          livelloUtente={livello}
+          amministratore={adminAttivo}
           onScegli={(valore) => {
             setStile(valore);
             setPickerStile(false);

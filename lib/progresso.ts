@@ -51,6 +51,15 @@ export async function caricaProgresso(
     const presi = new Set<number>((giaPresi ?? []).map((b) => b.livello));
     bonusLivelli = [...presi];
 
+    // I bonus gia' riscattati fanno parte del totale in modo STABILE: senza
+    // questo, il totale calcolato scenderebbe a ogni ricarica (il ciclo sotto
+    // aggiunge solo i bonus nuovi) e il livello potrebbe perfino calare.
+    // Deve combaciare con public.livello_utente() lato database (0016).
+    for (const num of presi) {
+      const l = LIVELLI.find((x) => x.numero === num);
+      if (l) totaleXp += l.bonus;
+    }
+
     // Riscatto a cascata finché un bonus non sblocca il livello successivo.
     let cambiato = true;
     while (cambiato) {

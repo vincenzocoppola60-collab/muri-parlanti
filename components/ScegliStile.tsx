@@ -1,24 +1,41 @@
 "use client";
 
 import { N_STILI } from "@/components/StilePostit";
+import {
+  livelloMinimoStile,
+  prossimoSblocco,
+  stileSbloccato,
+} from "@/lib/stili";
 import { useLingua } from "@/lib/i18n";
 
 /**
- * Pannello di scelta dello stile del post-it (appare SOLO all'amministratore,
- * dall'editor). Mostra una griglia di anteprime; tocca una per scegliere.
- * Il numero su ogni riquadro e' solo un riferimento visivo.
+ * Pannello di scelta dello stile del post-it.
+ *
+ * Si apre dall'editor per gli utenti con account: gli stili si sbloccano
+ * salendo di livello (vedi lib/stili.ts). Le varianti ancora bloccate
+ * appaiono in grigio con un lucchetto e non sono toccabili; l'amministratore
+ * vede invece tutte le 16 varianti disponibili.
+ *
+ * Il numero su ogni riquadro è solo un riferimento visivo.
  */
 export default function ScegliStile({
   valore,
   onScegli,
   onChiudi,
+  livelloUtente = 1,
+  amministratore = false,
 }: {
   valore: number | null;
   onScegli: (stile: number) => void;
   onChiudi: () => void;
+  /** Livello dell'utente collegato (0/1 = principiante). */
+  livelloUtente?: number;
+  /** Se true ignora i limiti di livello (accesso completo). */
+  amministratore?: boolean;
 }) {
   const { t } = useLingua();
   const stili = Array.from({ length: N_STILI }, (_, i) => i + 1);
+  const prossimo = prossimoSblocco(livelloUtente);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-stone-950/70 p-4 backdrop-blur-sm sm:items-center">
@@ -38,6 +55,31 @@ export default function ScegliStile({
         <div className="grid grid-cols-4 gap-3">
           {stili.map((n) => {
             const attivo = valore === n;
+            const sbloccato = amministratore || stileSbloccato(n, livelloUtente);
+            const livello = livelloMinimoStile(n);
+
+            if (!sbloccato) {
+              return (
+                <div
+                  key={n}
+                  aria-disabled
+                  title={t("editor.stileBloccato", { n: livello })}
+                  aria-label={`${t("editor.stile")} ${n} — ${t("editor.stileBloccato", {
+                    n: livello,
+                  })}`}
+                  className="stile-swatch stile-n relative flex aspect-square cursor-not-allowed items-center justify-center overflow-hidden rounded-lg opacity-40 grayscale"
+                >
+                  <span className="stile-sheet" aria-hidden />
+                  <span className="absolute inset-0 flex items-center justify-center text-lg drop-shadow">
+                    🔒
+                  </span>
+                  <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-stone-900/70">
+                    {livello}
+                  </span>
+                </div>
+              );
+            }
+
             return (
               <button
                 key={n}
@@ -63,8 +105,18 @@ export default function ScegliStile({
           })}
         </div>
 
-        <p className="mt-4 text-center text-xs text-stone-400">
-          {t("editor.stileAdmin")}
+        {!amministratore && (
+          <p className="mt-4 text-center text-xs text-stone-400">
+            {prossimo
+              ? t("editor.stileSalita", {
+                  stile: prossimo.stile,
+                  nome: t(`livello.${prossimo.livello}`),
+                })
+              : t("editor.stileTutti")}
+          </p>
+        )}
+        <p className="mt-1 text-center text-xs text-stone-400">
+          {t("editor.stileInfo")}
         </p>
       </div>
     </div>
