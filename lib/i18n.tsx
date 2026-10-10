@@ -69,6 +69,7 @@ const IT: Parole = {
   "home.desc":
     "I muri della città raccontano storie. Scansiona il QR di un muro per scoprirlo e lascia il tuo pensiero, anche in anonimo. Crea un account gratuito per vedere i pensieri delle altre persone, aprire i profili degli autori e salvare i tuoi preferiti.",
   "home.footer": "Un pensiero anonimo per ogni muro. Sii gentile.",
+  "intro.salta": "Salta",
   "pwa.titolo": "Sul telefono, come un'app",
   "pwa.testo":
     "Muri Parlanti è ottimizzata per funzionare direttamente dal telefono: salvala sulla Home e si apre a schermo intero, con accesso rapido, senza installazioni tradizionali né store.",
@@ -505,6 +506,7 @@ const EN: Parole = {
   "home.desc":
     "The city's walls tell stories. Scan a wall's QR to discover it and leave your thought, anonymously too. Create a free account to read other people's thoughts, open authors' profiles and save your favourites.",
   "home.footer": "One anonymous thought per wall. Be kind.",
+  "intro.salta": "Skip",
   "pwa.titolo": "On your phone, like an app",
   "pwa.testo":
     "Muri Parlanti is optimised to run straight from your phone: save it to your Home screen and it opens full screen, with quick access, no traditional install and no app store.",
@@ -938,6 +940,7 @@ const ES: Parole = {
   "home.desc":
     "Los muros de la ciudad cuentan historias. Escanea el QR de un muro para descubrirlo y deja tu pensamiento, también en anónimo. Crea una cuenta gratis para ver los pensamientos de otras personas, abrir los perfiles de los autores y guardar tus favoritos.",
   "home.footer": "Un pensamiento anónimo para cada muro. Sé amable.",
+  "intro.salta": "Saltar",
   "pwa.titolo": "En el móvil, como una app",
   "pwa.testo":
     "Muri Parlanti está optimizada para funcionar directamente desde el móvil: guárdala en la pantalla de inicio y se abre a pantalla completa, con acceso rápido, sin instalaciones tradicionales ni tienda de aplicaciones.",
@@ -1374,6 +1377,7 @@ const FR: Parole = {
   "home.desc":
     "Les murs de la ville racontent des histoires. Scannez le QR d'un mur pour le découvrir et laissez votre pensée, même anonymement. Créez un compte gratuit pour lire les pensées des autres, ouvrir les profils des auteurs et enregistrer vos favoris.",
   "home.footer": "Une pensée anonyme par mur. Soyez bienveillant.",
+  "intro.salta": "Passer",
   "pwa.titolo": "Sur le téléphone, comme une appli",
   "pwa.testo":
     "Muri Parlanti est optimisée pour fonctionner directement depuis le téléphone : enregistrez-la sur l'écran d'accueil et elle s'ouvre en plein écran, avec un accès rapide, sans installation classique ni boutique d'applications.",
@@ -1810,6 +1814,7 @@ const DE: Parole = {
   "home.desc":
     "Die Wände der Stadt erzählen Geschichten. Scanne den QR-Code einer Wand, um sie zu entdecken, und hinterlasse deinen Gedanken – auch anonym. Erstelle ein kostenloses Konto, um die Gedanken anderer zu lesen, Profile der Autorinnen und Autoren zu öffnen und Favoriten zu speichern.",
   "home.footer": "Ein anonymer Gedanke pro Wand. Sei freundlich.",
+  "intro.salta": "Überspringen",
   "pwa.titolo": "Am Handy, wie eine App",
   "pwa.testo":
     "Muri Parlanti ist dafür optimiert, direkt am Handy zu laufen: speichere sie auf dem Startbildschirm, dann öffnet sie sich im Vollbild, mit schnellem Zugriff – ohne klassische Installation und ohne App-Store.",

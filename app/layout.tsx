@@ -35,6 +35,7 @@ import MenuLaterale from "@/components/MenuLaterale";
 import SelettoreLingua from "@/components/SelettoreLingua";
 import TastoHome from "@/components/TastoHome";
 import RegistraServiceWorker from "@/components/RegistraServiceWorker";
+import IntroApp from "@/components/IntroApp";
 
 // Font OFL (Google Fonts) — tutti usabili anche per progetti commerciali.
 // Tre famiglie: a mano, scrittura, graffiti/street.
@@ -259,6 +260,7 @@ export default function RootLayout({
             </div>
             {children}
             <RegistraServiceWorker />
+            <IntroApp />
           </AuthProvider>
         </LanguageProvider>
       </body>
