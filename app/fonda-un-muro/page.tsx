@@ -162,7 +162,27 @@ export default function FondaUnMuro() {
           {t("fonda.spiegazione")}
         </p>
 
-        {stato === "fatto" ? (
+        {caricamento ? (
+          <p className="mt-8 text-sm text-stone-400">{t("comune.carico")}</p>
+        ) : !utente ? (
+          <section className="mt-8 rounded-lg border border-amber-100/25 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
+            <p className="text-4xl">🔒</p>
+            <h2 className="mt-3 font-scritta text-3xl text-amber-100">
+              {t("fonda.soloRegistrati")}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-stone-300">
+              {t("fonda.soloRegistratiTesto")}
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/impostazioni"
+                className="rounded-full bg-amber-300 px-5 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105"
+              >
+                {t("fonda.vaiAccount")}
+              </Link>
+            </div>
+          </section>
+        ) : stato === "fatto" ? (
           <section className="mt-8 rounded-lg border border-amber-100/25 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
             <p className="text-4xl">🎉</p>
             <h2 className="mt-3 font-scritta text-3xl text-amber-100">
@@ -290,9 +310,7 @@ export default function FondaUnMuro() {
             </button>
 
             <p className="mt-3 text-center text-xs leading-relaxed text-stone-400">
-              {utente
-                ? t("fonda.notaFirmata")
-                : t("fonda.notaAnonima")}
+              {t("fonda.notaFirmata")}
             </p>
           </form>
         )}
@@ -304,14 +322,6 @@ export default function FondaUnMuro() {
           {t("comune.tornaHomeFreccia")}
         </Link>
 
-        {!caricamento && !utente && (
-          <p className="mt-2 text-xs text-stone-500">
-            {t("fonda.invitoAccount")}{" "}
-            <Link href="/impostazioni" className="underline hover:text-amber-100">
-              {t("nav.creaAccount")}
-            </Link>
-          </p>
-        )}
       </div>
     </main>
   );

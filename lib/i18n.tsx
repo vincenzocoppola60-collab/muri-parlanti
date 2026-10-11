@@ -89,6 +89,10 @@ const IT: Parole = {
   "fonda.notaAnonima":
     "Puoi inviare anche senza account: la proposta arriverà ai moderatori in forma anonima.",
   "fonda.invitoAccount": "Vuoi che la tua idea porti il tuo nome?",
+  "fonda.soloRegistrati": "Serve un account",
+  "fonda.soloRegistratiTesto":
+    "Fondare un muro è riservato a chi ha un account gratuito: così la proposta arriva ai moderatori con il tuo nome. Accedi o crea un account in pochi secondi.",
+  "fonda.vaiAccount": "Accedi o crea un account",
   "fonda.grazieTitolo": "Grazie di cuore!",
   "fonda.grazieTesto":
     "La tua idea è arrivata ai moderatori: la valuteremo con attenzione. Grazie per il tempo e l'interesse che hai dedicato a Muri Parlanti.",
@@ -584,6 +588,10 @@ const EN: Parole = {
   "fonda.notaAnonima":
     "You can send it even without an account: the suggestion reaches the moderators anonymously.",
   "fonda.invitoAccount": "Want your idea to carry your name?",
+  "fonda.soloRegistrati": "An account is required",
+  "fonda.soloRegistratiTesto":
+    "Founding a wall is reserved for people with a free account: that way your suggestion reaches the moderators under your name. Sign in or create an account in seconds.",
+  "fonda.vaiAccount": "Sign in or create an account",
   "fonda.grazieTitolo": "Thank you so much!",
   "fonda.grazieTesto":
     "Your idea has reached the moderators: we will review it carefully. Thank you for the time and interest you put into Muri Parlanti.",
@@ -1076,6 +1084,10 @@ const ES: Parole = {
   "fonda.notaAnonima":
     "Puedes enviarla incluso sin cuenta: la propuesta llega a los moderadores de forma anónima.",
   "fonda.invitoAccount": "¿Quieres que tu idea lleve tu nombre?",
+  "fonda.soloRegistrati": "Necesitas una cuenta",
+  "fonda.soloRegistratiTesto":
+    "Fundar un muro está reservado a quien tiene una cuenta gratuita: así la propuesta llega a los moderadores con tu nombre. Inicia sesión o crea una cuenta en unos segundos.",
+  "fonda.vaiAccount": "Inicia sesión o crea una cuenta",
   "fonda.grazieTitolo": "¡Muchas gracias!",
   "fonda.grazieTesto":
     "Tu idea ha llegado a los moderadores: la valoraremos con atención. Gracias por el tiempo y el interés que has dedicado a Muri Parlanti.",
@@ -1571,6 +1583,10 @@ const FR: Parole = {
   "fonda.notaAnonima":
     "Vous pouvez l'envoyer même sans compte : la proposition parvient aux modérateurs de façon anonyme.",
   "fonda.invitoAccount": "Vous voulez que votre idée porte votre nom ?",
+  "fonda.soloRegistrati": "Un compte est nécessaire",
+  "fonda.soloRegistratiTesto":
+    "Fonder un mur est réservé à celles et ceux qui ont un compte gratuit : ainsi votre proposition parvient aux modérateurs sous votre nom. Connectez-vous ou créez un compte en quelques secondes.",
+  "fonda.vaiAccount": "Se connecter ou créer un compte",
   "fonda.grazieTitolo": "Merci beaucoup !",
   "fonda.grazieTesto":
     "Votre idée est parvenue aux modérateurs : nous l'étudierons attentivement. Merci pour le temps et l'intérêt que vous consacrez à Muri Parlanti.",
@@ -2066,6 +2082,10 @@ const DE: Parole = {
   "fonda.notaAnonima":
     "Du kannst ihn auch ohne Konto senden: der Vorschlag erreicht die Moderatoren anonym.",
   "fonda.invitoAccount": "Soll deine Idee deinen Namen tragen?",
+  "fonda.soloRegistrati": "Ein Konto ist nötig",
+  "fonda.soloRegistratiTesto":
+    "Eine Mauer zu gründen ist Leuten mit einem kostenlosen Konto vorbehalten: so erreicht dein Vorschlag die Moderatoren unter deinem Namen. Melde dich an oder erstelle in Sekunden ein Konto.",
+  "fonda.vaiAccount": "Anmelden oder Konto erstellen",
   "fonda.grazieTitolo": "Vielen Dank!",
   "fonda.grazieTesto":
     "Deine Idee ist bei den Moderatoren angekommen: wir prüfen sie sorgfältig. Danke für die Zeit und das Interesse, die du Muri Parlanti widmest.",

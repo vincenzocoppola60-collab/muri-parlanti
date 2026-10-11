@@ -207,6 +207,11 @@ export default function MenuLaterale() {
             className={voce("/fonda-un-muro")}
           >
             <span aria-hidden className="text-xl">🏗️</span> {t("nav.fondaMuro")}
+            {!caricamento && !utente && (
+              <span aria-hidden className="ml-auto text-sm">
+                🔒
+              </span>
+            )}
           </Link>
           <Link href="/preferiti" onClick={chiudi} className={voce("/preferiti")}>
             <span aria-hidden className="text-xl">❤️</span> {t("nav.salvati")}

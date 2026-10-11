@@ -3,12 +3,12 @@ import { getClienteAuth } from "@/lib/clienteAuth";
 /**
  * "Fonda un muro": le proposte degli utenti.
  *
- * Chiunque (anche senza account) puo' inviare una proposta: un punto sulla
- * mappa, la via ricavata da quel punto e il motivo (almeno 10 parole).
- * Le proposte le legge e le gestisce SOLO l'amministratore: la sicurezza
- * vera e' nel database (RLS, migrazione 0018). Questo file e' il ponte lato
- * app; se la migrazione non e' ancora stata eseguita le funzioni degradano
- * con un errore leggibile invece di rompere l'app.
+ * Solo un utente REGISTRATO puo' inviare una proposta: un punto sulla mappa,
+ * la via ricavata da quel punto e il motivo (almeno 10 parole).
+ * L'invio passa dalla rotta server /api/idee, che verifica il token di sessione
+ * e scrive con la service_role key: cosi' funziona anche se la policy di
+ * INSERT sulla tabella non e' configurata (aggirando l'errore 42501 RLS).
+ * Le proposte le legge e le gestisce SOLO l'amministratore.
  */
 
 /** Punto geografico: [latitudine, longitudine]. */
@@ -50,8 +50,9 @@ function messaggioErrore(messaggio: string): string {
 }
 
 /**
- * Invia una proposta. Firmata con l'account se c'e' un utente collegato,
- * altrimenti anonima. Il punto e il motivo sono obbligatori.
+ * Invia una proposta a nome dell'utente collegato. Serve una sessione valida:
+ * senza accesso la funzione rifiuta (il muro lo fonda solo chi e' registrato).
+ * Il punto e il motivo sono obbligatori.
  */
 export async function inviaIdea(input: {
   lat: number;
@@ -67,26 +68,41 @@ export async function inviaIdea(input: {
       return { ok: false, errore: `Il perché deve avere almeno ${PAROLE_MINIME} parole.` };
     }
 
+    // Token di sessione dell'utente collegato (se non c'e', non si invia).
     const supabase = getClienteAuth();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: sessione } = await supabase.auth.getSession();
+    const token = sessione.session?.access_token;
+    if (!token) {
+      return { ok: false, errore: "Devi accedere per proporre un muro." };
+    }
 
-    const riga: Record<string, unknown> = {
-      lat: Number(input.lat.toFixed(6)),
-      lng: Number(input.lng.toFixed(6)),
-      motivo: input.motivo.trim(),
-      utente_id: user?.id ?? null,
-    };
-    if (input.via) riga.via = input.via;
+    // L'invio vero avviene sul server, che scrive scavalzando la RLS.
+    const r = await fetch("/api/idee", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        lat: input.lat,
+        lng: input.lng,
+        via: input.via ?? null,
+        motivo: input.motivo,
+      }),
+    });
+    const dati = (await r.json().catch(() => null)) as {
+      ok?: boolean;
+      id?: string;
+      errore?: string;
+    } | null;
 
-    const { data, error } = await supabase
-      .from("idee_muri")
-      .insert(riga)
-      .select("id")
-      .single();
-    if (error) throw new Error(messaggioErrore(error.message));
-    return { ok: true, id: String(data.id) };
+    if (!r.ok || !dati?.ok || !dati.id) {
+      return {
+        ok: false,
+        errore: messaggioErrore(dati?.errore ?? "Invio non riuscito. Riprova."),
+      };
+    }
+    return { ok: true, id: String(dati.id) };
   } catch (e) {
     return {
       ok: false,
