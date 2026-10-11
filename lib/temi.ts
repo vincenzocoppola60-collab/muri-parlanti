@@ -27,6 +27,12 @@ export const TEMI: Tema[] = [
 export const TEMA_PREDEFINITO: CodiceTema = "ambra";
 export const TEMA_KEY = "muri-parlanti:tema";
 
+/**
+ * Evento emesso su window quando il tema cambia. Serve ai componenti (icone)
+ * per ridisegnarsi subito, senza ricaricare la pagina (vedi lib/useTema.ts).
+ */
+export const EVENTO_TEMA = "muri-parlanti:tema-cambiato";
+
 /** True se il valore e' un codice di tema valido. */
 export function eCodiceTema(valore: string | null): valore is CodiceTema {
   return !!valore && TEMI.some((t) => t.codice === valore);
@@ -60,5 +66,9 @@ export function applicaTema(codice: CodiceTema): void {
     window.localStorage.setItem(TEMA_KEY, codice);
   } catch {
     // localStorage non disponibile (privacy mode): la scelta vale per la sessione.
+  }
+  // Avvisa la UI (icone del menu, ecc.) che il tema e' cambiato.
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(EVENTO_TEMA));
   }
 }
