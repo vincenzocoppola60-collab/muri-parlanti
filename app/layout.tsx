@@ -36,6 +36,7 @@ import SelettoreLingua from "@/components/SelettoreLingua";
 import TastoHome from "@/components/TastoHome";
 import RegistraServiceWorker from "@/components/RegistraServiceWorker";
 import IntroApp from "@/components/IntroApp";
+import { TEMI, TEMA_KEY, TEMA_PREDEFINITO } from "@/lib/temi";
 
 // Font OFL (Google Fonts) — tutti usabili anche per progetti commerciali.
 // Tre famiglie: a mano, scrittura, graffiti/street.
@@ -182,6 +183,17 @@ const bungee = Bungee({
   variable: "--font-bungee",
 });
 
+// Applica il tema prima del primo disegno, cosi' non c'e' un lampo di
+// palette sbagliata all'apertura. Legge la scelta salvata sul dispositivo
+// (vedi lib/temi.ts) e mette `data-tema` su <html>; il CSS fa il resto.
+const scriptTema = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
+  TEMA_KEY
+)});var ok=${JSON.stringify(
+  TEMI.map((x) => x.codice)
+)};if(t&&ok.indexOf(t)>=0&&t!==${JSON.stringify(
+  TEMA_PREDEFINITO
+)}){document.documentElement.setAttribute('data-tema',t);}}catch(e){}})();`;
+
 export const metadata: Metadata = {
   title: {
     default: "Muri Parlanti",
@@ -220,6 +232,7 @@ export default function RootLayout({
   return (
     <html
       lang="it"
+      suppressHydrationWarning
       className={[
         caveat.variable,
         shadowsIntoLight.variable,
@@ -250,6 +263,9 @@ export default function RootLayout({
         bungee.variable,
       ].join(" ")}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: scriptTema }} />
+      </head>
       <body className="min-h-dvh bg-stone-950 font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>

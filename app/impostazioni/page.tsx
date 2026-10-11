@@ -21,6 +21,8 @@ import type { PostIt } from "@/lib/postit";
 import { nomeLuogo } from "@/lib/luoghi";
 import { formattaData } from "@/lib/formato";
 import { useLingua } from "@/lib/i18n";
+import { eAmministratore } from "@/lib/admin";
+import SelettoreTema from "@/components/SelettoreTema";
 
 const campo =
   "w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
@@ -55,6 +57,9 @@ export default function PaginaImpostazioni() {
 
   const [mieiPostit, setMieiPostit] = useState<PostIt[]>([]);
   const [caricandoPostit, setCaricandoPostit] = useState(true);
+
+  // La sezione "Tema" e' sperimentale: per ora la vede solo l'amministratore.
+  const [sonoAdmin, setSonoAdmin] = useState(false);
 
   const idUtente = utente?.id ?? null;
 
@@ -95,6 +100,20 @@ export default function PaginaImpostazioni() {
       attivo = false;
     };
   }, [idUtente]);
+
+  // Riconosce l'amministratore (tabella `amministratori`): solo a lui
+  // mostriamo la scelta del tema. Senza sessione la risposta e' false.
+  useEffect(() => {
+    let attivo = true;
+    const id = window.setTimeout(async () => {
+      const si = await eAmministratore().catch(() => false);
+      if (attivo) setSonoAdmin(si);
+    }, 0);
+    return () => {
+      attivo = false;
+      window.clearTimeout(id);
+    };
+  }, [utente]);
 
   async function salva() {
     if (salvando) return;
@@ -477,6 +496,9 @@ export default function PaginaImpostazioni() {
         >
           {t("impost.vediProfilo")}
         </Link>
+
+        {/* Tema (colori). Sperimentale: visibile solo all'amministratore. */}
+        {sonoAdmin && <SelettoreTema />}
 
         {/* I miei post-it */}
         <section className="mt-6">

@@ -414,6 +414,14 @@ const IT: Parole = {
   "impost.nessunPostit":
     "Non hai ancora lasciato pensieri: trova un QR code su un muro e scrivi il primo.",
 
+  "impost.tema": "Tema (sperimentale)",
+  "impost.temaNota":
+    "Prova un aspetto diverso dell'app. Per ora lo vedi solo tu come amministratore; la scelta resta su questo dispositivo.",
+  "tema.ambra": "Ambra",
+  "tema.oceano": "Oceano",
+  "tema.magenta": "Magenta",
+  "tema.attivo": "Attivo",
+
   "foto.titolo": "Carica foto muro",
   "foto.noAccount": "Devi accedere per caricare la foto di un muro.",
   "foto.testo": "La foto verrà mostrata a chi scansiona il QR di quel muro.",
@@ -898,6 +906,14 @@ const EN: Parole = {
   "impost.mieiPostit": "My notes",
   "impost.nessunPostit":
     "You haven't left any thoughts yet: find a QR code on a wall and write your first.",
+
+  "impost.tema": "Theme (experimental)",
+  "impost.temaNota":
+    "Try a different look for the app. For now only you, as admin, can see this; the choice stays on this device.",
+  "tema.ambra": "Amber",
+  "tema.oceano": "Ocean",
+  "tema.magenta": "Magenta",
+  "tema.attivo": "Active",
 
   "foto.titolo": "Upload wall photo",
   "foto.noAccount": "You must log in to upload a wall photo.",
@@ -1387,6 +1403,14 @@ const ES: Parole = {
   "impost.nessunPostit":
     "Aún no has dejado pensamientos: encuentra un código QR en un muro y escribe el primero.",
 
+  "impost.tema": "Tema (experimental)",
+  "impost.temaNota":
+    "Prueba un aspecto distinto de la app. Por ahora solo tú, como administrador, lo ves; la elección queda en este dispositivo.",
+  "tema.ambra": "Ámbar",
+  "tema.oceano": "Océano",
+  "tema.magenta": "Magenta",
+  "tema.attivo": "Activo",
+
   "foto.titolo": "Subir foto del muro",
   "foto.noAccount": "Debes iniciar sesión para subir la foto de un muro.",
   "foto.testo": "La foto se mostrará a quien escanee el QR de ese muro.",
@@ -1875,6 +1899,14 @@ const FR: Parole = {
   "impost.nessunPostit":
     "Vous n'avez encore laissé aucune pensée : trouvez un code QR sur un mur et écrivez la première.",
 
+  "impost.tema": "Thème (expérimental)",
+  "impost.temaNota":
+    "Essayez un autre look de l'app. Pour l'instant, vous seul, en tant qu'admin, le voyez ; le choix reste sur cet appareil.",
+  "tema.ambra": "Ambre",
+  "tema.oceano": "Océan",
+  "tema.magenta": "Magenta",
+  "tema.attivo": "Actif",
+
   "foto.titolo": "Téléverser la photo du mur",
   "foto.noAccount": "Vous devez vous connecter pour téléverser la photo d'un mur.",
   "foto.testo": "La photo sera montrée à quiconque scanne le QR de ce mur.",
@@ -2362,6 +2394,14 @@ const DE: Parole = {
   "impost.mieiPostit": "Meine Post-its",
   "impost.nessunPostit":
     "Du hast noch keine Gedanken hinterlassen: Finde einen QR-Code an einer Wand und schreibe den ersten.",
+
+  "impost.tema": "Design (experimentell)",
+  "impost.temaNota":
+    "Probiere ein anderes Aussehen der App. Vorerst siehst nur du als Admin das; die Wahl bleibt auf diesem Gerät.",
+  "tema.ambra": "Bernstein",
+  "tema.oceano": "Ozean",
+  "tema.magenta": "Magenta",
+  "tema.attivo": "Aktiv",
 
   "foto.titolo": "Wandfoto hochladen",
   "foto.noAccount": "Du musst dich anmelden, um das Foto einer Wand hochzuladen.",

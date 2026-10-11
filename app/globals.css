@@ -17,8 +17,67 @@ body {
 }
 
 body {
-  background-color: #0c0a09; /* stone-950 */
-  color: #f5f5f4; /* stone-100 */
+  background-color: var(--color-stone-950);
+  color: var(--color-stone-100);
+}
+
+/* ===== Temi (colori) =====
+   Il tema cambia la palette rimappando le variabili colore di Tailwind v4.
+   L'app usa due scale: `amber-*` (accento) e `stone-*` (neutri), quindi basta
+   ridefinirne le variabili per cambiare aspetto a tutto il sito, anche nelle
+   utility con trasparenza (es. text-amber-100/50) grazie a color-mix().
+   Il tema attivo e' impostato su <html data-tema="..."> da un piccolo script
+   (vedi app/layout.tsx) e dalla pagina Impostazioni (solo amministratori).
+   Il tema predefinito ("ambra") = nessun attributo = palette Tailwind. */
+
+/* "oceano": accento blu (slate) con neutri freddi. */
+html[data-tema="oceano"] {
+  --color-amber-50: #eff6ff;
+  --color-amber-100: #dbeafe;
+  --color-amber-200: #bfdbfe;
+  --color-amber-300: #93c5fd;
+  --color-amber-400: #60a5fa;
+  --color-amber-500: #3b82f6;
+  --color-amber-600: #2563eb;
+  --color-amber-700: #1d4ed8;
+  --color-amber-800: #1e40af;
+  --color-amber-900: #1e3a8a;
+  --color-amber-950: #172554;
+  --color-stone-100: #f1f5f9;
+  --color-stone-200: #e2e8f0;
+  --color-stone-300: #cbd5e1;
+  --color-stone-400: #94a3b8;
+  --color-stone-500: #64748b;
+  --color-stone-600: #475569;
+  --color-stone-700: #334155;
+  --color-stone-800: #1e293b;
+  --color-stone-900: #0f172a;
+  --color-stone-950: #020617;
+}
+
+/* "magenta": accento rosa (zinc) con neutri neutri. */
+html[data-tema="magenta"] {
+  --color-amber-50: #fdf2f8;
+  --color-amber-100: #fce7f3;
+  --color-amber-200: #fbcfe8;
+  --color-amber-300: #f9a8d4;
+  --color-amber-400: #f472b6;
+  --color-amber-500: #ec4899;
+  --color-amber-600: #db2777;
+  --color-amber-700: #be185d;
+  --color-amber-800: #9d174d;
+  --color-amber-900: #831843;
+  --color-amber-950: #500724;
+  --color-stone-100: #f4f4f5;
+  --color-stone-200: #e4e4e7;
+  --color-stone-300: #d4d4d8;
+  --color-stone-400: #a1a1aa;
+  --color-stone-500: #71717a;
+  --color-stone-600: #52525b;
+  --color-stone-700: #3f3f46;
+  --color-stone-800: #27272a;
+  --color-stone-900: #18181b;
+  --color-stone-950: #09090b;
 }
 
 /* ===== Barra in alto a destra (bandiera + tasto Home) =====
@@ -36,8 +95,8 @@ body {
 }
 
 ::selection {
-  background-color: #fde68a; /* amber-300 */
-  color: #1c1917; /* stone-900 */
+  background-color: var(--color-amber-300);
+  color: var(--color-stone-900);
 }
 
 /* ===== Post-it ===== */
