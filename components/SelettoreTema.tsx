@@ -43,7 +43,7 @@ export default function SelettoreTema() {
       </h2>
       <p className="mt-2 text-xs text-stone-400">{t("impost.temaNota")}</p>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3">
         {TEMI.map((x) => {
           const attivo = x.codice === tema;
           return (
