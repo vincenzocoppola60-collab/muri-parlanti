@@ -786,3 +786,34 @@ body {
   .intro-app__parola { opacity: 1; transform: none; filter: none; }
   .intro-app__pen { display: none; }
 }
+
+/* ── "Fonda un muro": cascata di cuori (festa dopo il primo invio) ──────
+   Un velo a schermo intero, non cliccabile, con tanti cuori che cadono
+   dall'alto ruotando. Dura poco e sparisce da solo. */
+.cuori-festa {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cuore-cascata {
+  position: absolute;
+  top: -12vh;
+  font-size: 28px;
+  line-height: 1;
+  animation-name: cuore-cade;
+  animation-timing-function: cubic-bezier(0.35, 0.15, 0.6, 1);
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+}
+@keyframes cuore-cade {
+  0%   { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translateY(118vh) rotate(420deg) scale(1.05); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cuore-cascata { animation: none; opacity: 0; }
+}

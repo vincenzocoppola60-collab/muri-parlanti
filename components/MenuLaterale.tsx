@@ -201,6 +201,13 @@ export default function MenuLaterale() {
           <Link href="/miei-muri" onClick={chiudi} className={voce("/miei-muri")}>
             <span aria-hidden className="text-xl">🧱</span> {t("nav.mieiMuri")}
           </Link>
+          <Link
+            href="/fonda-un-muro"
+            onClick={chiudi}
+            className={voce("/fonda-un-muro")}
+          >
+            <span aria-hidden className="text-xl">🏗️</span> {t("nav.fondaMuro")}
+          </Link>
           <Link href="/preferiti" onClick={chiudi} className={voce("/preferiti")}>
             <span aria-hidden className="text-xl">❤️</span> {t("nav.salvati")}
           </Link>

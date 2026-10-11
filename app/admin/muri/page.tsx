@@ -18,9 +18,20 @@ import {
   type Punto,
 } from "@/lib/admin";
 import { useLingua } from "@/lib/i18n";
+import { formattaData } from "@/lib/formato";
+import {
+  cambiaStatoIdea,
+  elencaIdee,
+  eliminaIdea,
+  type IdeaIdea,
+  type StatoIdea,
+} from "@/lib/idee";
 
-// La mappa (Leaflet) si carica solo nel browser.
+// Le mappe (Leaflet) si caricano solo nel browser.
 const DisegnaZona = dynamic(() => import("@/components/DisegnaZona"), {
+  ssr: false,
+});
+const MappaPunto = dynamic(() => import("@/components/MappaPunto"), {
   ssr: false,
 });
 
@@ -34,6 +45,11 @@ export default function PannelloMuri() {
 
   const [muri, setMuri] = useState<MuroAdmin[]>([]);
   const [caricoMuri, setCaricoMuri] = useState(false);
+
+  // Proposte "Fonda un muro" ricevute dagli utenti.
+  const [idee, setIdee] = useState<IdeaIdea[]>([]);
+  const [caricoIdee, setCaricoIdee] = useState(false);
+  const [messaggioIdee, setMessaggioIdee] = useState("");
 
   // Campi del form "fonda un muro"
   const [nome, setNome] = useState("");
@@ -51,6 +67,13 @@ export default function PannelloMuri() {
     setCaricoMuri(false);
   }, []);
 
+  const ricaricaIdee = useCallback(async () => {
+    setCaricoIdee(true);
+    const lista = await elencaIdee();
+    setIdee(lista);
+    setCaricoIdee(false);
+  }, []);
+
   useEffect(() => {
     if (caricamento) return;
     let vivo = true;
@@ -59,12 +82,15 @@ export default function PannelloMuri() {
       if (!vivo) return;
       setAdmin(si);
       setControllo(false);
-      if (si) await ricaricaMuri();
+      if (si) {
+        await ricaricaMuri();
+        await ricaricaIdee();
+      }
     })();
     return () => {
       vivo = false;
     };
-  }, [caricamento, utente, ricaricaMuri]);
+  }, [caricamento, utente, ricaricaMuri, ricaricaIdee]);
 
   /** Centra la mappa sulla posizione dell'admin (per disegnare la zona). */
   function vaiAllaMiaPosizione() {
@@ -152,6 +178,33 @@ export default function PannelloMuri() {
       return;
     }
     await ricaricaMuri();
+  }
+
+  async function cambiaStato(id: string, nuovo: StatoIdea) {
+    setMessaggioIdee("");
+    const esito = await cambiaStatoIdea(id, nuovo);
+    if (!esito.ok) {
+      setMessaggioIdee(esito.errore || t("admin.ideeErrore"));
+      return;
+    }
+    await ricaricaIdee();
+  }
+
+  async function rimuoviIdea(id: string) {
+    if (!window.confirm(t("admin.ideeConfCancella"))) return;
+    setMessaggioIdee("");
+    const esito = await eliminaIdea(id);
+    if (!esito.ok) {
+      setMessaggioIdee(esito.errore || t("admin.ideeErrore"));
+      return;
+    }
+    await ricaricaIdee();
+  }
+
+  function etichettaStato(stato: StatoIdea): string {
+    if (stato === "approvata") return t("admin.ideeStatoApprovata");
+    if (stato === "rifiutata") return t("admin.ideeStatoRifiutata");
+    return t("admin.ideeStatoNuova");
   }
 
   async function svuota(slug: string) {
@@ -355,6 +408,105 @@ export default function PannelloMuri() {
           )}
         </section>
 
+        {/* Proposte "Fonda un muro" degli utenti */}
+        <section className="mt-12">
+          <h2 className="font-scritta text-2xl text-amber-100">
+            {t("admin.ideeTitolo", { n: idee.length })}
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-stone-400">
+            {t("admin.ideeTesto")}
+          </p>
+
+          {messaggioIdee && (
+            <p className="mt-3 text-sm text-red-300">{messaggioIdee}</p>
+          )}
+
+          {caricoIdee ? (
+            <p className="mt-3 text-sm text-stone-400">{t("admin.ideeCarico")}</p>
+          ) : idee.length === 0 ? (
+            <p className="mt-3 text-sm text-stone-400">{t("admin.ideeVuote")}</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-4">
+              {idee.map((idea) => (
+                <li
+                  key={idea.id}
+                  className="rounded-lg border border-amber-100/15 bg-stone-900/55 p-4 shadow-lg backdrop-blur-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-scritta text-xl text-amber-100">
+                        {idea.via ||
+                          `${idea.lat.toFixed(5)}, ${idea.lng.toFixed(5)}`}
+                      </p>
+                      <p className="text-xs text-stone-400">
+                        {t("admin.ideeQuando")} {formattaData(idea.creato_il)} ·{" "}
+                        {idea.utente_id
+                          ? idea.utente_id.slice(0, 8)
+                          : t("admin.ideeAnonimo")}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${classiStato(
+                        idea.stato
+                      )}`}
+                    >
+                      {etichettaStato(idea.stato)}
+                    </span>
+                  </div>
+
+                  {/* Il punto esatto sulla mappa (sola lettura) */}
+                  <div className="mt-3">
+                    <MappaPunto punto={[idea.lat, idea.lng]} altezza={180} />
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-stone-400">
+                      {t("admin.ideePerche")}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-stone-200">
+                      {idea.motivo}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${idea.lat}&mlon=${idea.lng}#map=19/${idea.lat}/${idea.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full border border-amber-100/30 px-4 py-2 font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                    >
+                      {t("admin.apri")}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => cambiaStato(idea.id, "approvata")}
+                      disabled={idea.stato === "approvata"}
+                      className="rounded-full border border-emerald-400/40 px-4 py-2 font-semibold text-emerald-200 transition hover:bg-emerald-500/10 disabled:opacity-40"
+                    >
+                      {t("admin.ideeApprova")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => cambiaStato(idea.id, "rifiutata")}
+                      disabled={idea.stato === "rifiutata"}
+                      className="rounded-full border border-amber-100/30 px-4 py-2 font-semibold text-amber-100 transition hover:bg-stone-950/50 disabled:opacity-40"
+                    >
+                      {t("admin.ideeRifiuta")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => rimuoviIdea(idea.id)}
+                      className="rounded-full border border-red-400/40 px-4 py-2 font-semibold text-red-300 transition hover:bg-red-500/10"
+                    >
+                      {t("admin.ideeCancella")}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
         <Link
           href="/"
           className="mt-8 inline-block text-sm text-stone-400 transition hover:text-amber-100"
@@ -364,6 +516,13 @@ export default function PannelloMuri() {
       </div>
     </main>
   );
+}
+
+/** Colori del badge di stato della proposta. */
+function classiStato(stato: StatoIdea): string {
+  if (stato === "approvata") return "bg-emerald-400/20 text-emerald-200";
+  if (stato === "rifiutata") return "bg-red-400/20 text-red-200";
+  return "bg-amber-300/20 text-amber-100";
 }
 
 function Schermata({ titolo, testo }: { titolo: string; testo: string }) {
