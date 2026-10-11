@@ -418,8 +418,7 @@ const IT: Parole = {
   "impost.temaNota":
     "Prova un aspetto diverso dell'app. Per ora lo vedi solo tu come amministratore; la scelta resta su questo dispositivo.",
   "tema.ambra": "Ambra",
-  "tema.oceano": "Oceano",
-  "tema.magenta": "Magenta",
+  "tema.graffiti": "Graffiti",
   "tema.attivo": "Attivo",
 
   "foto.titolo": "Carica foto muro",
@@ -911,8 +910,7 @@ const EN: Parole = {
   "impost.temaNota":
     "Try a different look for the app. For now only you, as admin, can see this; the choice stays on this device.",
   "tema.ambra": "Amber",
-  "tema.oceano": "Ocean",
-  "tema.magenta": "Magenta",
+  "tema.graffiti": "Graffiti",
   "tema.attivo": "Active",
 
   "foto.titolo": "Upload wall photo",
@@ -1407,8 +1405,7 @@ const ES: Parole = {
   "impost.temaNota":
     "Prueba un aspecto distinto de la app. Por ahora solo tú, como administrador, lo ves; la elección queda en este dispositivo.",
   "tema.ambra": "Ámbar",
-  "tema.oceano": "Océano",
-  "tema.magenta": "Magenta",
+  "tema.graffiti": "Graffiti",
   "tema.attivo": "Activo",
 
   "foto.titolo": "Subir foto del muro",
@@ -1903,8 +1900,7 @@ const FR: Parole = {
   "impost.temaNota":
     "Essayez un autre look de l'app. Pour l'instant, vous seul, en tant qu'admin, le voyez ; le choix reste sur cet appareil.",
   "tema.ambra": "Ambre",
-  "tema.oceano": "Océan",
-  "tema.magenta": "Magenta",
+  "tema.graffiti": "Graffiti",
   "tema.attivo": "Actif",
 
   "foto.titolo": "Téléverser la photo du mur",
@@ -2399,8 +2395,7 @@ const DE: Parole = {
   "impost.temaNota":
     "Probiere ein anderes Aussehen der App. Vorerst siehst nur du als Admin das; die Wahl bleibt auf diesem Gerät.",
   "tema.ambra": "Bernstein",
-  "tema.oceano": "Ozean",
-  "tema.magenta": "Magenta",
+  "tema.graffiti": "Graffiti",
   "tema.attivo": "Aktiv",
 
   "foto.titolo": "Wandfoto hochladen",

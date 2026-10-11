@@ -8,8 +8,6 @@ import { useLingua } from "@/lib/i18n";
 import { caricaMioProfilo, urlAvatar, type Profilo } from "@/lib/profili";
 import { eAmministratore } from "@/lib/admin";
 import { CreditiCompatto } from "@/components/Crediti";
-import { useTema } from "@/lib/useTema";
-import { iconaTema } from "@/lib/icone-tema";
 
 /**
  * Menu a tendina laterale (hamburger in alto a sinistra).
@@ -21,7 +19,6 @@ export default function MenuLaterale() {
   const pathname = usePathname();
   const { utente, caricamento, nickname, esci } = useAuth();
   const { t } = useLingua();
-  const tema = useTema();
   const [aperto, setAperto] = useState(false);
   const [profilo, setProfilo] = useState<Profilo | null>(null);
   const [sonoAdmin, setSonoAdmin] = useState(false);
@@ -176,7 +173,7 @@ export default function MenuLaterale() {
           ) : (
             <Link href="/impostazioni" onClick={chiudi} className="block">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-800 text-2xl">
-                {iconaTema(tema, "ospite")}
+                👤
               </span>
               <span className="mt-2 block font-scritta text-xl text-amber-100">
                 {t("nav.ospite")}
@@ -190,7 +187,7 @@ export default function MenuLaterale() {
 
         <nav className="mt-4 flex flex-col gap-1 px-3">
           <Link href="/" onClick={chiudi} className={voce("/")}>
-            <span aria-hidden className="text-xl">{iconaTema(tema, "home")}</span> {t("nav.home")}
+            <span aria-hidden className="text-xl">🏠</span> {t("nav.home")}
           </Link>
           {utente && (
             <Link
@@ -198,27 +195,27 @@ export default function MenuLaterale() {
               onClick={chiudi}
               className={voce(`/profilo/${utente.id}`)}
             >
-              <span aria-hidden className="text-xl">{iconaTema(tema, "profilo")}</span> {t("nav.tuoProfilo")}
+              <span aria-hidden className="text-xl">🧑</span> {t("nav.tuoProfilo")}
             </Link>
           )}
           <Link href="/miei-muri" onClick={chiudi} className={voce("/miei-muri")}>
-            <span aria-hidden className="text-xl">{iconaTema(tema, "mieiMuri")}</span> {t("nav.mieiMuri")}
+            <span aria-hidden className="text-xl">🧱</span> {t("nav.mieiMuri")}
           </Link>
           <Link
             href="/fonda-un-muro"
             onClick={chiudi}
             className={voce("/fonda-un-muro")}
           >
-            <span aria-hidden className="text-xl">{iconaTema(tema, "fondaMuro")}</span> {t("nav.fondaMuro")}
+            <span aria-hidden className="text-xl">🏗️</span> {t("nav.fondaMuro")}
           </Link>
           <Link href="/preferiti" onClick={chiudi} className={voce("/preferiti")}>
-            <span aria-hidden className="text-xl">{iconaTema(tema, "salvati")}</span> {t("nav.salvati")}
+            <span aria-hidden className="text-xl">❤️</span> {t("nav.salvati")}
           </Link>
           <Link href="/scansiona" onClick={chiudi} className={voce("/scansiona")}>
-            <span aria-hidden className="text-xl">{iconaTema(tema, "scansiona")}</span> {t("nav.scansiona")}
+            <span aria-hidden className="text-xl">📷</span> {t("nav.scansiona")}
           </Link>
           <Link href="/impostazioni" onClick={chiudi} className={voce("/impostazioni")}>
-            <span aria-hidden className="text-xl">{iconaTema(tema, "impostazioni")}</span> {t("nav.impostazioni")}
+            <span aria-hidden className="text-xl">⚙️</span> {t("nav.impostazioni")}
           </Link>
           {utente && sonoAdmin && (
             <>
@@ -228,7 +225,7 @@ export default function MenuLaterale() {
                 onClick={chiudi}
                 className={voce("/admin/muri")}
               >
-                <span aria-hidden className="text-xl">{iconaTema(tema, "admin")}</span> {t("nav.admin")}
+                <span aria-hidden className="text-xl">🛠️</span> {t("nav.admin")}
               </Link>
             </>
           )}

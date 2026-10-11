@@ -30,54 +30,34 @@ body {
    (vedi app/layout.tsx) e dalla pagina Impostazioni (solo amministratori).
    Il tema predefinito ("ambra") = nessun attributo = palette Tailwind. */
 
-/* "oceano": accento blu (slate) con neutri freddi. */
-html[data-tema="oceano"] {
-  --color-amber-50: #eff6ff;
-  --color-amber-100: #dbeafe;
-  --color-amber-200: #bfdbfe;
-  --color-amber-300: #93c5fd;
-  --color-amber-400: #60a5fa;
-  --color-amber-500: #3b82f6;
-  --color-amber-600: #2563eb;
-  --color-amber-700: #1d4ed8;
-  --color-amber-800: #1e40af;
-  --color-amber-900: #1e3a8a;
-  --color-amber-950: #172554;
-  --color-stone-100: #f1f5f9;
-  --color-stone-200: #e2e8f0;
-  --color-stone-300: #cbd5e1;
-  --color-stone-400: #94a3b8;
-  --color-stone-500: #64748b;
-  --color-stone-600: #475569;
-  --color-stone-700: #334155;
-  --color-stone-800: #1e293b;
-  --color-stone-900: #0f172a;
-  --color-stone-950: #020617;
+/* "graffiti": non cambia lo sfondo (l'ambra resta), cambia la GRAFICA:
+   font generale a pennarello (Permanent Marker) e cornici dei riquadri
+   disegnate a mano. Le icone restano quelle classiche. */
+html[data-tema="graffiti"] {
+  /* Font generale dell'app e dei titoli: tutti a pennarello. */
+  --font-sans: var(--font-permanent-marker), ui-sans-serif, system-ui, sans-serif;
+  --font-scritta: var(--font-permanent-marker), ui-sans-serif, cursive;
 }
 
-/* "magenta": accento rosa (zinc) con neutri neutri. */
-html[data-tema="magenta"] {
-  --color-amber-50: #fdf2f8;
-  --color-amber-100: #fce7f3;
-  --color-amber-200: #fbcfe8;
-  --color-amber-300: #f9a8d4;
-  --color-amber-400: #f472b6;
-  --color-amber-500: #ec4899;
-  --color-amber-600: #db2777;
-  --color-amber-700: #be185d;
-  --color-amber-800: #9d174d;
-  --color-amber-900: #831843;
-  --color-amber-950: #500724;
-  --color-stone-100: #f4f4f5;
-  --color-stone-200: #e4e4e7;
-  --color-stone-300: #d4d4d8;
-  --color-stone-400: #a1a1aa;
-  --color-stone-500: #71717a;
-  --color-stone-600: #52525b;
-  --color-stone-700: #3f3f46;
-  --color-stone-800: #27272a;
-  --color-stone-900: #18181b;
-  --color-stone-950: #09090b;
+/* Cornici a mano: i riquadri (schede, pannelli, campi) invece di angoli
+   tondi e regolari prendono un bordo "sbilenco", come tracciato a mano.
+   Si escludono i pulsanti a pillola (rounded-full), che restano tondi. */
+html[data-tema="graffiti"] [class*="rounded-"][class*="border"]:not([class*="rounded-full"]) {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+/* I campi di testo e le aree scritte hanno spesso solo l'angolo arrotondato:
+   anche loro meritano la cornice a mano. */
+html[data-tema="graffiti"] input[class*="rounded-"],
+html[data-tema="graffiti"] textarea[class*="rounded-"],
+html[data-tema="graffiti"] select[class*="rounded-"] {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+/* Un pizzico di carattere in piu': i titoli a pennarello sono gia' inclinati
+   di loro, qui li rendiamo un filo piu' marcati. */
+html[data-tema="graffiti"] .font-scritta {
+  letter-spacing: 0.01em;
 }
 
 /* ===== Barra in alto a destra (bandiera + tasto Home) =====

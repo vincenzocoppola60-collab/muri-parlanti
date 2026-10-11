@@ -24,8 +24,6 @@ import ScegliFont from "@/components/ScegliFont";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { suonaPenna } from "@/lib/suoni";
-import { useTema } from "@/lib/useTema";
-import { iconaTema } from "@/lib/icone-tema";
 
 const NICKNAME_KEY = "muri-parlanti:nickname";
 
@@ -40,7 +38,6 @@ export default function PostItEditor({
 }) {
   const { utente, nickname: nicknameAccount } = useAuth();
   const { t } = useLingua();
-  const tema = useTema();
   const [testo, setTesto] = useState("");
   const [nickname, setNickname] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
@@ -442,7 +439,7 @@ export default function PostItEditor({
               ? foto
                 ? t("editor.caricoFoto")
                 : t("editor.attaccando")
-              : `${iconaTema(tema, "attacca")} ${t("editor.attacca")}`}
+              : `📌 ${t("editor.attacca")}`}
           </button>
           <button
             type="button"

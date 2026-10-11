@@ -1,78 +1,51 @@
 /**
- * Suoni dell'interfaccia generati con la Web Audio API: nessun file audio da
- * scaricare, funzionano anche offline.
+ * Suoni dell'interfaccia: due brevi file audio (mp3) serviti da /public/suoni.
  *
- * `suonaPenna()` riproduce il suono di una penna che scrive su un foglio:
- * una breve serie di "scritch" (pennellate) che iniziano e finiscono, poi
- * silenzio. Va chiamata DOPO un gesto dell'utente (il tap su "Attacca"),
- * altrimenti il browser blocca l'audio.
+ * - `suonaClick()`   -> suono secco di "click" (penna che scatta).
+ * - `suonaPenna()`   -> suono di una penna che scrive su un foglio.
+ *
+ * Vanno chiamati DOPO un gesto dell'utente (il tap su un pulsante), cosi' il
+ * browser consente la riproduzione. Se l'audio non e' disponibile non e' un
+ * problema: si ignora in silenzio.
  */
-export function suonaPenna(durataMs = 1300): void {
+
+const SRC_CLICK = "/suoni/click.mp3";
+const SRC_PENNA = "/suoni/penna.mp3";
+
+// Un solo elemento per suono, riusato a ogni tocco: evita di ricreare
+// l'oggetto audio ogni volta e rende il secondo tap istantaneo.
+let audioClick: HTMLAudioElement | null = null;
+let audioPenna: HTMLAudioElement | null = null;
+
+/** Riproduce il suono di "click" (parte al tap su "Lascia un pensiero"). */
+export function suonaClick(): void {
   try {
-    const AudioCtx =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
-    if (!AudioCtx) return;
-
-    const ctx = new AudioCtx();
-    const ora = ctx.currentTime;
-    const durata = durataMs / 1000;
-
-    // 1) "Base" di carta: rumore bianco (un soffio continuo) filtrato a banda
-    //    alta, il timbro sottile della punta che gratta il foglio.
-    const campioni = Math.max(1, Math.floor(ctx.sampleRate * durata));
-    const buffer = ctx.createBuffer(1, campioni, ctx.sampleRate);
-    const dati = buffer.getChannelData(0);
-    for (let i = 0; i < campioni; i++) dati[i] = Math.random() * 2 - 1;
-
-    const sorgente = ctx.createBufferSource();
-    sorgente.buffer = buffer;
-
-    const filtro = ctx.createBiquadFilter();
-    filtro.type = "bandpass";
-    filtro.frequency.value = 3200;
-    filtro.Q.value = 0.7;
-
-    // 2) Il volume non e' costante: e' fatto di pennellate. Questo gain viene
-    //    "disegnato" tratto per tratto (attacco rapido, rilascio rapido) con
-    //    micro-pause in mezzo, come quando la penna stacca dal foglio.
-    const gain = ctx.createGain();
-    gain.gain.value = 0.0001;
-
-    const uscita = ctx.createGain();
-    uscita.gain.value = 0.1; // volume garbato
-
-    sorgente.connect(filtro);
-    filtro.connect(gain);
-    gain.connect(uscita);
-    uscita.connect(ctx.destination);
-
-    let t = 0;
-    while (t < durata) {
-      const tratto = 0.05 + Math.random() * 0.12; // durata di una pennellata
-      const pausa = 0.02 + Math.random() * 0.05; // micro-pausa fra i tratti
-      const picco = 0.45 + Math.random() * 0.55; // forza della pennellata
-      const inizio = ora + t;
-      const fine = inizio + tratto;
-
-      gain.gain.setValueAtTime(0.0001, inizio);
-      gain.gain.exponentialRampToValueAtTime(picco, inizio + tratto * 0.35);
-      gain.gain.exponentialRampToValueAtTime(0.0001, fine);
-      // Ogni tratto "cambia timbro": piccola variazione della banda.
-      filtro.frequency.setValueAtTime(2600 + Math.random() * 2200, inizio);
-
-      t += tratto + pausa;
+    if (typeof Audio === "undefined") return;
+    if (!audioClick) {
+      audioClick = new Audio(SRC_CLICK);
+      audioClick.preload = "auto";
+      audioClick.volume = 0.7;
     }
-
-    sorgente.start(ora);
-    sorgente.stop(ora + durata + 0.05);
-
-    // Chiude il contesto audio quando ha finito (risparmia risorse).
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, durataMs + 250);
+    // Riavvolge: cosi' un tocco rapido non resta muto se il suono era in corso.
+    audioClick.currentTime = 0;
+    void audioClick.play().catch(() => {});
   } catch {
-    // Nessun audio disponibile: non è un problema, si ignora in silenzio.
+    // Nessun audio disponibile: si continua in silenzio.
+  }
+}
+
+/** Riproduce il suono di una penna che scrive (parte al tap su "Attacca"). */
+export function suonaPenna(): void {
+  try {
+    if (typeof Audio === "undefined") return;
+    if (!audioPenna) {
+      audioPenna = new Audio(SRC_PENNA);
+      audioPenna.preload = "auto";
+      audioPenna.volume = 0.9;
+    }
+    audioPenna.currentTime = 0;
+    void audioPenna.play().catch(() => {});
+  } catch {
+    // Nessun audio disponibile: si continua in silenzio.
   }
 }

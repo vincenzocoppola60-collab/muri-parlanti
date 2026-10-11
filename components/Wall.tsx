@@ -13,6 +13,7 @@ import ProgressoMuro, {
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { alternaPreferito, idPreferiti } from "@/lib/preferiti";
+import { suonaClick } from "@/lib/suoni";
 
 /** Segna che l'invito del primo pensiero e' gia' stato mostrato su questo telefono. */
 const PRIMO_PENSIERO_KEY = "muri-parlanti:primo-pensiero-mostrato";
@@ -202,7 +203,11 @@ export default function Wall({
 
       <button
         type="button"
-        onClick={() => setEditorAperto(true)}
+        onClick={() => {
+          // Suono di "click" quando si tocca "Lascia un pensiero".
+          suonaClick();
+          setEditorAperto(true);
+        }}
         className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95"
       >
         ✍️ {t("muro.lascia")}
