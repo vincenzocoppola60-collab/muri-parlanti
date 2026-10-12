@@ -12,10 +12,6 @@ import { comprimiImmagine } from "@/lib/immagini";
 import { descrizioneCanzone, normalizzaCanzone } from "@/lib/canzone";
 import { verificaContenuto, chiaveMotivo } from "@/lib/moderazione";
 import { immagineNsfw } from "@/lib/nsfw";
-import { eAmministratore } from "@/lib/admin";
-import { caricaProgresso } from "@/lib/progresso";
-import { statoLivello } from "@/lib/livelli";
-import { stileSbloccato } from "@/lib/stili";
 import { classiStile, DecorazioniStile } from "@/components/StilePostit";
 import { cssFontFamily, eCodiceFont, fontDaCodice } from "@/lib/fonti";
 import ScegliCanzone from "@/components/ScegliCanzone";
@@ -44,11 +40,9 @@ export default function PostItEditor({
   const [anteprima, setAnteprima] = useState<string | null>(null);
   const [canzone, setCanzone] = useState("");
   const [pickerCanzone, setPickerCanzone] = useState(false);
-  // Stile grafico del post-it: il menu "Stile" compare agli utenti con
-  // account; le varianti si sbloccano salendo di livello. L'amministratore
-  // vede tutte le varianti senza limiti.
-  const [admin, setAdmin] = useState(false);
-  const [livello, setLivello] = useState(0);
+  // Stile grafico del post-it: il menu "Stile" e' SEMPRE visibile, ma la
+  // variante si applica SOLO agli utenti con account (agli ospiti spieghiamo
+  // di registrarsi). Niente livelli: tutte e 16 le varianti sono disponibili.
   const [stile, setStile] = useState<number | null>(null);
   const [pickerStile, setPickerStile] = useState(false);
   // Font del testo: si sceglie dall'editor (utenti con account), si sblocca
@@ -77,47 +71,12 @@ export default function PostItEditor({
     };
   }, [utente, nicknameAccount]);
 
-  // Riconosce l'amministratore (tabella `amministratori`): solo a lui si
-  // mostra il menu "Stile". Se la migrazione 0009 non c'e', resta false.
-  useEffect(() => {
-    if (!utente) return;
-    let attivo = true;
-    eAmministratore().then((si) => {
-      if (attivo) setAdmin(si);
-    });
-    return () => {
-      attivo = false;
-    };
-  }, [utente]);
-
-  // Livello dell'utente: decide quali stili sono sbloccati. caricaProgresso
-  // riscatta anche gli eventuali bonus gia' maturati.
-  useEffect(() => {
-    let attivo = true;
-    const carica = utente
-      ? caricaProgresso(utente.id)
-          .then((res) => statoLivello(res.totaleXp).livello.numero)
-          .catch(() => 1)
-      : Promise.resolve(0);
-    carica.then((n) => {
-      if (attivo) setLivello(n);
-    });
-    return () => {
-      attivo = false;
-    };
-  }, [utente]);
-
-  // Amministratore effettivo: serve una sessione E l'appartenenza alla tabella.
-  const adminAttivo = !!utente && admin;
-
-  // Il menu "Stile" si mostra a chi ha un account (l'amministratore lo ignora).
-  const puoUsareStile = !!utente;
-  // Stile effettivamente applicabile: l'amministratore ha via libera, gli
-  // altri solo se la variante e' sbloccata al loro livello.
-  const stileValido =
-    stile != null && (adminAttivo || stileSbloccato(stile, livello));
-  // Font effettivo: basta un codice noto. I font NON dipendono dal livello
-  // (tutti disponibili subito). Vedi lib/fonti.ts.
+  // Stile effettivamente applicabile: SOLO per chi ha un account. Gli ospiti
+  // possono aprire il menu (anteprima + invito a registrarsi) ma non applicare
+  // nessuna variante.
+  const stileValido = utente ? stile : null;
+  // Font effettivo: basta un codice noto. I font sono disponibili a tutti,
+  // anche senza account. Vedi lib/fonti.ts.
   const fontValido = eCodiceFont(font) ? font : null;
   const fontApplicabile = fontValido != null;
 
@@ -219,9 +178,9 @@ export default function PostItEditor({
       userId: utente?.id ?? null,
       fotoUrl,
       canzoneUrl: canzoneOk ?? null,
-      // Si invia lo stile solo se e' applicabile (admin o variante sbloccata).
-      stile: stileValido ? stile : null,
-      // Idem per il font: solo se e' un codice noto e sbloccato al livello.
+      // Lo stile si invia solo se applicabile (serve un account).
+      stile: stileValido,
+      // Il font si invia solo se e' un codice noto.
       font: fontApplicabile ? fontValido : null,
     });
     setInviando(false);
@@ -391,40 +350,42 @@ export default function PostItEditor({
           )}
         </div>
 
-        {/* Menu "Stile": visibile agli utenti con account. Apre la griglia di
-            varianti (con i lucchetti su quelle da sbloccare) e applica
-            l'anteprima dal vivo al modulo stesso. */}
-        {puoUsareStile && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setPickerStile(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
-            >
-              🎨 {t("editor.stile")}
-              <span className="text-xs font-normal text-stone-600/80">
-                {stile ? `· ${stile}` : t("editor.stileScegli")}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPickerFont(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
-              style={
-                fontApplicabile
-                  ? { fontFamily: cssFontFamily(fontValido) }
-                  : undefined
-              }
-            >
-              ✍️ {t("editor.font")}
-              <span className="text-xs font-normal text-stone-600/80">
-                {fontApplicabile
-                  ? fontDaCodice(fontValido)?.nome
-                  : t("editor.fontScegli")}
-              </span>
-            </button>
-          </div>
-        )}
+        {/* Menu "Stile" e "Font": SEMPRE visibili. Lo stile e' riservato a chi
+            ha un account (gli ospiti lo scoprono dal pannello, con l'invito a
+            registrarsi); il font e' libero per tutti. */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPickerStile(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+          >
+            🎨 {t("editor.stile")}
+            <span className="text-xs font-normal text-stone-600/80">
+              {utente
+                ? stile
+                  ? `· ${stile}`
+                  : t("editor.stileScegli")
+                : t("editor.stileServeAccount")}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickerFont(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+            style={
+              fontApplicabile
+                ? { fontFamily: cssFontFamily(fontValido) }
+                : undefined
+            }
+          >
+            ✍️ {t("editor.font")}
+            <span className="text-xs font-normal text-stone-600/80">
+              {fontApplicabile
+                ? fontDaCodice(fontValido)?.nome
+                : t("editor.fontScegli")}
+            </span>
+          </button>
+        </div>
 
         {errore && (
           <p className="mt-3 text-sm font-bold text-red-900">{errore}</p>
@@ -465,8 +426,7 @@ export default function PostItEditor({
       {pickerStile && (
         <ScegliStile
           valore={stile}
-          livelloUtente={livello}
-          amministratore={adminAttivo}
+          consentito={!!utente}
           onScegli={(valore) => {
             setStile(valore);
             setPickerStile(false);

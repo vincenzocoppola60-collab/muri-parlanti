@@ -9,6 +9,7 @@ import {
 } from "@/lib/profili";
 import PostItView from "@/components/PostIt";
 import Testo from "@/components/Testo";
+import GestioneProfilo from "@/components/GestioneProfilo";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +106,11 @@ export default async function PaginaProfilo({
           </p>
         )}
       </header>
+
+      {/* Pannello di GESTIONE del profilo (foto, username, bio, post-it
+          lasciati e salvati): il componente non disegna nulla se l'account
+          collegato non e' il proprietario. Niente livelli/punti. */}
+      <GestioneProfilo utenteId={id} />
 
       {!visibili ? (
         <p className="mx-auto mt-16 max-w-sm px-6 text-center text-lg text-stone-200">

@@ -189,12 +189,13 @@ async function inserisci(
         errore: "Il contenuto non rispetta le regole del muro e non e' stato pubblicato.",
       };
     }
-    // Il trigger di sblocco stili (migrazione 0016) rifiuta uno stile non
-    // ancora sbloccato per il livello dell'autore.
+    // Il trigger dello stile (migrazione 0030) applica due regole senza
+    // livelli: intervallo 1..16 e stili riservati a chi ha un account.
     if (error?.message?.includes("muri_stile")) {
       return {
         ok: false,
-        errore: "Lo stile scelto non e' sbloccato per il tuo livello.",
+        errore:
+          "Gli stili del post-it sono riservati a chi ha un account: registrati per usarli.",
       };
     }
     return {

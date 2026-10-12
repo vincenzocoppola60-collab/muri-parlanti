@@ -21,11 +21,15 @@ export default function RitagliaAvatar({
   file,
   onAnnulla,
   onConferma,
+  maschera = "cerchio",
 }: {
   file: File;
   onAnnulla: () => void;
   onConferma: (blob: Blob) => void;
+  /** Forma della foto finale: 'cerchio' per le persone, 'quadrato' per i collettivi. */
+  maschera?: "cerchio" | "quadrato";
 }) {
+  const quadrata = maschera === "quadrato";
   const { t } = useLingua();
   const [url, setUrl] = useState<string | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -176,15 +180,19 @@ export default function RitagliaAvatar({
               {t("ritaglia.carico")}
             </p>
           )}
-          {/* Cerchio di anteprima: scurisce tutto ciò che resta fuori */}
+          {/* Maschera di anteprima: scurisce tutto ciò che resta fuori */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full"
+            className={`pointer-events-none absolute inset-0 ${
+              quadrata ? "rounded-lg" : "rounded-full"
+            }`}
             style={{ boxShadow: "0 0 0 9999px rgba(12, 10, 9, 0.62)" }}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-amber-300/70"
+            className={`pointer-events-none absolute inset-0 ring-2 ring-amber-300/70 ${
+              quadrata ? "rounded-lg" : "rounded-full"
+            }`}
           />
         </div>
 

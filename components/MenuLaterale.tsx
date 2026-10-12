@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { caricaMioProfilo, urlAvatar, type Profilo } from "@/lib/profili";
+import { caricaMioCollettivo } from "@/lib/collettivi";
 import { eAmministratore } from "@/lib/admin";
 import { CreditiCompatto } from "@/components/Crediti";
 
@@ -22,6 +23,8 @@ export default function MenuLaterale() {
   const [aperto, setAperto] = useState(false);
   const [profilo, setProfilo] = useState<Profilo | null>(null);
   const [sonoAdmin, setSonoAdmin] = useState(false);
+  /** Slug del collettivo di cui questo account e' titolare (se ce n'e' uno). */
+  const [mioCollettivo, setMioCollettivo] = useState<string | null>(null);
 
   const nascosto = pathname?.startsWith("/qr") ?? false;
 
@@ -73,6 +76,22 @@ export default function MenuLaterale() {
     eAmministratore()
       .then((si) => attivo && setSonoAdmin(si))
       .catch(() => attivo && setSonoAdmin(false));
+    return () => {
+      attivo = false;
+    };
+  }, [utente]);
+
+  // Se l'account e' titolare di un collettivo, mostriamo il collegamento
+  // alla sua gestione (foto + muri). La sicurezza vera resta nel database.
+  useEffect(() => {
+    if (!utente) {
+      setMioCollettivo(null);
+      return;
+    }
+    let attivo = true;
+    caricaMioCollettivo()
+      .then((c) => attivo && setMioCollettivo(c?.slug ?? null))
+      .catch(() => attivo && setMioCollettivo(null));
     return () => {
       attivo = false;
     };
@@ -186,9 +205,6 @@ export default function MenuLaterale() {
         </div>
 
         <nav className="mt-4 flex flex-col gap-1 px-3">
-          <Link href="/" onClick={chiudi} className={voce("/")}>
-            <span aria-hidden className="text-xl">🏠</span> {t("nav.home")}
-          </Link>
           {utente && (
             <Link
               href={`/profilo/${utente.id}`}
@@ -222,6 +238,21 @@ export default function MenuLaterale() {
           <Link href="/impostazioni" onClick={chiudi} className={voce("/impostazioni")}>
             <span aria-hidden className="text-xl">⚙️</span> {t("nav.impostazioni")}
           </Link>
+          {utente && (
+            <Link href="/notifiche" onClick={chiudi} className={voce("/notifiche")}>
+              <span aria-hidden className="text-xl">🔔</span> {t("nav.notifiche")}
+            </Link>
+          )}
+          {utente && mioCollettivo && (
+            <Link
+              href={"/collettivo/" + mioCollettivo}
+              onClick={chiudi}
+              className={voce("/collettivo/" + mioCollettivo)}
+            >
+              <span aria-hidden className="text-xl">🎪</span>{" "}
+              {t("nav.mioCollettivo")}
+            </Link>
+          )}
           {utente && sonoAdmin && (
             <>
               <div className="mx-1 my-2 border-t border-amber-100/10" />
@@ -231,6 +262,14 @@ export default function MenuLaterale() {
                 className={voce("/admin/muri")}
               >
                 <span aria-hidden className="text-xl">🛠️</span> {t("nav.admin")}
+              </Link>
+              <Link
+                href="/admin/collettivi"
+                onClick={chiudi}
+                className={voce("/admin/collettivi")}
+              >
+                <span aria-hidden className="text-xl">🎪</span>{" "}
+                {t("nav.adminCollettivi")}
               </Link>
             </>
           )}

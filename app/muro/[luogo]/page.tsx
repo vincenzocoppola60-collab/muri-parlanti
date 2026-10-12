@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { caricaPostit, contaPostit } from "@/lib/postit";
 import { normalizzaLuogo, nomeLuogo } from "@/lib/luoghi";
 import { caricaMuro } from "@/lib/muri";
+import { collettivoDelMuro } from "@/lib/collettivi";
 import Wall from "@/components/Wall";
 import Testo from "@/components/Testo";
 
@@ -34,13 +35,41 @@ export default async function PaginaMuro({
       contaPostit(slug),
       caricaMuro(slug),
     ]);
+    // Muro di un collettivo: recupera il marchio (emoji + nome) da mostrare.
+    const collettivo = muro?.collettivo_id
+      ? await collettivoDelMuro(slug)
+      : null;
+
+    // Un evento e' "finito" quando la sua data di fine (data+ora) e' passata:
+    // da quel momento il muro e' in sola lettura. Lo stesso controllo e' nel
+    // database (trigger postit_prepara, 0029): il blocco e' reale, non solo UI.
+    const fine = muro?.data_fine ? Date.parse(muro.data_fine) : NaN;
+    const eventoFinito = Number.isFinite(fine) && Date.now() > fine;
+    // Un muro CHIUSO (a mano o per fine evento) e' in sola lettura (AE1).
+    const puoScrivere = muro?.stato !== "chiuso" && !eventoFinito;
+    const finestraEvento =
+      muro && (muro.data_inizio || muro.data_fine)
+        ? {
+            inizio: muro.data_inizio ?? null,
+            fine: muro.data_fine ?? null,
+            finito: eventoFinito,
+          }
+        : null;
+
     return (
       <Wall
         luogo={slug}
-        nome={nomeLuogo(slug)}
+        nome={muro?.nome ?? nomeLuogo(slug)}
         postit={postit}
         totale={totale}
         fotoUrl={muro?.foto_url ?? null}
+        puoScrivere={puoScrivere}
+        evento={finestraEvento}
+        collettivo={
+          collettivo
+            ? { slug: collettivo.slug, nome: collettivo.nome, emoji: collettivo.emoji }
+            : null
+        }
       />
     );
   } catch {

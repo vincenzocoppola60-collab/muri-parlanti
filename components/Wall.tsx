@@ -1,18 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { PostIt } from "@/lib/postit";
 import PostItView from "@/components/PostIt";
 import PostItEditor from "@/components/PostItEditor";
+import IconaCollettivo from "@/components/IconaCollettivo";
 import PopupPrimoPensiero from "@/components/PopupPrimoPensiero";
 import SalvaMuroButton from "@/components/SalvaMuroButton";
-import ProgressoMuro, {
-  type ProgressoMuroHandle,
-} from "@/components/ProgressoMuro";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
+import { formattaData } from "@/lib/formato";
 import { alternaPreferito, idPreferiti } from "@/lib/preferiti";
+import { registraPensiero, registraVisita } from "@/lib/progresso";
 import { suonaClick } from "@/lib/suoni";
 
 /** Segna che l'invito del primo pensiero e' gia' stato mostrato su questo telefono. */
@@ -24,12 +24,28 @@ export default function Wall({
   postit,
   totale,
   fotoUrl,
+  puoScrivere = true,
+  collettivo = null,
+  evento = null,
 }: {
   luogo: string;
   nome: string;
   postit: PostIt[];
   totale: number;
   fotoUrl?: string | null;
+  /** false = muro chiuso / sola lettura: nasconde il pulsante di scrittura. */
+  puoScrivere?: boolean;
+  /** Se il muro appartiene a un collettivo, mostra il suo marchio accanto al nome. */
+  collettivo?: { slug: string; nome: string; emoji: string | null } | null;
+  /**
+   * Finestra di un muro-evento: inizio e fine (data+ora). Quando `finito` e'
+   * true l'evento e' finito e il muro e' in sola lettura.
+   */
+  evento?: {
+    inizio: string | null;
+    fine: string | null;
+    finito: boolean;
+  } | null;
 }) {
   const [lista, setLista] = useState<PostIt[]>(postit);
   const [conteggio, setConteggio] = useState(totale);
@@ -38,7 +54,6 @@ export default function Wall({
   const [toastPreferito, setToastPreferito] = useState<string | null>(null);
   const [invitoChiuso, setInvitoChiuso] = useState(false);
   const [popupPrimo, setPopupPrimo] = useState(false);
-  const progressoRef = useRef<ProgressoMuroHandle>(null);
   const { utente, caricamento } = useAuth();
   const { t } = useLingua();
 
@@ -61,11 +76,22 @@ export default function Wall({
     };
   }, [utente]);
 
+  // Registra il muro tra "I tuoi muri" (solo account loggati, una volta per
+  // muro). Non assegna punti: e' solo l'elenco dei muri visitati. Silenzioso.
+  useEffect(() => {
+    if (!utente) return;
+    registraVisita(luogo).catch(() => {
+      // Conteggio non essenziale: il muro resta comunque visibile.
+    });
+  }, [utente, luogo]);
+
   function attacca(nuovo: PostIt) {
     setLista((attuali) => [nuovo, ...attuali]);
     setConteggio((c) => c + 1);
     setEditorAperto(false);
-    progressoRef.current?.pensieroAggiunto();
+    // Incrementa il conteggio dei pensieri lasciati su questo muro (solo
+    // account loggati). Non assegna punti.
+    registraPensiero(luogo).catch(() => {});
 
     // Invito UNA SOLA VOLTA, dopo il primo post-it pubblicato (ospite o
     // registrato). Se il browser non ha memoria, semplicemente non compare.
@@ -123,6 +149,31 @@ export default function Wall({
         <h1 className="font-scritta text-5xl leading-tight text-amber-100 drop-shadow-md sm:text-6xl">
           {nome}
         </h1>
+        {collettivo && (
+          <div className="mt-3 flex justify-center">
+            <IconaCollettivo
+              slug={collettivo.slug}
+              nome={collettivo.nome}
+              emoji={collettivo.emoji}
+            />
+          </div>
+        )}
+        {evento && (evento.inizio || evento.fine) && (
+          <div className="mt-3 flex justify-center">
+            <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 rounded-full border border-amber-100/25 bg-stone-900/60 px-4 py-1.5 text-xs font-semibold text-amber-100 backdrop-blur-sm">
+              <span aria-hidden>🗓️</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/70">
+                {evento.finito ? t("ev.chiusoDopoFine") : t("ev.inCorso")}
+              </span>
+              {evento.inizio && (
+                <span>{t("ev.dal", { inizio: formattaData(evento.inizio) })}</span>
+              )}
+              {evento.fine && (
+                <span>{t("ev.al", { fine: formattaData(evento.fine) })}</span>
+              )}
+            </span>
+          </div>
+        )}
         <p className="mt-2 text-sm text-stone-300">
           {conteggio === 1
             ? t("muro.pensieroUno")
@@ -131,7 +182,6 @@ export default function Wall({
         <div className="flex justify-center">
           <SalvaMuroButton luogo={luogo} nome={nome} />
         </div>
-        <ProgressoMuro ref={progressoRef} luogo={luogo} />
       </header>
 
       {!utente && !caricamento && !invitoChiuso && (
@@ -201,17 +251,23 @@ export default function Wall({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => {
-          // Suono di "click" quando si tocca "Lascia un pensiero".
-          suonaClick();
-          setEditorAperto(true);
-        }}
-        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95"
-      >
-        ✍️ {t("muro.lascia")}
-      </button>
+      {puoScrivere ? (
+        <button
+          type="button"
+          onClick={() => {
+            // Suono di "click" quando si tocca "Lascia un pensiero".
+            suonaClick();
+            setEditorAperto(true);
+          }}
+          className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95"
+        >
+          ✍️ {t("muro.lascia")}
+        </button>
+      ) : (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 whitespace-nowrap rounded-full border border-amber-100/30 bg-stone-900/85 px-6 py-3 text-sm font-bold text-amber-100 shadow-xl">
+          🔒 {evento?.finito ? t("ev.chiusoDopoFine") : t("muro.chiuso")}
+        </div>
+      )}
 
       {popupPrimo && <PopupPrimoPensiero onChiudi={() => setPopupPrimo(false)} />}
 
