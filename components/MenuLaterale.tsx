@@ -205,15 +205,8 @@ export default function MenuLaterale() {
         </div>
 
         <nav className="mt-4 flex flex-col gap-1 px-3">
-          {utente && (
-            <Link
-              href={`/profilo/${utente.id}`}
-              onClick={chiudi}
-              className={voce(`/profilo/${utente.id}`)}
-            >
-              <span aria-hidden className="text-xl">🧑</span> {t("nav.tuoProfilo")}
-            </Link>
-          )}
+          {/* La voce "Il tuo profilo" NON compare qui: e' gia' la casella
+              in alto (avatar + username), che apre la stessa pagina. */}
           <Link href="/miei-muri" onClick={chiudi} className={voce("/miei-muri")}>
             <span aria-hidden className="text-xl">🧱</span> {t("nav.mieiMuri")}
           </Link>

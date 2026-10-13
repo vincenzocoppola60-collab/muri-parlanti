@@ -13,12 +13,16 @@ export type Profilo = {
   bio: string | null;
   foto_url: string | null;
   mostra_postit: boolean;
+  /** Privacy dei post-it salvati (bacheca pubblica). Default true. */
+  mostra_salvati?: boolean;
   creato_il: string;
   aggiornato_il: string;
 };
 
 export const MAX_BIO = 200;
 export const MAX_NICK_PROFILO = 30;
+/** Quanti post-it si mostrano per volta nella griglia del profilo. */
+export const LIMITE_GRIGLIA = 60;
 
 /**
  * Errore tipico quando la tabella/bucket non esiste ancora:
@@ -27,7 +31,7 @@ export const MAX_NICK_PROFILO = 30;
 const SEGNALE_MIGRAZIONE = /PGRST205|schema cache|does not exist|relation .* does not exist/i;
 
 export const MESSAGGIO_MIGRAZIONE =
-  "Il database non e' ancora aggiornato per i profili. Esegui supabase/migrations/0005_profili.sql nell'SQL Editor di Supabase.";
+  "Il database non e' ancora aggiornato per i profili. Esegui nell'SQL Editor di Supabase: supabase/migrations/0005_profili.sql (tabella profili) e supabase/migrations/0031_profilo_mostra_salvati.sql (privacy dei post-it salvati).";
 
 /** URL dell'avatar con versione per aggirare la cache dopo un cambio foto. */
 export function urlAvatar(
@@ -94,7 +98,10 @@ export type EsitoSalva =
 export async function salvaMioProfilo(patch: {
   nickname: string;
   bio: string;
+  /** Privacy dei post-it propri (bacheca pubblica). */
   mostra_postit: boolean;
+  /** Privacy dei post-it salvati. Se omessa resta invariata. */
+  mostra_salvati?: boolean;
   foto_url?: string | null;
 }): Promise<EsitoSalva> {
   try {
@@ -110,6 +117,7 @@ export async function salvaMioProfilo(patch: {
       mostra_postit: patch.mostra_postit,
       aggiornato_il: new Date().toISOString(),
     };
+    if (patch.mostra_salvati !== undefined) riga.mostra_salvati = patch.mostra_salvati;
     if (patch.foto_url !== undefined) riga.foto_url = patch.foto_url;
 
     const { data: nuovo, error } = await supabase
@@ -134,6 +142,126 @@ export async function salvaMioProfilo(patch: {
     }
 
     return { ok: true, profilo: nuovo as Profilo };
+  } catch {
+    return { ok: false, errore: "Errore di rete. Riprova." };
+  }
+}
+
+/**
+ * Accende/spegne SOLO la privacy dei post-it (profili.mostra_postit).
+ *
+ * Perche' non basta salvaMioProfilo(): quella funzione riceve nickname e bio
+ * e li riscrive, quindi usarla da /impostazioni per un semplice interruttore
+ * azzerava la biografia dell'utente. Qui aggiorniamo una colonna sola, con
+ * un update puntuale, e lasciamo intatto tutto il resto della riga.
+ */
+export async function impostaMostraPostit(
+  mostra: boolean
+): Promise<{ ok: true } | { ok: false; errore: string }> {
+  try {
+    const supabase = getClienteAuth();
+    const { data } = await supabase.auth.getUser();
+    const utente = data.user;
+    if (!utente) {
+      return { ok: false, errore: "Accedi per cambiare questa impostazione." };
+    }
+
+    const { data: riga, error } = await supabase
+      .from("profili")
+      .update({ mostra_postit: mostra, aggiornato_il: new Date().toISOString() })
+      .eq("id", utente.id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      return {
+        ok: false,
+        errore: SEGNALE_MIGRAZIONE.test(error.message)
+          ? MESSAGGIO_MIGRAZIONE
+          : "Salvataggio non riuscito. Riprova.",
+      };
+    }
+
+    // Nessuna riga profilo ancora creata: la creiamo con i soli dati minimi.
+    if (!riga) {
+      const nick =
+        (utente.user_metadata?.nickname as string | undefined)?.trim() ||
+        "Anonimo";
+      const { error: erroreInserimento } = await supabase.from("profili").insert({
+        id: utente.id,
+        nickname: nick.slice(0, MAX_NICK_PROFILO),
+        mostra_postit: mostra,
+      });
+      if (erroreInserimento) {
+        return {
+          ok: false,
+          errore: SEGNALE_MIGRAZIONE.test(erroreInserimento.message)
+            ? MESSAGGIO_MIGRAZIONE
+            : "Salvataggio non riuscito. Riprova.",
+        };
+      }
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, errore: "Errore di rete. Riprova." };
+  }
+}
+
+/**
+ * Accende/spegne SOLO la privacy dei post-it salvati (profili.mostra_salvati).
+ *
+ * Come impostaMostraPostit(): un update puntuale di UNA sola colonna, cosi'
+ * l'interruttore della bacheca pubblica non tocca nickname ne' biografia.
+ */
+export async function impostaMostraSalvati(
+  mostra: boolean
+): Promise<{ ok: true } | { ok: false; errore: string }> {
+  try {
+    const supabase = getClienteAuth();
+    const { data } = await supabase.auth.getUser();
+    const utente = data.user;
+    if (!utente) {
+      return { ok: false, errore: "Accedi per cambiare questa impostazione." };
+    }
+
+    const { data: riga, error } = await supabase
+      .from("profili")
+      .update({ mostra_salvati: mostra, aggiornato_il: new Date().toISOString() })
+      .eq("id", utente.id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      return {
+        ok: false,
+        errore: SEGNALE_MIGRAZIONE.test(error.message)
+          ? MESSAGGIO_MIGRAZIONE
+          : "Salvataggio non riuscito. Riprova.",
+      };
+    }
+
+    // Nessuna riga profilo ancora creata: la creiamo con i soli dati minimi.
+    if (!riga) {
+      const nick =
+        (utente.user_metadata?.nickname as string | undefined)?.trim() ||
+        "Anonimo";
+      const { error: erroreInserimento } = await supabase.from("profili").insert({
+        id: utente.id,
+        nickname: nick.slice(0, MAX_NICK_PROFILO),
+        mostra_salvati: mostra,
+      });
+      if (erroreInserimento) {
+        return {
+          ok: false,
+          errore: SEGNALE_MIGRAZIONE.test(erroreInserimento.message)
+            ? MESSAGGIO_MIGRAZIONE
+            : "Salvataggio non riuscito. Riprova.",
+        };
+      }
+    }
+
+    return { ok: true };
   } catch {
     return { ok: false, errore: "Errore di rete. Riprova." };
   }
@@ -232,15 +360,23 @@ export async function rimuoviAvatarFile(): Promise<{ ok: boolean; errore?: strin
   }
 }
 
-/** Post-it lasciati da un utente (pagina profilo pubblico, lato server). */
-export async function caricaPostitDiUtente(userId: string, limite = 60): Promise<PostIt[]> {
+/**
+ * Post-it lasciati da un utente (pagina profilo pubblico, lato server).
+ * `offset` permette di caricare le pagine successive ("mostra altri").
+ */
+export async function caricaPostitDiUtente(
+  userId: string,
+  limite = LIMITE_GRIGLIA,
+  offset = 0
+): Promise<PostIt[]> {
   try {
+    const da = offset > 0 ? Math.floor(offset) : 0;
     const { data, error } = await getSupabase()
       .from("postit")
       .select("id, testo, nickname, luogo, creato_il, profili:user_id(nickname)")
       .eq("user_id", userId)
       .order("creato_il", { ascending: false })
-      .limit(limite);
+      .range(da, da + limite - 1);
     if (error) return [];
     return (data ?? []).map((r) => conNomeProfilo(r as RigaConProfilo));
   } catch {

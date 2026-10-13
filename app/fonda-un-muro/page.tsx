@@ -18,6 +18,14 @@ const FESTEGGIATO_KEY = "muri-parlanti:fonda-muro-festeggiato";
 
 type Stato = "inattivo" | "invio" | "fatto" | "errore";
 
+/** Prototipo layout · Idea 1 "Procedura in 4 passi": le quattro schermate. */
+const PASSI = [
+  { n: 1, chiave: "fonda.passoDove" },
+  { n: 2, chiave: "fonda.passoVia" },
+  { n: 3, chiave: "fonda.passoPerche" },
+  { n: 4, chiave: "fonda.passoConferma" },
+] as const;
+
 export default function FondaUnMuro() {
   const { t } = useLingua();
   const { utente, caricamento } = useAuth();
@@ -32,6 +40,11 @@ export default function FondaUnMuro() {
   const [messaggio, setMessaggio] = useState("");
 
   const [festa, setFesta] = useState(false);
+
+  // Prototipo layout · Idea 1 "Procedura in 4 passi": una domanda per
+  // schermata. I campi restano quelli veri (punto, via, motivo) e i permessi
+  // non cambiano: si modifica solo il modo in cui vengono chiesti.
+  const [passo, setPasso] = useState(1);
 
   const timerVia = useRef<number | null>(null);
 
@@ -138,6 +151,7 @@ export default function FondaUnMuro() {
     setMotivo("");
     setStato("inattivo");
     setMessaggio("");
+    setPasso(1);
   }
 
   return (
@@ -212,106 +226,274 @@ export default function FondaUnMuro() {
             onSubmit={invia}
             className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
           >
-            {/* Mappa: segna UN solo punto */}
-            <h2 className="font-scritta text-2xl text-amber-100">
-              {t("fonda.doveTitolo")}
-            </h2>
-            <p className="mt-1 text-xs leading-relaxed text-stone-400">
-              {t("fonda.doveAiuto")}
-            </p>
-
-            <div className="mt-3">
-              <MappaPunto punto={punto} onChange={aggiornaPunto} centro={centro} />
+            {/* Barra di avanzamento · Idea 1 "Procedura in 4 passi" */}
+            <div className="mb-5">
+              <div className="flex items-center justify-between text-xs text-stone-400">
+                <span className="font-semibold text-amber-100">
+                  {t("fonda.passoDi", { n: passo, tot: PASSI.length })}
+                </span>
+                <span>{t(PASSI[passo - 1].chiave)}</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-stone-700/60">
+                <div
+                  className="h-full rounded-full bg-amber-300 transition-all duration-300"
+                  style={{ width: `${(passo / PASSI.length) * 100}%` }}
+                />
+              </div>
+              <ol className="mt-3 flex flex-wrap gap-2">
+                {PASSI.map((p) => (
+                  <li
+                    key={p.n}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                      p.n === passo
+                        ? "bg-amber-300 text-stone-900"
+                        : p.n < passo
+                        ? "bg-amber-100/20 text-amber-100"
+                        : "bg-stone-800/60 text-stone-400"
+                    }`}
+                  >
+                    {p.n}. {t(p.chiave)}
+                  </li>
+                ))}
+              </ol>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={vaiAllaMiaPosizione}
-                className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
-              >
-                {t("fonda.usaPos")}
-              </button>
-              {punto && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPunto(null);
-                    setVia(null);
-                  }}
-                  className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
-                >
-                  {t("fonda.togliPunto")}
-                </button>
-              )}
-              <span className="text-xs text-stone-400">
-                {punto
-                  ? t("fonda.puntoScelto", {
-                      lat: punto[0].toFixed(5),
-                      lng: punto[1].toFixed(5),
-                    })
-                  : t("fonda.nessunPunto")}
-              </span>
-            </div>
+            {/* Passo 1 · Dove: segna UN solo punto */}
+            {passo === 1 && (
+              <div>
+                <h2 className="font-scritta text-2xl text-amber-100">
+                  {t("fonda.doveTitolo")}
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-stone-400">
+                  {t("fonda.doveAiuto")}
+                </p>
 
-            {/* Via ricavata dal punto */}
-            {punto && (
-              <p className="mt-3 text-sm text-stone-300">
-                <span className="text-stone-400">{t("fonda.viaEtichetta")} </span>
-                {cercoVia ? (
-                  <span className="text-stone-400">{t("fonda.cercoVia")}</span>
-                ) : via ? (
-                  <span className="font-semibold text-amber-100">{via}</span>
-                ) : (
-                  <span className="text-stone-400">{t("fonda.viaNonTrovata")}</span>
+                <div className="mt-3">
+                  <MappaPunto
+                    punto={punto}
+                    onChange={aggiornaPunto}
+                    centro={centro}
+                  />
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={vaiAllaMiaPosizione}
+                    className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                  >
+                    {t("fonda.usaPos")}
+                  </button>
+                  {punto && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPunto(null);
+                        setVia(null);
+                      }}
+                      className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                    >
+                      {t("fonda.togliPunto")}
+                    </button>
+                  )}
+                  <span className="text-xs text-stone-400">
+                    {punto
+                      ? t("fonda.puntoScelto", {
+                          lat: punto[0].toFixed(5),
+                          lng: punto[1].toFixed(5),
+                        })
+                      : t("fonda.nessunPunto")}
+                  </span>
+                </div>
+
+                {messaggio && (
+                  <p className="mt-3 text-sm text-red-300">{messaggio}</p>
                 )}
-              </p>
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMessaggio("");
+                      setPasso(2);
+                    }}
+                    disabled={!punto}
+                    className="rounded-full bg-amber-300 px-6 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t("fonda.avanti")}
+                  </button>
+                </div>
+              </div>
             )}
 
-            {/* Perche' */}
-            <label
-              htmlFor="motivo"
-              className="mt-6 block font-scritta text-2xl text-amber-100"
-            >
-              {t("fonda.percheTitolo")}
-            </label>
-            <textarea
-              id="motivo"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              rows={5}
-              placeholder={t("fonda.perchePlaceholder")}
-              className="mt-2 w-full resize-y rounded-lg border border-stone-600 bg-stone-950/60 px-4 py-3 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
-            />
-            <p
-              className={`mt-1 text-xs ${
-                paroleOk ? "text-emerald-300" : "text-stone-400"
-              }`}
-            >
-              {t("fonda.contaParole", { n: parole, min: PAROLE_MINIME })}
-            </p>
+            {/* Passo 2 · La via (ricavata dal punto) */}
+            {passo === 2 && (
+              <div>
+                <h2 className="font-scritta text-2xl text-amber-100">
+                  {t("fonda.passoVia")}
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-stone-400">
+                  {t("fonda.viaConferma")}
+                </p>
+                <p className="mt-4 text-sm text-stone-300">
+                  <span className="text-stone-400">
+                    {t("fonda.viaEtichetta")}{" "}
+                  </span>
+                  {cercoVia ? (
+                    <span className="text-stone-400">{t("fonda.cercoVia")}</span>
+                  ) : via ? (
+                    <span className="font-semibold text-amber-100">{via}</span>
+                  ) : (
+                    <span className="text-stone-400">
+                      {t("fonda.viaNonTrovata")}
+                    </span>
+                  )}
+                </p>
 
-            {messaggio && (
-              <p
-                className={`mt-3 text-sm ${
-                  stato === "errore" ? "text-red-300" : "text-stone-300"
-                }`}
-              >
-                {messaggio}
-              </p>
+                <div className="mt-5 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setPasso(1)}
+                    className="rounded-full border border-amber-100/30 px-5 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                  >
+                    {t("fonda.indietro")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPasso(3)}
+                    className="rounded-full bg-amber-300 px-6 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105"
+                  >
+                    {t("fonda.avanti")}
+                  </button>
+                </div>
+              </div>
             )}
 
-            <button
-              type="submit"
-              disabled={stato === "invio" || !punto || !paroleOk}
-              className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {stato === "invio" ? t("fonda.invioInCorso") : t("fonda.condividi")}
-            </button>
+            {/* Passo 3 · Perche' */}
+            {passo === 3 && (
+              <div>
+                <label
+                  htmlFor="motivo"
+                  className="block font-scritta text-2xl text-amber-100"
+                >
+                  {t("fonda.percheTitolo")}
+                </label>
+                <textarea
+                  id="motivo"
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  rows={5}
+                  placeholder={t("fonda.perchePlaceholder")}
+                  className="mt-2 w-full resize-y rounded-lg border border-stone-600 bg-stone-950/60 px-4 py-3 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300"
+                />
+                <p
+                  className={`mt-1 text-xs ${
+                    paroleOk ? "text-emerald-300" : "text-stone-400"
+                  }`}
+                >
+                  {t("fonda.contaParole", { n: parole, min: PAROLE_MINIME })}
+                </p>
 
-            <p className="mt-3 text-center text-xs leading-relaxed text-stone-400">
-              {t("fonda.notaFirmata")}
-            </p>
+                {messaggio && (
+                  <p className="mt-3 text-sm text-red-300">{messaggio}</p>
+                )}
+
+                <div className="mt-5 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setPasso(2)}
+                    className="rounded-full border border-amber-100/30 px-5 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                  >
+                    {t("fonda.indietro")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMessaggio("");
+                      setPasso(4);
+                    }}
+                    disabled={!paroleOk}
+                    className="rounded-full bg-amber-300 px-6 py-2.5 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t("fonda.avanti")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Passo 4 · Riepilogo */}
+            {passo === 4 && (
+              <div>
+                <h2 className="font-scritta text-2xl text-amber-100">
+                  {t("fonda.riepilogo")}
+                </h2>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div>
+                    <dt className="text-stone-400">
+                      {t("fonda.riepilogoDove")}
+                    </dt>
+                    <dd className="mt-0.5 text-amber-100">
+                      {punto
+                        ? t("fonda.puntoScelto", {
+                            lat: punto[0].toFixed(5),
+                            lng: punto[1].toFixed(5),
+                          })
+                        : t("fonda.nessunPunto")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-stone-400">
+                      {t("fonda.riepilogoVia")}
+                    </dt>
+                    <dd className="mt-0.5 text-amber-100">
+                      {via ?? t("fonda.viaNonTrovata")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-stone-400">
+                      {t("fonda.riepilogoPerche")}
+                    </dt>
+                    <dd className="mt-0.5 whitespace-pre-wrap text-stone-200">
+                      {motivo}
+                    </dd>
+                  </div>
+                </dl>
+
+                {messaggio && (
+                  <p
+                    className={`mt-3 text-sm ${
+                      stato === "errore" ? "text-red-300" : "text-stone-300"
+                    }`}
+                  >
+                    {messaggio}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={stato === "invio" || !punto || !paroleOk}
+                  className="mt-5 w-full rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-stone-900 shadow-xl transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {stato === "invio"
+                    ? t("fonda.invioInCorso")
+                    : t("fonda.condividi")}
+                </button>
+
+                <p className="mt-3 text-center text-xs leading-relaxed text-stone-400">
+                  {t("fonda.notaFirmata")}
+                </p>
+
+                <div className="mt-4 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setPasso(3)}
+                    className="rounded-full border border-amber-100/30 px-5 py-2.5 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/50"
+                  >
+                    {t("fonda.indietro")}
+                  </button>
+                </div>
+              </div>
+            )}
           </form>
         )}
 

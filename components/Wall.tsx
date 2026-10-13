@@ -226,19 +226,20 @@ export default function Wall({
           {t("muro.vuoto")}
         </p>
       ) : (
-        /* 2 colonne su telefono, 3 da 'sm' in su: a 3 colonne su un iPhone
-           (circa 119px l'una) le schede canzone e le date risultano strette e
-           il testo si spezza a meta' parola. Riempimento per RIGHE: il postito
-           piu' nuovo (primo della lista) resta in ALTO A SINISTRA. */
-        <section className="mx-auto mt-8 grid max-w-3xl grid-cols-2 items-start gap-3 px-4 pb-36 sm:grid-cols-3">
+        /* Prototipo layout · Idea 3 "Murata in mattoni": colonne fluide a
+           MASONRY (CSS columns), altezze variabili. Mostra tutto il muro
+           insieme, come un colpo d'occhio: 2 colonne su telefono, 3 da 'sm'.
+           Ogni mattone evita di spezzarsi a meta' tra due colonne. */
+        <section className="mx-auto mt-8 max-w-3xl columns-2 gap-3 px-4 pb-36 [column-fill:_balance] sm:columns-3">
           {lista.map((p, i) => (
-            <PostItView
-              key={p.id}
-              postit={p}
-              animate={i === 0}
-              preferito={preferitiIds.has(p.id)}
-              onPreferito={() => gestisciPreferito(p)}
-            />
+            <div key={p.id} className="mb-3 break-inside-avoid">
+              <PostItView
+                postit={p}
+                animate={i === 0}
+                preferito={preferitiIds.has(p.id)}
+                onPreferito={() => gestisciPreferito(p)}
+              />
+            </div>
           ))}
         </section>
       )}

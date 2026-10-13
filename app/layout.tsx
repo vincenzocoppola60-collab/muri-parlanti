@@ -34,6 +34,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import MenuLaterale from "@/components/MenuLaterale";
 import SelettoreLingua from "@/components/SelettoreLingua";
 import TastoHome from "@/components/TastoHome";
+import CampanellaNotifiche from "@/components/CampanellaNotifiche";
 import RegistraServiceWorker from "@/components/RegistraServiceWorker";
 import IntroApp from "@/components/IntroApp";
 import { TEMI, TEMA_KEY, TEMA_PREDEFINITO } from "@/lib/temi";
@@ -271,6 +272,7 @@ export default function RootLayout({
           <AuthProvider>
             <MenuLaterale />
             <div className="barra-alta">
+              <CampanellaNotifiche />
               <TastoHome />
               <SelettoreLingua />
             </div>

@@ -98,27 +98,53 @@ export default function MieiMuri() {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-100/20 bg-stone-900/60 px-6 py-4 shadow-xl backdrop-blur-sm">
-      <h2 className="font-scritta text-3xl text-amber-100">
-        {t("muri.titolo")}
-      </h2>
-      <div className="flex flex-wrap gap-2">
-        {visibili.map((m) => (
-          <Link
-            key={m.slug}
-            href={`/muro/${m.slug}`}
-            className="rounded-full border border-amber-100/30 bg-stone-950/50 px-4 py-1.5 text-sm font-medium text-amber-100 transition hover:border-amber-100/60 hover:bg-stone-950/80"
-          >
-            {m.nome}
-          </Link>
-        ))}
+    /* Prototipo layout · Idea 1 "Lista a schede": una riga per muro, con
+       miniatura, nome e da dove arriva (questo telefono / il tuo account).
+       Semplice e scalabile, come un elenco di biglietti. */
+    <div className="rounded-lg border border-amber-100/20 bg-stone-900/60 p-5 shadow-xl backdrop-blur-sm">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-scritta text-3xl text-amber-100">
+          {t("muri.titolo")}
+        </h2>
         <Link
           href="/scansiona"
-          className="rounded-full bg-amber-300 px-4 py-1.5 text-sm font-bold text-stone-900 transition hover:scale-105 active:scale-95"
+          className="flex-none rounded-full bg-amber-300 px-4 py-1.5 text-sm font-bold text-stone-900 transition hover:scale-105 active:scale-95"
         >
           {t("muri.aggiungi")}
         </Link>
       </div>
+
+      <ul className="mt-4 flex flex-col gap-2">
+        {visibili.map((m) => (
+          <li key={m.slug}>
+            <Link
+              href={`/muro/${m.slug}`}
+              className="group flex items-center gap-3 rounded-xl border border-amber-100/15 bg-stone-950/40 px-3 py-3 transition hover:border-amber-100/50 hover:bg-stone-950/70"
+            >
+              <span
+                aria-hidden
+                className="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-amber-100/20 bg-amber-300/15 text-xl"
+              >
+                🧱
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-scritta text-xl text-amber-100">
+                  {m.nome}
+                </span>
+                <span className="mt-0.5 block text-xs text-stone-400">
+                  {m.locale ? t("muri.suQuestoTelefono") : t("muri.dalTuAccount")}
+                </span>
+              </span>
+              <span
+                aria-hidden
+                className="flex-none text-lg text-amber-100/50 transition group-hover:text-amber-100"
+              >
+                ›
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

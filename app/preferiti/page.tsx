@@ -107,11 +107,15 @@ export default function PaginaPreferiti() {
             {t("preferitiPag.vuoto")}
           </p>
         ) : (
-          <ul className="flex flex-col gap-4">
+          /* Prototipo layout · Idea 1 "Griglia di biglietti": tutti i salvati
+             a griglia (2 colonne su tablet, 3 su schermi grandi). Ordinato e
+             scalabile: il colore del biglietto fa da categoria anche senza
+             filtri. */
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {lista.map((p) => (
               <li
                 key={p.id}
-                className="rounded-xl border border-amber-100/20 bg-stone-900/70 p-4 shadow-lg backdrop-blur-sm"
+                className="flex h-full flex-col rounded-xl border border-amber-100/20 bg-stone-900/70 p-4 shadow-lg backdrop-blur-sm"
               >
                 <p className="whitespace-pre-wrap break-words text-lg leading-snug text-amber-50">
                   {p.testo}
@@ -136,7 +140,7 @@ export default function PaginaPreferiti() {
                 <button
                   type="button"
                   onClick={() => rimuovi(p)}
-                  className="mt-3 text-xs font-semibold text-stone-500 underline underline-offset-2 transition hover:text-red-300"
+                  className="mt-auto self-start pt-3 text-xs font-semibold text-stone-500 underline underline-offset-2 transition hover:text-red-300"
                 >
                   {t("preferitiPag.rimuoviSalvati")}
                 </button>

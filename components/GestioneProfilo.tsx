@@ -31,6 +31,8 @@ const campo =
   "w-full rounded-full border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
 const area =
   "w-full resize-none rounded-2xl border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
+const pillola =
+  "shrink-0 rounded-full border border-amber-100/25 bg-stone-900/60 px-3 py-1.5 text-xs font-semibold text-amber-100/90 backdrop-blur-sm transition hover:border-amber-100/60 hover:text-amber-100";
 
 /**
  * Pannello di GESTIONE del profilo, mostrato SOLO al proprietario dell'account
@@ -40,11 +42,20 @@ const area =
  *   - cambiare la foto profilo (ritaglio circolare);
  *   - cambiare username (nome di accesso);
  *   - modificare il nome mostrato sui post-it e la biografia;
- *   - decidere se mostrare i propri post-it nel profilo pubblico;
  *   - rivedere i post-it che ha lasciato e quelli che ha salvato.
  *
+ * Struttura ripulita:
+ *   - le pillole in alto fungono da indice (ancore alla sezione giusta),
+ *     invece di sei schede identiche una sotto l'altra senza gerarchia;
+ *   - "Accesso" e "Il tuo profilo" erano due schede con due pulsanti di
+ *     salvataggio diversi: ora sono una sola scheda "Identita'" con UN solo
+ *     pulsante che salva insieme username, nome e biografia;
+ *   - la privacy dei post-it NON si tocca qui (vive in /impostazioni):
+ *     qui resta solo la riga di stato, in sola lettura, con il collegamento;
+ *   - rimossa la scorciatoia "Vedi il mio profilo pubblico": portava alla
+ *     pagina in cui l'utente e' gia'.
+ *
  * NON contiene il sistema di livelli/punti: e' stato eliminato.
- * Tutte le voci sono state spostate QUI da /impostazioni.
  */
 export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
   const { t } = useLingua();
@@ -61,12 +72,11 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
 
   const [nickname, setNickname] = useState("");
   const [bio, setBio] = useState("");
-  const [mostraPostit, setMostraPostit] = useState(true);
-
   const [username, setUsername] = useState("");
-  const [salvandoUsername, setSalvandoUsername] = useState(false);
-  const [msgUsername, setMsgUsername] = useState<string | null>(null);
-  const [errUsername, setErrUsername] = useState<string | null>(null);
+
+  // Valore vero del campo profili.mostra_postit: non ha piu' un interruttore
+  // in questa pagina, ma serve per non azzerarlo quando si salva il profilo.
+  const [postitPubblici, setPostitPubblici] = useState(true);
 
   const [salvando, setSalvando] = useState(false);
   const [messaggio, setMessaggio] = useState<string | null>(null);
@@ -101,7 +111,7 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
         setProfilo(esito.profilo);
         setNickname(esito.profilo?.nickname ?? nicknameAccount);
         setBio(esito.profilo?.bio ?? "");
-        setMostraPostit(esito.profilo?.mostra_postit ?? true);
+        setPostitPubblici(esito.profilo?.mostra_postit ?? true);
         setUsername(esito.profilo?.username ?? "");
         setCaricamentoProfilo(false);
       })
@@ -130,40 +140,57 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
     };
   }, [proprietario, utenteId, nicknameAccount]);
 
+  /**
+   * UN solo salvataggio per l'intera scheda "Identita'".
+   * L'username cambia solo se e' stato davvero modificato, cosi' il pulsante
+   * non chiama l'accesso per niente.
+   */
   async function salva() {
     if (salvando) return;
     setErrore(null);
     setMessaggio(null);
     setSalvando(true);
+
+    const nomeAccesso = username.trim().toLowerCase();
+    const usernameCambiato = nomeAccesso !== (profilo?.username ?? "");
+
+    if (usernameCambiato) {
+      if (!nomeAccesso) {
+        setSalvando(false);
+        setErrore(t("impost.usernameManca"));
+        return;
+      }
+      const esitoUsername = await impostaUsername(nomeAccesso);
+      if (!esitoUsername.ok) {
+        setSalvando(false);
+        setErrore(esitoUsername.errore);
+        return;
+      }
+      setUsername(nomeAccesso);
+    }
+
     const esito = await salvaMioProfilo({
       nickname,
       bio,
-      mostra_postit: mostraPostit,
+      mostra_postit: postitPubblici,
     });
     setSalvando(false);
+
     if (esito.ok) {
-      setProfilo(esito.profilo);
-      setMessaggio(t("impost.profiloSalvato"));
+      setProfilo({
+        ...esito.profilo,
+        username: usernameCambiato ? nomeAccesso : esito.profilo.username,
+      });
+      setMessaggio(
+        usernameCambiato
+          ? t("impost.profiloSalvato") + " " + t("impost.usernameSalvato")
+          : t("impost.profiloSalvato")
+      );
       // Aggiorna l'intestazione pubblica (nickname/bio) renderizzata dal server.
       router.refresh();
     } else {
       setErrore(esito.errore);
       if (esito.errore === MESSAGGIO_MIGRAZIONE) setMancaMigrazione(true);
-    }
-  }
-
-  async function salvaUsername() {
-    if (salvandoUsername) return;
-    setErrUsername(null);
-    setMsgUsername(null);
-    setSalvandoUsername(true);
-    const esito = await impostaUsername(username);
-    setSalvandoUsername(false);
-    if (esito.ok) {
-      setUsername(username.trim().toLowerCase());
-      setMsgUsername(t("impost.usernameSalvato"));
-    } else {
-      setErrUsername(esito.errore);
     }
   }
 
@@ -189,7 +216,7 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
     const esito = await salvaMioProfilo({
       nickname,
       bio,
-      mostra_postit: mostraPostit,
+      mostra_postit: postitPubblici,
       foto_url: foto.url,
     });
     setCaricandoAvatar(false);
@@ -216,7 +243,7 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
     const esito = await salvaMioProfilo({
       nickname,
       bio,
-      mostra_postit: mostraPostit,
+      mostra_postit: postitPubblici,
       foto_url: null,
     });
     setCaricandoAvatar(false);
@@ -255,6 +282,22 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
           {t("profilo.gestione")}
         </h2>
         <p className="mt-1 text-xs text-stone-400">{t("profilo.gestioneNota")}</p>
+
+        {/* Indice: quattro pillole che portano alla sezione giusta. */}
+        <nav className="mt-4 flex flex-wrap gap-2">
+          <a href="#foto" className={pillola}>
+            {t("impost.fotoProfilo")}
+          </a>
+          <a href="#identita" className={pillola}>
+            {t("impost.profilo")}
+          </a>
+          <a href="#miei" className={pillola}>
+            {t("impost.mieiPostit")}
+          </a>
+          <a href="#salvati" className={pillola}>
+            {t("profilo.preferitiTitolo")}
+          </a>
+        </nav>
       </div>
 
       {mancaMigrazione && (
@@ -264,7 +307,10 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
       )}
 
       {/* Foto profilo */}
-      <div className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
+      <div
+        id="foto"
+        className="mt-4 scroll-mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
+      >
         <h2 className="font-scritta text-xl text-amber-100">
           {t("impost.fotoProfilo")}
         </h2>
@@ -316,12 +362,16 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
         <p className="mt-3 text-xs text-stone-500">{t("impost.fotoNota")}</p>
       </div>
 
-      {/* Accesso: username */}
-      <div className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
+      {/* Identita': accesso (username) + dati mostrati sui post-it, UNA sola
+          scheda e UN solo pulsante di salvataggio. */}
+      <div
+        id="identita"
+        className="mt-4 scroll-mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
+      >
         <h2 className="font-scritta text-xl text-amber-100">
-          {t("impost.accesso")}
+          {t("impost.profilo")}
         </h2>
-        <p className="mt-2 text-xs text-stone-400">{t("impost.accessoNota")}</p>
+
         <label
           htmlFor="uname"
           className="mt-4 block text-xs font-semibold uppercase tracking-wide text-stone-400"
@@ -334,8 +384,8 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);
-            setMsgUsername(null);
-            setErrUsername(null);
+            setMessaggio(null);
+            setErrore(null);
           }}
           maxLength={20}
           placeholder={t("impost.usernamePh")}
@@ -343,36 +393,12 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
           spellCheck={false}
           className={campo + " mt-1"}
         />
+        <p className="mt-1 text-xs text-stone-500">{t("impost.accessoNota")}</p>
         {!username && (
           <p className="mt-1 text-xs text-amber-300/80">
             {t("impost.usernameManca")}
           </p>
         )}
-        <button
-          type="button"
-          onClick={salvaUsername}
-          disabled={salvandoUsername || !username.trim()}
-          className="mt-3 w-full rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {salvandoUsername ? t("comune.salvo") : t("impost.salvaUsername")}
-        </button>
-        {(msgUsername || errUsername) && (
-          <p
-            className={
-              "mt-3 text-center text-sm font-semibold " +
-              (errUsername ? "text-red-300" : "text-amber-300")
-            }
-          >
-            {errUsername ?? msgUsername}
-          </p>
-        )}
-      </div>
-
-      {/* Dati del profilo */}
-      <div className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
-        <h2 className="font-scritta text-xl text-amber-100">
-          {t("impost.profilo")}
-        </h2>
 
         <label
           htmlFor="nick"
@@ -411,21 +437,6 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
           {bio.length}/{MAX_BIO}
         </p>
 
-        <label className="mt-4 flex cursor-pointer items-center justify-between gap-4 rounded-lg bg-stone-950/40 px-4 py-3">
-          <span className="text-sm text-stone-200">
-            {t("impost.mostraPostit")}
-          </span>
-          <input
-            type="checkbox"
-            checked={mostraPostit}
-            onChange={(e) => setMostraPostit(e.target.checked)}
-            className="h-5 w-5 shrink-0 accent-amber-300"
-          />
-        </label>
-        <p className="mt-2 text-xs text-stone-500">
-          {t("impost.mostraPostitNota")}
-        </p>
-
         <button
           type="button"
           onClick={salva}
@@ -445,10 +456,31 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
             {errore ?? messaggio}
           </p>
         )}
+
+        {/* Privacy post-it: sola lettura, si cambia in Impostazioni. */}
+        <div className="mt-5 rounded-lg bg-stone-950/40 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+            {t("impost.mostraPostit")}
+          </p>
+          <p className="mt-1 text-sm text-stone-200">
+            {postitPubblici
+              ? t("profilo.privacyVisibile")
+              : t("profilo.privacyNascosti")}
+          </p>
+          <Link
+            href="/impostazioni"
+            className="mt-1 inline-block text-xs font-semibold text-amber-300 transition hover:text-amber-100"
+          >
+            {t("profilo.privacyGestisci")}
+          </Link>
+        </div>
       </div>
 
       {/* I miei post-it (pensieri lasciati) */}
-      <div className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
+      <div
+        id="miei"
+        className="mt-4 scroll-mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
+      >
         <h2 className="font-scritta text-xl text-amber-100">
           {t("impost.mieiPostit")}
         </h2>
@@ -481,7 +513,10 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
       </div>
 
       {/* Post-it salvati (preferiti) */}
-      <div className="mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">
+      <div
+        id="salvati"
+        className="mt-4 scroll-mt-4 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm"
+      >
         <h2 className="font-scritta text-xl text-amber-100">
           {t("profilo.preferitiTitolo")}
         </h2>
@@ -522,14 +557,6 @@ export default function GestioneProfilo({ utenteId }: { utenteId: string }) {
           </ul>
         )}
       </div>
-
-      {/* Accesso rapido al profilo pubblico */}
-      <Link
-        href={`/profilo/${utenteId}`}
-        className="mt-4 block rounded-full border border-amber-100/30 px-4 py-2 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
-      >
-        {t("impost.vediProfilo")}
-      </Link>
 
       {fileDaRitagliare && (
         <RitagliaAvatar
