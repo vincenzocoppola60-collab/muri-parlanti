@@ -50,7 +50,7 @@ const IT: Parole = {
   "nav.apri": "Apri il menu",
   "nav.home": "Home",
   "nav.tuoProfilo": "Il tuo profilo",
-  "nav.mieiMuri": "I tuoi muri",
+  "nav.mieiMuri": "Muri visitati",
   "nav.salvati": "Post-it salvati",
   "nav.scansiona": "Scansiona QR",
   "nav.impostazioni": "Impostazioni",
@@ -248,7 +248,7 @@ const IT: Parole = {
   "accesso.accountCreato": "Account creato. Bentornato!",
   "accesso.controllaEmail": "Controlla la tua email di recupero.",
 
-  "muri.titolo": "I tuoi muri",
+  "muri.titolo": "Muri visitati",
   "muri.vuotoOspite":
     "Scansiona il QR del primo muro che incontri: lo salverai qui e potrai tornare a leggerlo quando vuoi.",
   "muri.vuotoAccount":
@@ -257,6 +257,9 @@ const IT: Parole = {
   "muri.aggiungi": "＋ Aggiungi muro",
   "muri.neiTuoi": "✓ Nei tuoi muri",
   "muri.salva": "☆ Salva nei tuoi muri",
+  "muri.mappaVuota": "I muri che visiti compariranno qui sulla mappa.",
+  "muri.paginaPrecedente": "Pagina precedente",
+  "muri.paginaSuccessiva": "Pagina successiva",
 
   "comune.tornaHome": "Torna alla home",
   "comune.tornaHomeFreccia": "← Torna alla home",
@@ -368,7 +371,7 @@ const IT: Parole = {
   "scansiona.titolo": "Scansiona un muro",
 
   "mieiMuriPag.testo":
-    "I muri che hai incontrato: toccane uno per rileggere i pensieri.",
+    "I muri che hai visitato: un tap lo mostra sulla mappa, due tap lo aprono.",
 
   "preferitiPag.titolo": "Post-it salvati",
   "preferitiPag.testo":
@@ -732,7 +735,7 @@ const EN: Parole = {
   "nav.apri": "Open the menu",
   "nav.home": "Home",
   "nav.tuoProfilo": "Your profile",
-  "nav.mieiMuri": "Your walls",
+  "nav.mieiMuri": "Visited walls",
   "nav.salvati": "Saved notes",
   "nav.scansiona": "Scan QR",
   "nav.impostazioni": "Settings",
@@ -927,7 +930,7 @@ const EN: Parole = {
   "accesso.accountCreato": "Account created. Welcome back!",
   "accesso.controllaEmail": "Check your recovery email.",
 
-  "muri.titolo": "Your walls",
+  "muri.titolo": "Visited walls",
   "muri.vuotoOspite":
     "Scan the QR code of the first wall you come across: you'll save it here and can come back to read it whenever you like.",
   "muri.vuotoAccount":
@@ -936,6 +939,9 @@ const EN: Parole = {
   "muri.aggiungi": "＋ Add wall",
   "muri.neiTuoi": "✓ In your walls",
   "muri.salva": "☆ Save to your walls",
+  "muri.mappaVuota": "The walls you visit will appear here on the map.",
+  "muri.paginaPrecedente": "Previous page",
+  "muri.paginaSuccessiva": "Next page",
 
   "comune.tornaHome": "Back to home",
   "comune.tornaHomeFreccia": "← Back to home",
@@ -1047,7 +1053,7 @@ const EN: Parole = {
   "scansiona.titolo": "Scan a wall",
 
   "mieiMuriPag.testo":
-    "The walls you've come across: tap one to read its thoughts again.",
+    "The walls you've visited: one tap shows it on the map, two taps open it.",
 
   "preferitiPag.titolo": "Saved notes",
   "preferitiPag.testo":
@@ -1331,7 +1337,7 @@ const ES: Parole = {
   "nav.apri": "Abrir el menú",
   "nav.home": "Inicio",
   "nav.tuoProfilo": "Tu perfil",
-  "nav.mieiMuri": "Tus muros",
+  "nav.mieiMuri": "Muros visitados",
   "nav.salvati": "Notas guardadas",
   "nav.scansiona": "Escanear QR",
   "nav.impostazioni": "Ajustes",
@@ -1529,7 +1535,7 @@ const ES: Parole = {
   "accesso.accountCreato": "Cuenta creada. ¡Bienvenido de nuevo!",
   "accesso.controllaEmail": "Revisa tu email de recuperación.",
 
-  "muri.titolo": "Tus muros",
+  "muri.titolo": "Muros visitados",
   "muri.vuotoOspite":
     "Escanea el QR del primer muro que encuentres: lo guardarás aquí y podrás volver a leerlo cuando quieras.",
   "muri.vuotoAccount":
@@ -1538,6 +1544,9 @@ const ES: Parole = {
   "muri.aggiungi": "＋ Añadir muro",
   "muri.neiTuoi": "✓ En tus muros",
   "muri.salva": "☆ Guardar en tus muros",
+  "muri.mappaVuota": "Los muros que visites aparecerán aquí en el mapa.",
+  "muri.paginaPrecedente": "Página anterior",
+  "muri.paginaSuccessiva": "Página siguiente",
 
   "comune.tornaHome": "Volver al inicio",
   "comune.tornaHomeFreccia": "← Volver al inicio",
@@ -1649,7 +1658,7 @@ const ES: Parole = {
   "scansiona.titolo": "Escanea un muro",
 
   "mieiMuriPag.testo":
-    "Los muros que has encontrado: toca uno para releer sus pensamientos.",
+    "Los muros que has visitado: un toque lo muestra en el mapa, dos toques lo abren.",
 
   "preferitiPag.titolo": "Post-it guardados",
   "preferitiPag.testo":
@@ -1932,7 +1941,7 @@ const FR: Parole = {
   "nav.apri": "Ouvrir le menu",
   "nav.home": "Accueil",
   "nav.tuoProfilo": "Votre profil",
-  "nav.mieiMuri": "Vos murs",
+  "nav.mieiMuri": "Murs visités",
   "nav.salvati": "Notes enregistrées",
   "nav.scansiona": "Scanner un QR",
   "nav.impostazioni": "Réglages",
@@ -2130,7 +2139,7 @@ const FR: Parole = {
   "accesso.accountCreato": "Compte créé. Bon retour !",
   "accesso.controllaEmail": "Vérifiez votre email de récupération.",
 
-  "muri.titolo": "Vos murs",
+  "muri.titolo": "Murs visités",
   "muri.vuotoOspite":
     "Scannez le QR du premier mur que vous croisez : vous le sauvegarderez ici et pourrez le relire quand vous voulez.",
   "muri.vuotoAccount":
@@ -2139,6 +2148,9 @@ const FR: Parole = {
   "muri.aggiungi": "＋ Ajouter un mur",
   "muri.neiTuoi": "✓ Dans vos murs",
   "muri.salva": "☆ Enregistrer dans vos murs",
+  "muri.mappaVuota": "Les murs que vous visitez apparaîtront ici sur la carte.",
+  "muri.paginaPrecedente": "Page précédente",
+  "muri.paginaSuccessiva": "Page suivante",
 
   "comune.tornaHome": "Retour à l'accueil",
   "comune.tornaHomeFreccia": "← Retour à l'accueil",
@@ -2250,7 +2262,7 @@ const FR: Parole = {
   "scansiona.titolo": "Scanner un mur",
 
   "mieiMuriPag.testo":
-    "Les murs que vous avez croisés : touchez-en un pour relire ses pensées.",
+    "Les murs que vous avez visités : un appui l'affiche sur la carte, deux appuis l'ouvrent.",
 
   "preferitiPag.titolo": "Post-it enregistrés",
   "preferitiPag.testo":
@@ -2533,7 +2545,7 @@ const DE: Parole = {
   "nav.apri": "Menü öffnen",
   "nav.home": "Start",
   "nav.tuoProfilo": "Dein Profil",
-  "nav.mieiMuri": "Deine Wände",
+  "nav.mieiMuri": "Besuchte Wände",
   "nav.salvati": "Gespeicherte Notizen",
   "nav.scansiona": "QR scannen",
   "nav.impostazioni": "Einstellungen",
@@ -2731,7 +2743,7 @@ const DE: Parole = {
   "accesso.accountCreato": "Konto erstellt. Willkommen zurück!",
   "accesso.controllaEmail": "Prüfe deine Wiederherstellungs-E-Mail.",
 
-  "muri.titolo": "Deine Wände",
+  "muri.titolo": "Besuchte Wände",
   "muri.vuotoOspite":
     "Scanne den QR-Code der ersten Wand, die du findest: Du speicherst sie hier und kannst sie jederzeit wieder lesen.",
   "muri.vuotoAccount":
@@ -2740,6 +2752,9 @@ const DE: Parole = {
   "muri.aggiungi": "＋ Wand hinzufügen",
   "muri.neiTuoi": "✓ In deinen Wänden",
   "muri.salva": "☆ In deinen Wänden speichern",
+  "muri.mappaVuota": "Die Wände, die du besuchst, erscheinen hier auf der Karte.",
+  "muri.paginaPrecedente": "Vorherige Seite",
+  "muri.paginaSuccessiva": "Nächste Seite",
 
   "comune.tornaHome": "Zurück zur Startseite",
   "comune.tornaHomeFreccia": "← Zurück zur Startseite",
@@ -2851,7 +2866,7 @@ const DE: Parole = {
   "scansiona.titolo": "Eine Wand scannen",
 
   "mieiMuriPag.testo":
-    "Die Wände, die du gefunden hast: Tippe auf eine, um ihre Gedanken erneut zu lesen.",
+    "Die Wände, die du besucht hast: Ein Tipp zeigt sie auf der Karte, zwei Tipps öffnen sie.",
 
   "preferitiPag.titolo": "Gespeicherte Post-its",
   "preferitiPag.testo":

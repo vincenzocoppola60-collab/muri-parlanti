@@ -5,8 +5,8 @@ import MieiMuri from "@/components/MieiMuri";
 import Testo from "@/components/Testo";
 
 export const metadata: Metadata = {
-  title: "I tuoi muri",
-  description: "I muri che hai incontrato e salvato.",
+  title: "Muri visitati",
+  description: "I muri che hai visitato, con la mappa dei luoghi.",
 };
 
 export default function PaginaMieiMuri() {
