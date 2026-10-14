@@ -23,7 +23,7 @@ export default function ScansionaPage() {
       <footer className="pb-10 text-center">
         <Link
           href="/"
-          className="text-sm text-amber-100/80 underline-offset-4 hover:underline"
+          className="scritta-sistema text-sm underline-offset-4 hover:underline"
         >
           <Testo chiave="comune.tornaHomeFreccia" />
         </Link>

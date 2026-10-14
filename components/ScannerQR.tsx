@@ -264,7 +264,7 @@ export default function ScannerQR() {
           className="h-full w-full object-cover"
         />
         {stato === "avvio" && (
-          <p className="absolute inset-x-0 bottom-3 text-center text-xs text-stone-300">
+          <p className="scritta-sistema-cornice absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 text-xs">
             {t("scan.avvio")}
           </p>
         )}
@@ -277,7 +277,7 @@ export default function ScannerQR() {
 
       {stato === "attivo" && (
         <>
-          <p className="mt-4 text-center text-sm text-stone-300">
+          <p className="scritta-sistema mt-4 text-center text-sm">
             {t("scan.inquadra")}
           </p>
           <button
@@ -326,7 +326,7 @@ export default function ScannerQR() {
               onChange={decodificaFoto}
             />
           </label>
-          <label className="flex cursor-pointer items-center justify-center gap-1 text-center text-sm text-stone-300 underline underline-offset-4 transition hover:text-amber-100">
+          <label className="scritta-sistema flex cursor-pointer items-center justify-center gap-1 text-center text-sm underline underline-offset-4">
             {t("scan.scegliFoto")}
             <input
               type="file"

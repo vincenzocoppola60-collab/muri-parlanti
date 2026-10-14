@@ -622,7 +622,7 @@ function Schermata({ titolo, testo }: { titolo: string; testo: string }) {
       />
       <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
       <h1 className="font-scritta text-4xl text-amber-100">{titolo}</h1>
-      <p className="max-w-md text-stone-300">{testo}</p>
+      <p className="scritta-sistema max-w-md">{testo}</p>
       <Link
         href="/"
         className="rounded-full bg-amber-300 px-6 py-3 font-bold text-stone-900 shadow-xl transition hover:scale-105"

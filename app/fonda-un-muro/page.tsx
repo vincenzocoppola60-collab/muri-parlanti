@@ -172,7 +172,7 @@ export default function FondaUnMuro() {
         <h1 className="font-scritta text-4xl text-amber-100">
           {t("fonda.titolo")}
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-stone-300">
+        <p className="scritta-sistema mt-3 text-sm leading-relaxed">
           {t("fonda.spiegazione")}
         </p>
 
@@ -499,7 +499,7 @@ export default function FondaUnMuro() {
 
         <Link
           href="/"
-          className="mt-8 inline-block text-sm text-stone-400 transition hover:text-amber-100"
+          className="scritta-sistema mt-8 inline-block text-sm hover:underline"
         >
           {t("comune.tornaHomeFreccia")}
         </Link>

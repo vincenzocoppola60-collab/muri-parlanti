@@ -409,7 +409,9 @@ export default function VistaProfilo({
             </span>
           )}
         </button>
-        <p className="mt-2 text-xs text-amber-200/70">{t("profilo.cliccaFoto")}</p>
+        <p className="scritta-sistema-cornice mt-3 px-3 py-1 text-xs">
+          {t("profilo.cliccaFoto")}
+        </p>
         <input
           ref={inputFoto}
           type="file"

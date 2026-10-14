@@ -89,19 +89,19 @@ export default function Apri() {
       </h1>
 
       {stato === "cerco-posizione" && (
-        <p className="mt-4 max-w-md text-stone-300">
+        <p className="scritta-sistema mt-4 max-w-md">
           {t("apri.cercoPos")}
         </p>
       )}
 
       {stato === "cerco-zona" && (
-        <p className="mt-4 max-w-md text-stone-300">
+        <p className="scritta-sistema mt-4 max-w-md">
           {t("apri.cercoMuro")}
         </p>
       )}
 
       {stato === "trovato" && trovato && (
-        <p className="mt-4 max-w-md text-stone-300">
+        <p className="scritta-sistema mt-4 max-w-md">
           {t("apri.trovato", { slug: trovato })}
         </p>
       )}
@@ -113,7 +113,7 @@ export default function Apri() {
       )}
 
       {(stato === "fuori-zona" || stato === "posizione-negata") && (
-        <p className="mt-4 max-w-md text-stone-300">{messaggio}</p>
+        <p className="scritta-sistema mt-4 max-w-md">{messaggio}</p>
       )}
 
       <Link

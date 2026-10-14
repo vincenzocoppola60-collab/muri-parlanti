@@ -93,7 +93,7 @@ export default function PaginaReimposta() {
       <div className="relative w-full max-w-md">
         <Link
           href="/"
-          className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
+          className="scritta-sistema text-[11px] uppercase tracking-[0.25em] hover:underline"
         >
           {t("comune.tornaHomeFreccia")}
         </Link>

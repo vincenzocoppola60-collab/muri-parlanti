@@ -41,7 +41,7 @@ export default function ProfiloCollettivo({
         {collettivo.nome}
       </h1>
       {collettivo.descrizione && (
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-stone-300">
+        <p className="scritta-sistema mx-auto mt-3 max-w-xl text-sm leading-relaxed">
           {collettivo.descrizione}
         </p>
       )}

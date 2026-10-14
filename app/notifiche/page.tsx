@@ -90,11 +90,11 @@ export default function PaginaNotifiche() {
         </div>
 
         {caricamento || carico ? (
-          <p className="mt-8 text-sm text-stone-400">…</p>
+          <p className="scritta-sistema mt-8 text-sm">…</p>
         ) : !utente ? (
-          <p className="mt-8 text-sm text-stone-300">{t("notifiche.accedi")}</p>
+          <p className="scritta-sistema mt-8 text-sm">{t("notifiche.accedi")}</p>
         ) : notifiche.length === 0 ? (
-          <p className="mt-8 text-sm text-stone-400">{t("notifiche.vuote")}</p>
+          <p className="scritta-sistema mt-8 text-sm">{t("notifiche.vuote")}</p>
         ) : (
           <ul className="mt-6 flex flex-col gap-3">
             {notifiche.map((n) => (
@@ -162,7 +162,7 @@ export default function PaginaNotifiche() {
 
         <Link
           href="/"
-          className="mt-10 inline-block text-sm text-stone-400 transition hover:text-amber-100"
+          className="scritta-sistema mt-10 inline-block text-sm hover:underline"
         >
           {t("comune.tornaHomeFreccia")}
         </Link>

@@ -70,7 +70,7 @@ export default function CaricaFoto() {
         <h1 className="font-scritta text-4xl text-amber-100">
           {t("foto.titolo")}
         </h1>
-        <p className="max-w-md text-stone-300">{t("foto.noAccount")}</p>
+        <p className="scritta-sistema max-w-md">{t("foto.noAccount")}</p>
         <Link
           href="/"
           className="rounded-full bg-amber-300 px-6 py-3 font-bold text-stone-900 shadow-xl transition hover:scale-105"
@@ -93,7 +93,7 @@ export default function CaricaFoto() {
         <h1 className="font-scritta text-4xl text-amber-100">
           {t("foto.titolo")}
         </h1>
-        <p className="mt-2 text-sm text-stone-300">{t("foto.testo")}</p>
+        <p className="scritta-sistema mt-2 text-sm">{t("foto.testo")}</p>
 
         {stato === "fatto" ? (
           <div className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 text-center shadow-xl backdrop-blur-sm">
@@ -174,7 +174,7 @@ export default function CaricaFoto() {
 
         <Link
           href="/"
-          className="mt-6 inline-block text-sm text-stone-400 transition hover:text-amber-100"
+          className="scritta-sistema mt-6 inline-block text-sm hover:underline"
         >
           {t("comune.tornaHomeFreccia")}
         </Link>

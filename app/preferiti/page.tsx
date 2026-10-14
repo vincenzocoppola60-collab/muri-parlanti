@@ -67,14 +67,14 @@ export default function PaginaPreferiti() {
       <header className="px-4 pb-2 pt-10 text-center sm:pt-14">
         <Link
           href="/"
-          className="mb-3 inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
+          className="scritta-sistema mb-3 inline-block text-[11px] uppercase tracking-[0.25em] hover:underline"
         >
           🧱 Muri Parlanti
         </Link>
         <h1 className="font-scritta text-5xl leading-tight text-amber-100 drop-shadow-md sm:text-6xl">
           {t("preferitiPag.titolo")}
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm text-stone-300">
+        <p className="scritta-sistema mx-auto mt-2 max-w-md text-sm">
           {t("preferitiPag.testo")}
         </p>
       </header>
@@ -100,7 +100,7 @@ export default function PaginaPreferiti() {
         ) : errore ? (
           <p className="text-center text-sm text-red-300">{errore}</p>
         ) : lista.length === 0 ? (
-          <p className="mx-auto max-w-sm text-center text-lg text-stone-200">
+          <p className="scritta-sistema mx-auto max-w-sm text-center text-lg">
             {t("preferitiPag.vuoto")}
           </p>
         ) : (

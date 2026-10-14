@@ -1176,3 +1176,34 @@ html.editor-aperto body {
 .pannello-postit__comandi {
   flex: 0 0 auto;
 }
+
+/* ===== Scritte di sistema =====
+   Aiuti, sottotitoli e messaggi di servizio che stanno direttamente
+   sulla foto del muro: nero pieno, grassetto, contorno giallo ocra
+   per staccare da qualunque sfondo (chiaro o scuro). */
+.scritta-sistema {
+  color: #1c1917;
+  font-weight: 700;
+  text-shadow:
+    -1px -1px 0 #f59e0b,
+    1px -1px 0 #f59e0b,
+    -1px 1px 0 #f59e0b,
+    1px 1px 0 #f59e0b,
+    0 -1.5px 0 #f59e0b,
+    0 1.5px 0 #f59e0b,
+    -1.5px 0 0 #f59e0b,
+    1.5px 0 0 #f59e0b,
+    0 2px 3px rgba(120, 53, 15, 0.45);
+}
+
+/* Versione con cornicetta piena (non trasparente): per le righe brevi
+   di aiuto, tipo "Clicca per modificare". Leggibile su qualunque sfondo. */
+.scritta-sistema-cornice {
+  display: inline-block;
+  border: 1.5px solid #b45309;
+  border-radius: 9999px;
+  background: #fef3c7;
+  color: #1c1917;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}

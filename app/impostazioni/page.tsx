@@ -170,14 +170,14 @@ export default function PaginaImpostazioni() {
         <div className="relative mx-auto w-full max-w-md px-4 py-14">
           <Link
             href="/"
-            className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
+            className="scritta-sistema text-[11px] uppercase tracking-[0.25em] hover:underline"
           >
             {t("comune.tornaHomeFreccia")}
           </Link>
           <h1 className="mt-3 font-scritta text-4xl text-amber-100">
             {t("impost.titolo")}
           </h1>
-          <p className="mb-4 mt-2 text-sm text-stone-300">
+          <p className="scritta-sistema mb-4 mt-2 text-sm">
             {t("impost.noAccountTesto")}
           </p>
           <AccessoForm />
@@ -198,7 +198,7 @@ export default function PaginaImpostazioni() {
       <div className="relative mx-auto w-full max-w-md px-4 pb-24 pt-10">
         <Link
           href="/"
-          className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-100/50 transition hover:text-amber-100"
+          className="scritta-sistema text-[11px] uppercase tracking-[0.25em] hover:underline"
         >
           {t("comune.tornaHomeFreccia")}
         </Link>

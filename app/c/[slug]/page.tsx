@@ -85,7 +85,7 @@ function Schermata({
         🎪
       </div>
       <h1 className="font-scritta text-4xl text-amber-100">{titolo}</h1>
-      <p className="max-w-md text-stone-300">{testo}</p>
+      <p className="scritta-sistema max-w-md">{testo}</p>
       {azione ? (
         <Link
           href={azione.href}

@@ -7,7 +7,7 @@ export default function ProfiloNonTrovato() {
       <SfondoMuro />
       <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
       <h1 className="font-scritta text-4xl text-amber-100">Profilo non trovato</h1>
-      <p className="max-w-md text-stone-300">
+      <p className="scritta-sistema max-w-md">
         Questo profilo non esiste (o non esiste ancora): magari l&apos;autore
         aveva scritto il pensiero senza un account.
       </p>

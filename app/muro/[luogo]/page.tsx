@@ -89,7 +89,7 @@ function ErroreCaricamento() {
       <h1 className="font-scritta text-4xl text-amber-100">
         <Testo chiave="errore.titolo" />
       </h1>
-      <p className="max-w-md text-stone-300">
+      <p className="scritta-sistema max-w-md">
         <Testo chiave="errore.muroTesto" />
       </p>
       <a
