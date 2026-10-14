@@ -187,11 +187,11 @@ const bungee = Bungee({
 // Applica il tema prima del primo disegno, cosi' non c'e' un lampo di
 // palette sbagliata all'apertura. Legge la scelta salvata sul dispositivo
 // (vedi lib/temi.ts) e mette `data-tema` su <html>; il CSS fa il resto.
-const scriptTema = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
+const scriptTema = `(function(){try{var k=${JSON.stringify(
   TEMA_KEY
-)});var ok=${JSON.stringify(
+)};var t=localStorage.getItem(k);var ok=${JSON.stringify(
   TEMI.map((x) => x.codice)
-)};if(t&&ok.indexOf(t)>=0&&t!==${JSON.stringify(
+)};if(!t||ok.indexOf(t)<0){t='disegnato';}if(t&&t!==${JSON.stringify(
   TEMA_PREDEFINITO
 )}){document.documentElement.setAttribute('data-tema',t);}}catch(e){}})();`;
 

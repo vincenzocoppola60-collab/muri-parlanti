@@ -7,7 +7,7 @@ import AccessoForm from "@/components/AccessoForm";
 import { useLingua } from "@/lib/i18n";
 import { eAmministratore } from "@/lib/admin";
 import { caricaMioProfilo, impostaMostraPostit } from "@/lib/profili";
-import { applicaTema, leggiTemaSalvato } from "@/lib/temi";
+import SelettoreTema from "@/components/SelettoreTema";
 
 /**
  * Pagina Impostazioni — VERSIONE SNELLA · Prototipo layout "Interruttori".
@@ -97,9 +97,6 @@ export default function PaginaImpostazioni() {
   const [mostraPostit, setMostraPostit] = useState(true);
   const [salvoPrivacy, setSalvoPrivacy] = useState(false);
 
-  // Interruttore "Tema Graffiti" (tema salvato sul dispositivo).
-  const [graffiti, setGraffiti] = useState(false);
-
   // Riconosce l'amministratore (tabella `amministratori`): solo a lui
   // mostriamo la scelta del tema. Senza sessione la risposta e' false.
   useEffect(() => {
@@ -132,15 +129,6 @@ export default function PaginaImpostazioni() {
     };
   }, [utente]);
 
-  // Allinea l'interruttore del tema alla scelta salvata (dopo il mount).
-  useEffect(() => {
-    const id = window.setTimeout(
-      () => setGraffiti(leggiTemaSalvato() === "graffiti"),
-      0
-    );
-    return () => window.clearTimeout(id);
-  }, []);
-
   /**
    * Accende/spegne la privacy dei post-it toccando SOLO quel campo.
    *
@@ -158,13 +146,6 @@ export default function PaginaImpostazioni() {
       setMostraPostit(!nuovo); // ripristina se il salvataggio non riesce
     }
     setSalvoPrivacy(false);
-  }
-
-  /** Accende/spegne il tema graffiti (schermata + memoria locale). */
-  function cambiaTema() {
-    const nuovo = !graffiti;
-    setGraffiti(nuovo);
-    applicaTema(nuovo ? "graffiti" : "ambra");
   }
 
   if (caricamento) {
@@ -250,17 +231,11 @@ export default function PaginaImpostazioni() {
               disabilitato={salvoPrivacy}
             />
 
-            {/* Tema (colori). Sperimentale: visibile solo all'amministratore. */}
-            {sonoAdmin && (
-              <RigaInterruttore
-                titolo={t("impost.temaGraffiti")}
-                nota={t("impost.temaGraffitiNota")}
-                attivo={graffiti}
-                onToggle={cambiaTema}
-              />
-            )}
           </div>
         </section>
+
+        {/* Tema. Sperimentale: visibile solo all'amministratore. */}
+        {sonoAdmin && <SelettoreTema />}
 
         {/* Il profilo si gestisce da un'altra pagina. */}
         <section className="mt-6 rounded-lg border border-amber-100/20 bg-stone-900/60 p-6 shadow-xl backdrop-blur-sm">

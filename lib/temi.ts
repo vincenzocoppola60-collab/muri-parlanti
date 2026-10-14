@@ -11,7 +11,7 @@
  * agli amministratori nella pagina delle impostazioni.
  */
 
-export type CodiceTema = "ambra" | "graffiti";
+export type CodiceTema = "ambra" | "graffiti" | "disegnato";
 
 export type Tema = {
   codice: CodiceTema;
@@ -25,6 +25,7 @@ export type Tema = {
 export const TEMI: Tema[] = [
   { codice: "ambra", chiave: "tema.ambra", anteprima: ["#ffd236", "#0c0a09"] },
   { codice: "graffiti", chiave: "tema.graffiti", anteprima: ["#ffd236", "#1c1917"] },
+  { codice: "disegnato", chiave: "tema.disegnato", anteprima: ["#463c32", "#f7f3ea"] },
 ];
 
 export const TEMA_PREDEFINITO: CodiceTema = "ambra";

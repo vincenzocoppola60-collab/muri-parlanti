@@ -60,6 +60,80 @@ html[data-tema="graffiti"] .font-scritta {
   letter-spacing: 0.01em;
 }
 
+/* "disegnato": carta crema, inchiostro e muro a monolinea ondulata
+   (bozza stilizzato-09). Solo grafica: i dati e le funzioni restano uguali. */
+html[data-tema="disegnato"] {
+  --font-sans: var(--font-permanent-marker), ui-sans-serif, system-ui, sans-serif;
+  --font-scritta: var(--font-rock-salt), var(--font-permanent-marker), cursive;
+
+  /* Testi chiari dell'app scura diventano inchiostro; lo sfondo body
+     (stone-950) diventa carta. stone-900 resta scuro per il testo sui
+     bottoni gialli amber-300. */
+  --color-stone-50: #1f1a16;
+  --color-stone-100: #2c261f;
+  --color-stone-200: #3a3229;
+  --color-stone-300: #463c32;
+  --color-stone-400: #5c5146;
+  --color-stone-500: #6e6256;
+  --color-stone-950: #f7f3ea;
+
+  /* Titoli e bordi amber-100: da giallo chiaro a inchiostro. */
+  --color-amber-50: #2c261f;
+  --color-amber-100: #2c261f;
+  --color-amber-200: #3a3229;
+
+  color: #2c261f;
+  background-color: #f7f3ea;
+  background-image: url("/images/muro-disegno.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+html[data-tema="disegnato"] body {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #2c261f;
+}
+
+/* Il muro disegnato sostituisce brain.webp: nasconde foto e velo scuro. */
+html[data-tema="disegnato"] [style*="brain.webp"] {
+  background-image: none !important;
+  background-color: transparent !important;
+  opacity: 0 !important;
+}
+
+html[data-tema="disegnato"] [style*="brain.webp"] + div[aria-hidden] {
+  background-image: none !important;
+  background-color: transparent !important;
+  opacity: 0 !important;
+}
+
+/* Schede scure -> foglio crema semi-trasparente, inchiostro visibile. */
+html[data-tema="disegnato"] [class*="bg-stone-900"]:not([class*="bg-stone-950"]) {
+  background-color: color-mix(in oklab, #f7f3ea 78%, transparent) !important;
+}
+
+html[data-tema="disegnato"] [class*="bg-stone-800"] {
+  background-color: color-mix(in oklab, #463c32 18%, #f7f3ea) !important;
+}
+
+html[data-tema="disegnato"] [class*="rounded-"][class*="border"]:not([class*="rounded-full"]) {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border-color: color-mix(in oklab, #463c32 55%, transparent);
+}
+
+html[data-tema="disegnato"] input[class*="rounded-"],
+html[data-tema="disegnato"] textarea[class*="rounded-"],
+html[data-tema="disegnato"] select[class*="rounded-"] {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+html[data-tema="disegnato"] .font-scritta {
+  letter-spacing: 0.02em;
+}
+
 /* ===== Barra in alto a destra (bandiera + tasto Home) =====
    Le due icone stanno affiancate, mai una sopra l'altra. La posizione tiene
    conto delle "safe area" (notch/status bar): su qualunque telefono restano

@@ -427,6 +427,7 @@ const IT: Parole = {
     "Prova un aspetto diverso dell'app. Per ora lo vedi solo tu come amministratore; la scelta resta su questo dispositivo.",
   "tema.ambra": "Ambra",
   "tema.graffiti": "Graffiti",
+  "tema.disegnato": "Disegnato",
   "tema.attivo": "Attivo",
 
   // ── Prototipo layout (branch sperimenta-layout) ──
@@ -1068,6 +1069,7 @@ const EN: Parole = {
     "Try a different look for the app. For now only you, as admin, can see this; the choice stays on this device.",
   "tema.ambra": "Amber",
   "tema.graffiti": "Graffiti",
+  "tema.disegnato": "Drawn",
   "tema.attivo": "Active",
 
   // ── Prototype layout (sperimenta-layout branch) ──
@@ -1631,6 +1633,7 @@ const ES: Parole = {
     "Prueba un aspecto distinto de la app. Por ahora solo tú, como administrador, lo ves; la elección queda en este dispositivo.",
   "tema.ambra": "Ámbar",
   "tema.graffiti": "Graffiti",
+  "tema.disegnato": "Dibujado",
   "tema.attivo": "Activo",
 
   "muri.suQuestoTelefono": "En este teléfono",
@@ -2193,6 +2196,7 @@ const FR: Parole = {
     "Essayez un autre look de l'app. Pour l'instant, vous seul, en tant qu'admin, le voyez ; le choix reste sur cet appareil.",
   "tema.ambra": "Ambre",
   "tema.graffiti": "Graffiti",
+  "tema.disegnato": "Dessiné",
   "tema.attivo": "Actif",
 
   "muri.suQuestoTelefono": "Sur ce téléphone",
@@ -2755,6 +2759,7 @@ const DE: Parole = {
     "Probiere ein anderes Aussehen der App. Vorerst siehst nur du als Admin das; die Wahl bleibt auf diesem Gerät.",
   "tema.ambra": "Bernstein",
   "tema.graffiti": "Graffiti",
+  "tema.disegnato": "Gezeichnet",
   "tema.attivo": "Aktiv",
 
   "muri.suQuestoTelefono": "Auf diesem Telefon",
