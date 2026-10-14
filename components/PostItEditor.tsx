@@ -195,7 +195,7 @@ export default function PostItEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto overscroll-contain bg-stone-950/60 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto overscroll-contain bg-stone-950/60 backdrop-blur-sm sm:items-center sm:p-4">
       <form
         onSubmit={invia}
         className={
@@ -232,7 +232,7 @@ export default function PostItEditor({
             maxLength={MAX_TESTO}
             rows={5}
             placeholder={t("editor.placeholder")}
-            className="w-full resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
+            className="w-full min-h-[3.5rem] flex-1 resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
             style={
               fontApplicabile ? { fontFamily: cssFontFamily(fontValido) } : undefined
             }

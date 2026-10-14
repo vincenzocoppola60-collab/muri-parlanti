@@ -1078,9 +1078,99 @@ html.editor-aperto body {
 .pannello-postit__corpo {
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ── Editor post-it su MOBILE: a schermo intero, adattivo ──────────────
+   Su telefono (fino a 639px, quindi QUALSIASI dispositivo mobile, dal
+   320x568 al 430x932 e oltre) il pannello occupa tutto lo schermo come lo
+   stile standard: la textarea e' elastica (assorbe le differenze di
+   altezza), i padding extra degli stili decorativi sono compattati e le
+   decorazioni che sporgono vengono riportate dentro i bordi/safe-area.
+   Le CARD del muro e le anteprime del selettore NON cambiano: vale solo
+   per l'editor (.pannello-postit). */
+@media (max-width: 639px) {
+  .pannello-postit {
+    height: 100vh; /* riserva per browser senza dvh (iOS < 15.4) */
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    max-width: none; /* full-width su QUALSIASI larghezza mobile */
+    padding-top: max(2.25rem, calc(env(safe-area-inset-top, 0px) + 0.5rem));
+    padding-bottom: max(1.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  /* Il pannello e' alto quanto lo schermo: i min-height degli stili
+     (170-200px) non devono aggiungere altezza inutile. */
+  .pannello-postit.stile-attivo {
+    min-height: 0;
+  }
+  /* Padding extra degli stili compattati: la grafica resta, ma il testo
+     non viene spinto fuori schermo. */
+  .pannello-postit.stile-6.stile-attivo {
+    padding-top: 2.75rem;
+  }
+  .pannello-postit.stile-7.stile-attivo {
+    padding-top: 2.25rem;
+  }
+  .pannello-postit.stile-11.stile-attivo {
+    padding-top: 3.25rem;
+  }
+  /* Decorazioni: niente spillate fuori dal pannello (sarebbero tagliate
+     dallo schermo). I nastri centrati scendono sotto la safe-area. */
+  .pannello-postit .st-tape.t1 {
+    top: max(8px, env(safe-area-inset-top, 0px));
+  }
+  .pannello-postit.stile-2 .st-tape.t1 {
+    top: max(8px, env(safe-area-inset-top, 0px));
+    height: 56px;
+  }
+  .pannello-postit.stile-4 .st-clip {
+    top: max(8px, env(safe-area-inset-top, 0px));
+  }
+  .pannello-postit.stile-4 .st-star.a {
+    left: max(8px, env(safe-area-inset-left, 0px));
+  }
+  .pannello-postit.stile-4 .st-star.b {
+    left: max(12px, calc(env(safe-area-inset-left, 0px) + 4px));
+  }
+  .pannello-postit.stile-4 .st-star.c {
+    right: max(8px, env(safe-area-inset-right, 0px));
+  }
+  .pannello-postit.stile-8 .st-paperclip {
+    top: max(8px, env(safe-area-inset-top, 0px));
+  }
+  .pannello-postit.stile-14 .st-tape.t2 {
+    left: max(8px, env(safe-area-inset-left, 0px));
+  }
+  .pannello-postit.stile-15 .st-tape.t1 {
+    left: max(8px, env(safe-area-inset-left, 0px));
+    top: 8px;
+  }
+  .pannello-postit.stile-15 .st-tape.t2 {
+    right: max(8px, env(safe-area-inset-right, 0px));
+  }
+  .pannello-postit.stile-16 .st-tape.t2 {
+    left: max(8px, env(safe-area-inset-left, 0px));
+    top: 8px;
+  }
+  .pannello-postit.stile-16 .st-tape.t3 {
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: 8px;
+  }
+  /* La coda del fumetto (stile 13) sporge sotto il foglio: su mobile
+     nell'editor uscirebbe dallo schermo. Nel muro resta come prima. */
+  .pannello-postit.stile-13 .stile-sheet::after {
+    display: none;
+  }
+  .pannello-postit.stile-13.stile-attivo {
+    margin-bottom: 0;
+  }
 }
 
 .pannello-postit__comandi {
