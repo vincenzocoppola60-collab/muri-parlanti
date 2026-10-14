@@ -10,6 +10,7 @@ import {
   contaPreferitiDiUtente,
 } from "@/lib/profiliServer";
 import VistaProfilo from "@/components/VistaProfilo";
+import SfondoMuro from "@/components/SfondoMuro";
 
 export const dynamic = "force-dynamic";
 
@@ -72,11 +73,9 @@ export default async function PaginaProfilo({
 
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      {/* Sfondo del profilo visitato: per chi ha un account e il muro di
+          quella persona, altrimenti resta lo sfondo predefinito. */}
+      <SfondoMuro id={id} />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/75 via-stone-900/45 to-stone-950/85"

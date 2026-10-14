@@ -965,3 +965,64 @@ html.anteprima-admin .font-scritta {
 @media (prefers-reduced-motion: reduce) {
   .cuore-cascata { animation: none; opacity: 0; }
 }
+
+/* ── Leggibilità del testo ────────────────────────────────────────────────
+   Inchiostro nero con un contorno ocra: resta leggibile sia sullo sfondo
+   scuro predefinito sia sopra un muro disegnato chiaro. In più,
+   `.riquadro-leggibile` mette un foglio di carta traslucido dietro al testo
+   (usato da home.desc e dalla biografia del profilo). */
+.riquadro-leggibile {
+  background-color: rgba(247, 243, 234, 0.94);
+  border: 1px solid rgba(70, 60, 50, 0.22);
+  border-radius: 0.9rem;
+  padding: 1rem 1.25rem;
+  color: #1c1917;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.testo-leggibile {
+  color: #1c1917;
+  text-shadow:
+    0 0 1px rgba(252, 211, 77, 1),
+    0 0 5px rgba(252, 211, 77, 0.9),
+    0 0 12px rgba(252, 211, 77, 0.55);
+}
+
+/* Nel tema "disegnato" il fondo è già chiaro: il riquadro si alleggerisce
+   e il contorno ocra non serve più. */
+html[data-tema="disegnato"] .riquadro-leggibile {
+  background-color: rgba(247, 243, 234, 0.8);
+  border-color: rgba(70, 60, 50, 0.35);
+  box-shadow: none;
+}
+
+html[data-tema="disegnato"] .riquadro-leggibile .testo-leggibile {
+  text-shadow: none;
+}
+
+/* ── Sfondo del muro personale ────────────────────────────────────────────
+   `.sfondo-muro` è il livello dietro a tutto (components/SfondoMuro.tsx).
+   Con il tema "disegnato" sparisce, esattamente come faceva brain.webp;
+   quando c'è un disegno personale il velo scuro si alleggerisce, così il
+   disegno resta visibile ma i testi continuano a leggersi. */
+.sfondo-muro {
+  transition: opacity 500ms ease;
+}
+
+html[data-tema="disegnato"] .sfondo-muro {
+  background-image: none !important;
+  background-color: transparent !important;
+  opacity: 0 !important;
+}
+
+html[data-tema="disegnato"] .sfondo-muro + div[aria-hidden] {
+  background-image: none !important;
+  background-color: transparent !important;
+  opacity: 0 !important;
+}
+
+/* Senza !important: nel tema "disegnato" le regole qui sopra continuano a
+   vincere e lo sfondo resta nascosto. */
+html.muro-personale .sfondo-muro + div[aria-hidden] {
+  opacity: 0.45;
+}

@@ -687,6 +687,33 @@ const IT: Parole = {
   "ev.chiusoDopoFine": "L'evento è finito: il muro è in sola lettura.",
   "ev.inCorso": "Evento in corso",
   "home.pannello": "Il tuo pannello",
+  "muro.titolo": "Il tuo muro",
+  "muro.sottotitolo":
+    "Disegna lo sfondo del tuo muro: resta riservato a chi ha un account.",
+  "muro.personalizza": "Personalizza il tuo muro",
+  "muro.notaSfondo": "Il disegno è privato: chi non ha un account non può vederlo.",
+  "muro.tela": "Tela da disegno",
+  "muro.colore": "Colore",
+  "muro.spessore": "Spessore",
+  "muro.sfondo": "Colore del foglio",
+  "muro.gomma": "Gomma",
+  "muro.annulla": "Annulla",
+  "muro.ripristina": "Ripristina",
+  "muro.pulisci": "Pulisci",
+  "muro.salva": "Salva il muro",
+  "muro.salvando": "Salvataggio...",
+  "muro.salvato": "Muro salvato.",
+  "muro.rimosso": "Muro rimosso.",
+  "muro.errore": "Non è stato possibile salvare il muro. Riprova.",
+  "muro.caricamentoFallito":
+    "Il muro precedente non si è caricato: salvando ora lo sostituirai.",
+  "muro.chiudi": "Chiudi",
+  "invito.occhiello": "Serve un account",
+  "invito.titolo": "I profili sono riservati",
+  "invito.testo":
+    "Per vedere il profilo di un autore e il suo muro serve un account gratuito.",
+  "invito.dopo": "Più tardi",
+  "invito.accedi": "Crea account o entra",
 };
 
 const EN: Parole = {
@@ -1248,6 +1275,34 @@ const EN: Parole = {
   "ev.chiusoDopoFine": "The event is over: the wall is read-only.",
   "ev.inCorso": "Event in progress",
   "home.pannello": "Your panel",
+  "muro.titolo": "Your wall",
+  "muro.sottotitolo":
+    "Draw your wall background: it stays visible only to account holders.",
+  "muro.personalizza": "Customise your wall",
+  "muro.notaSfondo":
+    "The drawing is private: people without an account cannot see it.",
+  "muro.tela": "Drawing sheet",
+  "muro.colore": "Colour",
+  "muro.spessore": "Thickness",
+  "muro.sfondo": "Sheet colour",
+  "muro.gomma": "Eraser",
+  "muro.annulla": "Undo",
+  "muro.ripristina": "Redo",
+  "muro.pulisci": "Clear",
+  "muro.salva": "Save wall",
+  "muro.salvando": "Saving...",
+  "muro.salvato": "Wall saved.",
+  "muro.rimosso": "Wall removed.",
+  "muro.errore": "The wall could not be saved. Please try again.",
+  "muro.caricamentoFallito":
+    "The previous wall did not load: saving now will replace it.",
+  "muro.chiudi": "Close",
+  "invito.occhiello": "Account required",
+  "invito.titolo": "Profiles are reserved",
+  "invito.testo":
+    "To see an author's profile and wall you need a free account.",
+  "invito.dopo": "Later",
+  "invito.accedi": "Create account or sign in",
 };
 
 const ES: Parole = {
@@ -1811,6 +1866,34 @@ const ES: Parole = {
   "ev.chiusoDopoFine": "El evento ha terminado: el muro es de solo lectura.",
   "ev.inCorso": "Evento en curso",
   "home.pannello": "Tu panel",
+  "muro.titolo": "Tu muro",
+  "muro.sottotitolo":
+    "Dibuja el fondo de tu muro: solo lo ven quienes tienen cuenta.",
+  "muro.personalizza": "Personaliza tu muro",
+  "muro.notaSfondo":
+    "El dibujo es privado: quien no tiene cuenta no puede verlo.",
+  "muro.tela": "Hoja de dibujo",
+  "muro.colore": "Color",
+  "muro.spessore": "Grosor",
+  "muro.sfondo": "Color de la hoja",
+  "muro.gomma": "Goma",
+  "muro.annulla": "Deshacer",
+  "muro.ripristina": "Rehacer",
+  "muro.pulisci": "Limpiar",
+  "muro.salva": "Guardar el muro",
+  "muro.salvando": "Guardando...",
+  "muro.salvato": "Muro guardado.",
+  "muro.rimosso": "Muro eliminado.",
+  "muro.errore": "No se ha podido guardar el muro. Inténtalo de nuevo.",
+  "muro.caricamentoFallito":
+    "El muro anterior no se ha cargado: si guardas ahora, lo sustituirás.",
+  "muro.chiudi": "Cerrar",
+  "invito.occhiello": "Hace falta una cuenta",
+  "invito.titolo": "Los perfiles son reservados",
+  "invito.testo":
+    "Para ver el perfil de un autor y su muro necesitas una cuenta gratuita.",
+  "invito.dopo": "Más tarde",
+  "invito.accedi": "Crear cuenta o entrar",
 };
 
 const FR: Parole = {
@@ -2374,6 +2457,34 @@ const FR: Parole = {
   "ev.chiusoDopoFine": "L'événement est terminé : le mur est en lecture seule.",
   "ev.inCorso": "Événement en cours",
   "home.pannello": "Ton panneau",
+  "muro.titolo": "Ton mur",
+  "muro.sottotitolo":
+    "Dessine le fond de ton mur : il reste visible aux seuls titulaires d'un compte.",
+  "muro.personalizza": "Personnalise ton mur",
+  "muro.notaSfondo":
+    "Le dessin est privé : les personnes sans compte ne peuvent pas le voir.",
+  "muro.tela": "Feuille de dessin",
+  "muro.colore": "Couleur",
+  "muro.spessore": "Épaisseur",
+  "muro.sfondo": "Couleur de la feuille",
+  "muro.gomma": "Gomme",
+  "muro.annulla": "Annuler",
+  "muro.ripristina": "Rétablir",
+  "muro.pulisci": "Effacer",
+  "muro.salva": "Enregistrer le mur",
+  "muro.salvando": "Enregistrement...",
+  "muro.salvato": "Mur enregistré.",
+  "muro.rimosso": "Mur supprimé.",
+  "muro.errore": "Le mur n'a pas pu être enregistré. Réessayez.",
+  "muro.caricamentoFallito":
+    "Le mur précédent ne s'est pas chargé : en enregistrant maintenant, vous le remplacerez.",
+  "muro.chiudi": "Fermer",
+  "invito.occhiello": "Compte requis",
+  "invito.titolo": "Les profils sont réservés",
+  "invito.testo":
+    "Pour voir le profil d'un auteur et son mur, il faut un compte gratuit.",
+  "invito.dopo": "Plus tard",
+  "invito.accedi": "Créer un compte ou se connecter",
 };
 
 const DE: Parole = {
@@ -2937,6 +3048,34 @@ const DE: Parole = {
   "ev.chiusoDopoFine": "Das Event ist vorbei: die Wand ist schreibgeschützt.",
   "ev.inCorso": "Event läuft",
   "home.pannello": "Dein Bereich",
+  "muro.titolo": "Deine Wand",
+  "muro.sottotitolo":
+    "Zeichne den Hintergrund deiner Wand: er bleibt nur für Kontoinhaber sichtbar.",
+  "muro.personalizza": "Wand gestalten",
+  "muro.notaSfondo":
+    "Die Zeichnung ist privat: Wer kein Konto hat, kann sie nicht sehen.",
+  "muro.tela": "Zeichenblatt",
+  "muro.colore": "Farbe",
+  "muro.spessore": "Stärke",
+  "muro.sfondo": "Blattfarbe",
+  "muro.gomma": "Radiergummi",
+  "muro.annulla": "Rückgängig",
+  "muro.ripristina": "Wiederholen",
+  "muro.pulisci": "Leeren",
+  "muro.salva": "Wand speichern",
+  "muro.salvando": "Speichern...",
+  "muro.salvato": "Wand gespeichert.",
+  "muro.rimosso": "Wand entfernt.",
+  "muro.errore": "Die Wand konnte nicht gespeichert werden. Bitte erneut versuchen.",
+  "muro.caricamentoFallito":
+    "Die vorherige Wand wurde nicht geladen: Beim Speichern wird sie ersetzt.",
+  "muro.chiudi": "Schließen",
+  "invito.occhiello": "Konto erforderlich",
+  "invito.titolo": "Profile sind geschützt",
+  "invito.testo":
+    "Um das Profil einer Person und ihre Wand zu sehen, brauchst du ein kostenloses Konto.",
+  "invito.dopo": "Später",
+  "invito.accedi": "Konto erstellen oder anmelden",
 };
 
 const DIZIONARIO: Record<CodiceLingua, Parole> = {

@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import MieiMuri from "@/components/MieiMuri";
+import SfondoMuro from "@/components/SfondoMuro";
 import ProfiloCard from "@/components/ProfiloCard";
 import InstallaApp from "@/components/InstallaApp";
 import { Crediti } from "@/components/Crediti";
@@ -67,11 +68,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      <SfondoMuro />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/80 via-stone-900/55 to-stone-950/90"
@@ -81,8 +78,12 @@ export default function Home() {
         <h1 className="font-scritta text-6xl text-amber-100 drop-shadow-md sm:text-7xl">
           Muri Parlanti
         </h1>
+        {/* Testo di presentazione: riquadro di carta con inchiostro nero e
+            contorno ocra, cosi' resta leggibile su qualunque sfondo. */}
         {mostraDesc && (
-          <p className="mx-auto mt-4 max-w-md text-stone-300">{t("home.desc")}</p>
+          <p className="riquadro-leggibile testo-leggibile mx-auto mt-4 max-w-md">
+            {t("home.desc")}
+          </p>
         )}
       </header>
 

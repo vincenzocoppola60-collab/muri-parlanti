@@ -1,5 +1,6 @@
 "use client";
 
+import SfondoMuro from "@/components/SfondoMuro";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -57,11 +58,7 @@ export default function PaginaPreferiti() {
 
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      <SfondoMuro />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/80 via-stone-900/55 to-stone-950/90"

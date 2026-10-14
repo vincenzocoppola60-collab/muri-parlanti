@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { traduciTesto } from "@/lib/traduzione";
 import CanzonePlayer from "@/components/CanzonePlayer";
+import ModaleRegistrazione from "@/components/ModaleRegistrazione";
 import {
   classiStile,
   numeroStile,
@@ -72,8 +73,13 @@ export default function PostItView({
   );
   const [mostraOriginale, setMostraOriginale] = useState(false);
   const [zoomFoto, setZoomFoto] = useState(false);
+  // Invito all'account: si apre toccando il nickname di un autore mentre si
+  // e' OSPITI (senza account i profili degli altri restano chiusi).
+  const [invito, setInvito] = useState(false);
   const mio =
     montato && !!utente && postit.user_id != null && postit.user_id === utente.id;
+  // Ospite = nessun account collegato (calcolato dopo il mount, come `mio`).
+  const ospite = montato && !utente;
 
   // Traduzione dei post PUBBLICI (degli altri), solo se l'utente l'ha attivata
   // accanto alla bandiera e la lingua scelta non e' l'italiano. Parte DOPO il
@@ -232,6 +238,7 @@ export default function PostItView({
           document.body
         )}
       {postit.canzone_url && <CanzonePlayer url={postit.canzone_url} />}
+      {invito && <ModaleRegistrazione onChiudi={() => setInvito(false)} />}
       <footer className="mt-3 flex items-center justify-between gap-1 text-xs text-stone-700">
         <div className="min-w-0 truncate">
           {mio ? (
@@ -245,6 +252,16 @@ export default function PostItView({
                 {t("postit.tuo")}
               </span>
             </Link>
+          ) : postit.user_id && ospite ? (
+            // Ospite: il profilo altrui non si apre, si invita a registrarsi.
+            <button
+              type="button"
+              onClick={() => setInvito(true)}
+              title={t("invito.occhiello")}
+              className="font-semibold underline decoration-stone-400 decoration-1 underline-offset-2 transition hover:decoration-stone-900"
+            >
+              ~ {postit.nickname}
+            </button>
           ) : postit.user_id ? (
             <Link
               href={`/profilo/${postit.user_id}`}

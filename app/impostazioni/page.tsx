@@ -1,5 +1,6 @@
 "use client";
 
+import SfondoMuro from "@/components/SfondoMuro";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -151,11 +152,7 @@ export default function PaginaImpostazioni() {
   if (caricamento) {
     return (
       <main className="relative flex min-h-dvh items-center justify-center">
-        <div
-          aria-hidden
-          className="fixed inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/brain.webp)" }}
-        />
+        <SfondoMuro />
         <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
         <p className="font-scritta text-2xl text-amber-100">
           {t("impost.apro")}
@@ -168,11 +165,7 @@ export default function PaginaImpostazioni() {
   if (!utente) {
     return (
       <main className="relative min-h-dvh">
-        <div
-          aria-hidden
-          className="fixed inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/brain.webp)" }}
-        />
+        <SfondoMuro />
         <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
         <div className="relative mx-auto w-full max-w-md px-4 py-14">
           <Link
@@ -196,11 +189,7 @@ export default function PaginaImpostazioni() {
   // Account connesso: profilo e dati NON sono qui, rimandiamo al profilo.
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      <SfondoMuro />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/75 via-stone-900/45 to-stone-950/85"

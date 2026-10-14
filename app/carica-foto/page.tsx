@@ -1,5 +1,6 @@
 "use client";
 
+import SfondoMuro from "@/components/SfondoMuro";
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
@@ -64,11 +65,7 @@ export default function CaricaFoto() {
   if (!utente) {
     return (
       <main className="relative flex min-h-dvh flex-col items-center justify-center gap-6 px-6 text-center">
-        <div
-          aria-hidden
-          className="fixed inset-0 -z-20 bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/brain.webp)" }}
-        />
+        <SfondoMuro />
         <div aria-hidden className="fixed inset-0 -z-10 bg-stone-950/85" />
         <h1 className="font-scritta text-4xl text-amber-100">
           {t("foto.titolo")}
@@ -86,11 +83,7 @@ export default function CaricaFoto() {
 
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      <SfondoMuro />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/80 via-stone-900/55 to-stone-950/90"

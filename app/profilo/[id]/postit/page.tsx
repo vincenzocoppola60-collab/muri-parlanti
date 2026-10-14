@@ -1,3 +1,4 @@
+import SfondoMuro from "@/components/SfondoMuro";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { caricaProfilo } from "@/lib/profili";
@@ -45,11 +46,7 @@ export default async function PaginaPostitProfilo({
 
   return (
     <main className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-20 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/brain.webp)" }}
-      />
+      <SfondoMuro id={id} />
       <div
         aria-hidden
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/75 via-stone-900/45 to-stone-950/85"

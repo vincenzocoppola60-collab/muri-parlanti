@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import RitagliaAvatar from "@/components/RitagliaAvatar";
+import EditorMuro from "@/components/EditorMuro";
 import PostItView from "@/components/PostIt";
 import {
   caricaAvatarBlob,
@@ -181,6 +182,9 @@ export default function VistaProfilo({
   const [editBio, setEditBio] = useState(false);
   const [bioDraft, setBioDraft] = useState("");
 
+  // Editor del muro personale (solo proprietario).
+  const [editorMuro, setEditorMuro] = useState(false);
+
   // Avatar.
   const [fileDaRitagliare, setFileDaRitagliare] = useState<File | null>(null);
   const [caricandoAvatar, setCaricandoAvatar] = useState(false);
@@ -336,12 +340,14 @@ export default function VistaProfilo({
           <h1 className="mt-4 font-scritta text-4xl leading-tight text-amber-100 drop-shadow-md sm:text-5xl">
             {p.nickname}
           </h1>
+          {/* Biografia: riquadro di carta con inchiostro nero e contorno ocra
+              (stesso trattamento del testo di presentazione in home). */}
           {p.bio && (
-            <div className="mx-auto mt-4 max-w-md rounded-xl border border-amber-100/25 bg-stone-900/60 px-5 py-4 text-left shadow-lg backdrop-blur-sm">
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70">
+            <div className="riquadro-leggibile mx-auto mt-4 max-w-md text-left">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-600">
                 {t("profilo.bioTitolo")}
               </p>
-              <p className="mt-2 whitespace-pre-wrap font-scritta text-2xl leading-snug text-amber-100">
+              <p className="testo-leggibile mt-2 whitespace-pre-wrap font-scritta text-2xl leading-snug">
                 {p.bio}
               </p>
             </div>
@@ -540,6 +546,28 @@ export default function VistaProfilo({
       </header>
 
       <section className="mx-auto max-w-md pb-24">
+        {/* Muro personale: solo il proprietario puo' disegnarlo. */}
+        <div className={card}>
+          <h2 className="font-scritta text-xl text-amber-100">
+            {t("muro.titolo")}
+          </h2>
+          <p className="mt-2 text-sm text-stone-400">{t("muro.sottotitolo")}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setErr(null);
+              setMsg(null);
+              setEditorMuro(true);
+            }}
+            className={bottone + " mt-4"}
+          >
+            {t("muro.personalizza")}
+          </button>
+          <p className="mt-3 text-xs leading-snug text-stone-500">
+            {t("muro.notaSfondo")}
+          </p>
+        </div>
+
         {mancaMigrazione && (
           <div className="mt-4 rounded-lg border border-red-300/30 bg-red-950/40 p-4 text-sm text-red-200">
             {MESSAGGIO_MIGRAZIONE}
@@ -612,6 +640,13 @@ export default function VistaProfilo({
           file={fileDaRitagliare}
           onAnnulla={() => setFileDaRitagliare(null)}
           onConferma={usaRitaglio}
+        />
+      )}
+
+      {editorMuro && (
+        <EditorMuro
+          onChiudi={() => setEditorMuro(false)}
+          onSalvato={() => router.refresh()}
         />
       )}
 
