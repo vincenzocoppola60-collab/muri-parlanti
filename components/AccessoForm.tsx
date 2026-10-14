@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 
@@ -9,7 +9,22 @@ type Modalita = "accedi" | "registrati" | "recupera";
 export default function AccessoForm() {
   const { t } = useLingua();
   const { accedi, registrati, recuperaPassword } = useAuth();
+  // Modalita' iniziale: si puo' chiedere dal link (?modo=registrati|accedi).
+  // Serve alle due CTA dell'invito: "Crea account gratuito" apre il modulo di
+  // registrazione, "Accedi" apre quello di accesso.
   const [modalita, setModalita] = useState<Modalita>("accedi");
+  useEffect(() => {
+    // Lettura un attimo dopo il primo render (stesso schema della lingua
+    // salvata): il server non conosce la query string e cosi' non si innesca
+    // un render a catena al mount.
+    const id = window.setTimeout(() => {
+      const richiesta = new URLSearchParams(window.location.search).get("modo");
+      if (richiesta === "registrati" || richiesta === "accedi") {
+        setModalita(richiesta);
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
   const [identificativo, setIdentificativo] = useState(""); // username o email
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");

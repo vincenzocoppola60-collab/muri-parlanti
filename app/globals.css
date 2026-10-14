@@ -1026,3 +1026,63 @@ html[data-tema="disegnato"] .sfondo-muro + div[aria-hidden] {
 html.muro-personale .sfondo-muro + div[aria-hidden] {
   opacity: 0.45;
 }
+
+/* ── Editor del muro (components/EditorMuro.tsx) ──────────────────────────
+   Con l'editor aperto la pagina sotto viene bloccata: niente scorrimento né
+   effetto rimbalzo mentre il dito disegna. Il blocco sta su <html>/<body> e
+   NON usa `touch-action`, così le barre dei comandi restano scorrevoli di
+   lato anche a pagina ferma. La classe viene tolta alla chiusura dell'editor,
+   quindi la navigazione normale non resta mai bloccata. */
+html.editor-aperto,
+html.editor-aperto body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Tela da disegno: il gesto appartiene al canvas, non alla pagina. Vale per
+   dito (touch), mouse e stilo; disattiva anche le callout/highlight di iOS. */
+.tela-disegno {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Barre dei comandi dell'editor: scorrono in orizzontale su schermi stretti. */
+.barra-scorrevole {
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.barra-scorrevole::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Pannello del post-it personalizzato (components/PostItEditor.tsx) ─────
+   Alcuni dei 16 stili sono molto decorativi e allungano il modulo fino a
+   spingere i comandi fuori dallo schermo. Qui si mette un tetto all'altezza,
+   si fa scorrere SOLO il corpo interno e si tengono i comandi principali
+   («Attacca», «Annulla») fuori dall'area che scorre. Il modulo non ritaglia
+   nulla (niente `overflow: hidden`): nastro, graffetta, pieghe e bordi
+   strappati degli stili devono poter sporgere senza venire tagliati. */
+.pannello-postit {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 2rem - env(safe-area-inset-bottom, 0px));
+}
+
+.pannello-postit__corpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pannello-postit__comandi {
+  flex: 0 0 auto;
+}

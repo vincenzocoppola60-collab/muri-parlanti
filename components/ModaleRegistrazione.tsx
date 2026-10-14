@@ -56,21 +56,31 @@ export default function ModaleRegistrazione({
           {t("invito.testo")}
         </p>
 
-        <div className="mt-5 flex items-center justify-end gap-2">
+        {/* Due strade esplicite: creare l'account o entrare in quello che si ha
+            gia'. Portano a /impostazioni, che apre il modulo nella modalita'
+            giusta (?modo=registrati / ?modo=accedi). */}
+        <div className="mt-5 flex flex-col gap-2">
+          <Link
+            href="/impostazioni?modo=registrati"
+            onClick={onChiudi}
+            className="w-full rounded-full bg-amber-300 px-4 py-2.5 text-center text-sm font-bold text-stone-900 shadow-lg transition hover:scale-[1.02] active:scale-95"
+          >
+            {t("invito.crea")}
+          </Link>
+          <Link
+            href="/impostazioni?modo=accedi"
+            onClick={onChiudi}
+            className="w-full rounded-full border border-amber-100/30 px-4 py-2.5 text-center text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
+          >
+            {t("invito.entra")}
+          </Link>
           <button
             type="button"
             onClick={onChiudi}
-            className="rounded-full px-3 py-2 text-sm font-semibold text-stone-300 transition hover:bg-stone-950/60"
+            className="mt-1 self-center rounded-full px-3 py-1.5 text-xs font-semibold text-stone-400 transition hover:text-stone-200"
           >
             {t("invito.dopo")}
           </button>
-          <Link
-            href="/impostazioni"
-            onClick={onChiudi}
-            className="rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-[1.03] active:scale-95"
-          >
-            {t("invito.accedi")}
-          </Link>
         </div>
       </div>
     </div>,

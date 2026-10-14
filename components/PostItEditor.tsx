@@ -195,11 +195,11 @@ export default function PostItEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/60 p-4 backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto overscroll-contain bg-stone-950/60 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center">
       <form
         onSubmit={invia}
         className={
-          "postit w-full max-w-md rounded-md px-6 pb-6 pt-9 shadow-2xl " +
+          "postit pannello-postit w-full max-w-md rounded-md px-6 pb-6 pt-9 shadow-2xl " +
           // Anteprima dal vivo: quando si sceglie uno stile applicabile, il
           // modulo stesso assume subito quella grafica.
           classiStile(stileValido ? stile : null)
@@ -217,180 +217,187 @@ export default function PostItEditor({
           <span className="stile-sheet" aria-hidden />
         )}
         {stileValido && stile != null && <DecorazioniStile stile={stile} />}
-        <label htmlFor="testo-postit" className="sr-only">
-          {t("editor.titolo")}
-        </label>
-        <textarea
-          id="testo-postit"
-          ref={textareaRef}
-          value={testo}
-          onChange={(e) => setTesto(e.target.value)}
-          maxLength={MAX_TESTO}
-          rows={5}
-          placeholder={t("editor.placeholder")}
-          className="w-full resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
-          style={
-            fontApplicabile ? { fontFamily: cssFontFamily(fontValido) } : undefined
-          }
-        />
-        <p className="mt-1 text-right text-xs text-stone-700/70">
-          {testo.length}/{MAX_TESTO}
-        </p>
-        {utente ? (
-          <div className="mt-2">
-            <input
-              value={nickname}
-              readOnly
-              maxLength={MAX_NICKNAME}
-              aria-label={t("editor.firma")}
-              className="w-full cursor-default rounded-sm border border-stone-900/10 bg-white/40 px-3 py-2 text-base font-semibold text-stone-900 focus:outline-none"
-            />
-            <p className="mt-1 text-xs text-stone-700/80">
-              {t("editor.firmaAccount")}{" "}
-              <a href="/impostazioni" className="underline underline-offset-2">
-                {t("nav.impostazioni")}
-              </a>
-            </p>
-          </div>
-        ) : (
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={MAX_NICKNAME}
-            placeholder={t("editor.nome")}
-            className="mt-2 w-full rounded-sm border border-stone-900/20 bg-white/60 px-3 py-2 text-base text-stone-900 placeholder:text-stone-600/70 focus:outline-none"
+        {/* Corpo scorrevole: con alcuni stili il modulo diventa altissimo, quindi
+            e' il contenuto a scorrere, senza mai spingere fuori schermo i
+            comandi principali (vedi .pannello-postit in app/globals.css). */}
+        <div className="pannello-postit__corpo">
+          <label htmlFor="testo-postit" className="sr-only">
+            {t("editor.titolo")}
+          </label>
+          <textarea
+            id="testo-postit"
+            ref={textareaRef}
+            value={testo}
+            onChange={(e) => setTesto(e.target.value)}
+            maxLength={MAX_TESTO}
+            rows={5}
+            placeholder={t("editor.placeholder")}
+            className="w-full resize-none bg-transparent text-xl leading-snug text-stone-900 placeholder:text-stone-600/60 focus:outline-none"
+            style={
+              fontApplicabile ? { fontFamily: cssFontFamily(fontValido) } : undefined
+            }
           />
-        )}
-
-        {/* Foto facoltativa allegata al pensiero. */}
-        <div className="mt-3">
-          <input
-            ref={fileRef}
-            id="foto-postit"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            onChange={(e) => scegliFoto(e.target.files?.[0] ?? null)}
-            className="sr-only"
-          />
-          {anteprima ? (
-            <div className="flex items-center gap-3 rounded-sm border border-stone-900/15 bg-white/50 p-2">
-              {/* Anteprima locale (blob), non ancora caricata. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={anteprima}
-                alt={t("editor.anteprimaFoto")}
-                className="h-16 w-16 rounded-sm object-cover"
+          <p className="mt-1 text-right text-xs text-stone-700/70">
+            {testo.length}/{MAX_TESTO}
+          </p>
+          {utente ? (
+            <div className="mt-2">
+              <input
+                value={nickname}
+                readOnly
+                maxLength={MAX_NICKNAME}
+                aria-label={t("editor.firma")}
+                className="w-full cursor-default rounded-sm border border-stone-900/10 bg-white/40 px-3 py-2 text-base font-semibold text-stone-900 focus:outline-none"
               />
-              <p className="flex-1 text-xs text-stone-800">
-                {t("editor.fotoPronta")}
+              <p className="mt-1 text-xs text-stone-700/80">
+                {t("editor.firmaAccount")}{" "}
+                <a href="/impostazioni" className="underline underline-offset-2">
+                  {t("nav.impostazioni")}
+                </a>
               </p>
-              <button
-                type="button"
-                onClick={rimuoviFoto}
-                aria-label={t("editor.rimuoviFoto")}
-                className="rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
-              >
-                ✕
-              </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
-            >
-              📷 {t("editor.fotoAggiungi")}
-              <span className="text-xs font-normal text-stone-600/80">
-                {t("editor.fotoFacoltativa")}
-              </span>
-            </button>
+            <input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={MAX_NICKNAME}
+              placeholder={t("editor.nome")}
+              className="mt-2 w-full rounded-sm border border-stone-900/20 bg-white/60 px-3 py-2 text-base text-stone-900 placeholder:text-stone-600/70 focus:outline-none"
+            />
           )}
-        </div>
 
-        {/* Canzone facoltativa: si sceglie con la ricerca in-app (stile
-            "music sticker") oppure incollando un link di un servizio. */}
-        <div className="mt-3">
-          <p className="mb-1 text-xs font-semibold text-stone-700">
-            🎵 {t("editor.canzoneAggiungi")}{" "}
-            <span className="font-normal text-stone-600/80">
-              {t("editor.canzoneFacoltativa")}
-            </span>
-          </p>
-          {canzone.trim() ? (
-            <div className="flex items-center gap-2 rounded-sm border border-stone-900/15 bg-white/50 p-2">
-              <span aria-hidden>🎵</span>
-              <p className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-800">
-                ✓ {descrizioneCanzone(canzone.trim()) ?? t("editor.canzonePronta")}
-              </p>
+          {/* Foto facoltativa allegata al pensiero. */}
+          <div className="mt-3">
+            <input
+              ref={fileRef}
+              id="foto-postit"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+              onChange={(e) => scegliFoto(e.target.files?.[0] ?? null)}
+              className="sr-only"
+            />
+            {anteprima ? (
+              <div className="flex items-center gap-3 rounded-sm border border-stone-900/15 bg-white/50 p-2">
+                {/* Anteprima locale (blob), non ancora caricata. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={anteprima}
+                  alt={t("editor.anteprimaFoto")}
+                  className="h-16 w-16 rounded-sm object-cover"
+                />
+                <p className="flex-1 text-xs text-stone-800">
+                  {t("editor.fotoPronta")}
+                </p>
+                <button
+                  type="button"
+                  onClick={rimuoviFoto}
+                  aria-label={t("editor.rimuoviFoto")}
+                  className="rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+              >
+                📷 {t("editor.fotoAggiungi")}
+                <span className="text-xs font-normal text-stone-600/80">
+                  {t("editor.fotoFacoltativa")}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Canzone facoltativa: si sceglie con la ricerca in-app (stile
+              "music sticker") oppure incollando un link di un servizio. */}
+          <div className="mt-3">
+            <p className="mb-1 text-xs font-semibold text-stone-700">
+              🎵 {t("editor.canzoneAggiungi")}{" "}
+              <span className="font-normal text-stone-600/80">
+                {t("editor.canzoneFacoltativa")}
+              </span>
+            </p>
+            {canzone.trim() ? (
+              <div className="flex items-center gap-2 rounded-sm border border-stone-900/15 bg-white/50 p-2">
+                <span aria-hidden>🎵</span>
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-stone-800">
+                  ✓ {descrizioneCanzone(canzone.trim()) ?? t("editor.canzonePronta")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setPickerCanzone(true)}
+                  className="shrink-0 rounded-full border border-stone-900/20 bg-white/60 px-3 py-1 text-xs font-semibold text-stone-800 transition hover:bg-white"
+                >
+                  {t("editor.canzoneCambia")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCanzone("")}
+                  aria-label={t("editor.canzoneRimuovi")}
+                  className="shrink-0 rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
                 onClick={() => setPickerCanzone(true)}
-                className="shrink-0 rounded-full border border-stone-900/20 bg-white/60 px-3 py-1 text-xs font-semibold text-stone-800 transition hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
               >
-                {t("editor.canzoneCambia")}
+                🔍 {t("editor.canzoneAggiungi")}
               </button>
-              <button
-                type="button"
-                onClick={() => setCanzone("")}
-                aria-label={t("editor.canzoneRimuovi")}
-                className="shrink-0 rounded-full px-2 py-1 text-sm font-bold text-stone-800 transition hover:bg-stone-900/10"
-              >
-                ✕
-              </button>
-            </div>
-          ) : (
+            )}
+          </div>
+
+          {/* Menu "Stile" e "Font": SEMPRE visibili. Lo stile e' riservato a chi
+              ha un account (gli ospiti lo scoprono dal pannello, con l'invito a
+              registrarsi); il font e' libero per tutti. */}
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setPickerCanzone(true)}
+              onClick={() => setPickerStile(true)}
               className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
             >
-              🔍 {t("editor.canzoneAggiungi")}
+              🎨 {t("editor.stile")}
+              <span className="text-xs font-normal text-stone-600/80">
+                {utente
+                  ? stile
+                    ? `· ${stile}`
+                    : t("editor.stileScegli")
+                  : t("editor.stileServeAccount")}
+              </span>
             </button>
+            <button
+              type="button"
+              onClick={() => setPickerFont(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
+              style={
+                fontApplicabile
+                  ? { fontFamily: cssFontFamily(fontValido) }
+                  : undefined
+              }
+            >
+              ✍️ {t("editor.font")}
+              <span className="text-xs font-normal text-stone-600/80">
+                {fontApplicabile
+                  ? fontDaCodice(fontValido)?.nome
+                  : t("editor.fontScegli")}
+              </span>
+            </button>
+          </div>
+
+          {errore && (
+            <p className="mt-3 text-sm font-bold text-red-900">{errore}</p>
           )}
         </div>
 
-        {/* Menu "Stile" e "Font": SEMPRE visibili. Lo stile e' riservato a chi
-            ha un account (gli ospiti lo scoprono dal pannello, con l'invito a
-            registrarsi); il font e' libero per tutti. */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setPickerStile(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
-          >
-            🎨 {t("editor.stile")}
-            <span className="text-xs font-normal text-stone-600/80">
-              {utente
-                ? stile
-                  ? `· ${stile}`
-                  : t("editor.stileScegli")
-                : t("editor.stileServeAccount")}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setPickerFont(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-stone-900/25 bg-white/40 px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-white/70"
-            style={
-              fontApplicabile
-                ? { fontFamily: cssFontFamily(fontValido) }
-                : undefined
-            }
-          >
-            ✍️ {t("editor.font")}
-            <span className="text-xs font-normal text-stone-600/80">
-              {fontApplicabile
-                ? fontDaCodice(fontValido)?.nome
-                : t("editor.fontScegli")}
-            </span>
-          </button>
-        </div>
-
-        {errore && (
-          <p className="mt-3 text-sm font-bold text-red-900">{errore}</p>
-        )}
-        <div className="mt-4 flex items-center justify-between">
+        {/* Comandi principali: fuori dall'area scorrevole, sempre raggiungibili. */}
+        <div className="pannello-postit__comandi mt-4 flex items-center justify-between">
           <button
             type="submit"
             disabled={inviando || !testo.trim()}
