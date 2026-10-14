@@ -66,6 +66,31 @@ export default function SfondoMuro({ id }: { id?: string }) {
     };
   }, [personale]);
 
+  // Nel tema "disegnato" lo sfondo vive sul <html> (muro-disegno.png) e
+  // .sfondo-muro viene nascosto dal CSS: senza questo override il disegno
+  // personale resterebbe invisibile fino al cambio tema o a un reload.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const radice = document.documentElement;
+    const applica = () => {
+      const disegnato = radice.getAttribute("data-tema") === "disegnato";
+      radice.style.backgroundImage =
+        personale && url && disegnato ? `url("${url}")` : "";
+    };
+    applica();
+    // Il tema si puo' cambiare anche senza ricaricare la pagina: teniamo
+    // l'override allineato a `data-tema` invece di leggerlo una volta sola.
+    const osservatore = new MutationObserver(applica);
+    osservatore.observe(radice, {
+      attributes: true,
+      attributeFilter: ["data-tema"],
+    });
+    return () => {
+      osservatore.disconnect();
+      radice.style.backgroundImage = "";
+    };
+  }, [personale, url]);
+
   return (
     <div
       aria-hidden
