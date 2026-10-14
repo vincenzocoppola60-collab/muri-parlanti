@@ -230,7 +230,7 @@ export default function Wall({
            MASONRY (CSS columns), altezze variabili. Mostra tutto il muro
            insieme, come un colpo d'occhio: 2 colonne su telefono, 3 da 'sm'.
            Ogni mattone evita di spezzarsi a meta' tra due colonne. */
-        <section className="mx-auto mt-8 max-w-3xl columns-2 gap-3 px-4 pb-36 [column-fill:_balance] sm:columns-3">
+        <section className="muro-colonne mx-auto mt-8 max-w-3xl columns-2 gap-3 px-4 pb-36 [column-fill:_balance] sm:columns-3">
           {lista.map((p, i) => (
             <div key={p.id} className="mb-3 break-inside-avoid">
               <PostItView

@@ -134,6 +134,41 @@ html[data-tema="disegnato"] .font-scritta {
   letter-spacing: 0.02em;
 }
 
+/* ===== Anteprima solo admin =====
+   La classe .anteprima-admin su <html> la aggiunge components/AnteprimaAdmin.tsx
+   quando l'utente connesso e' amministratore. Gli altri utenti NON vedono
+   nessuna di queste regole: post-it quadrati, 3 colonne, giallo standard,
+   data senza orario e titoli in grassetto restano una prova privata. */
+
+/* 3 post-it per riga anche su telefono (con i quadrati ci stanno). */
+html.anteprima-admin .muro-colonne {
+  columns: 3;
+}
+
+/* Post-it QUADRATO (1:1) come uno vero attaccato al muro. Se il testo e'
+   lungo la card si allunga, ma le note corte restano quadrate. */
+html.anteprima-admin .postit {
+  aspect-ratio: 1 / 1;
+}
+
+/* Colore standard GIALLO post-it (design classico, senza variante stile). */
+html.anteprima-admin .postit:not(.stile-attivo) {
+  background-image: none !important;
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+}
+
+/* Data senza orario (l'orario e' nello span .postit-ora). */
+html.anteprima-admin .postit-ora {
+  display: none;
+}
+
+/* Titoli predefiniti in GRASSETTO: font pennarello pieno + peso forte. */
+html.anteprima-admin .font-scritta {
+  font-family: var(--font-permanent-marker), cursive;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 /* ===== Barra in alto a destra (bandiera + tasto Home) =====
    Le due icone stanno affiancate, mai una sopra l'altra. La posizione tiene
    conto delle "safe area" (notch/status bar): su qualunque telefono restano

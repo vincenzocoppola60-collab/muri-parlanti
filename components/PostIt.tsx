@@ -9,7 +9,7 @@ import {
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { PostIt } from "@/lib/postit";
-import { formattaData } from "@/lib/formato";
+import { formattaDataBreve, formattaOra } from "@/lib/formato";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import { traduciTesto } from "@/lib/traduzione";
@@ -46,7 +46,8 @@ export default function PostItView({
   const h = hashId(postit.id);
   const rot = (h % 9) - 4; // da -4deg a +4deg
   const sfondo = SFONDI[h % SFONDI.length];
-  const data = formattaData(postit.creato_il);
+  const data = formattaDataBreve(postit.creato_il);
+  const ora = formattaOra(postit.creato_il);
   // Variante grafica scelta dall'amministratore (null = design classico).
   const stile = numeroStile(postit.stile);
   const classiVariante = classiStile(postit.stile);
@@ -139,6 +140,8 @@ export default function PostItView({
           className="absolute right-1 top-3 z-10 whitespace-nowrap text-[10px] leading-none text-stone-700 opacity-80 sm:right-2 sm:top-1.5 sm:text-xs"
         >
           {data}
+          {/* Anteprima admin: l'orario si nasconde via CSS (.postit-ora). */}
+          <span className="postit-ora"> · {ora}</span>
         </time>
       )}
       <p

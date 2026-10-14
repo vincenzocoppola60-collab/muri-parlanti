@@ -37,6 +37,7 @@ import TastoHome from "@/components/TastoHome";
 import CampanellaNotifiche from "@/components/CampanellaNotifiche";
 import RegistraServiceWorker from "@/components/RegistraServiceWorker";
 import IntroApp from "@/components/IntroApp";
+import AnteprimaAdmin from "@/components/AnteprimaAdmin";
 import { TEMI, TEMA_KEY, TEMA_PREDEFINITO } from "@/lib/temi";
 
 // Font OFL (Google Fonts) — tutti usabili anche per progetti commerciali.
@@ -278,6 +279,7 @@ export default function RootLayout({
             </div>
             {children}
             <RegistraServiceWorker />
+            <AnteprimaAdmin />
             <IntroApp />
           </AuthProvider>
         </LanguageProvider>
