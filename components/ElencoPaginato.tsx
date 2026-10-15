@@ -109,19 +109,19 @@ export default function ElencoPaginato({
     <section className="mx-auto w-full max-w-2xl px-4 pb-24 pt-24">
       <Link
         href={`/profilo/${utenteId}`}
-        className="inline-block text-sm font-semibold text-amber-200/80 transition hover:text-amber-100"
+        className="scritta-sistema-cornice px-3 py-1 text-xs"
       >
         {t("profilo.tornaAlProfilo")}
       </Link>
 
-      <h1 className="mt-4 font-scritta text-3xl leading-tight text-amber-100 drop-shadow-md">
+      <h1 className="scritta-sistema mt-4 font-scritta text-3xl leading-tight">
         {titolo}
       </h1>
 
       {caricando ? (
-        <p className="mt-10 text-center text-stone-300">{t("comune.carico")}</p>
+        <p className="scritta-sistema mt-10 text-center">{t("comune.carico")}</p>
       ) : elementi.length === 0 ? (
-        <p className="mt-10 text-center text-stone-300">
+        <p className="scritta-sistema mt-10 text-center">
           {t("profilo.nienteDaMostrare")}
         </p>
       ) : (
@@ -138,11 +138,11 @@ export default function ElencoPaginato({
                 type="button"
                 onClick={() => setPagina((n) => Math.max(0, n - 1))}
                 disabled={paginaCorrente === 0}
-                className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-30"
+                className="scritta-sistema-cornice px-4 py-2 text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ← {t("profilo.prec")}
               </button>
-              <span className="text-xs font-semibold text-stone-300">
+              <span className="scritta-sistema text-xs">
                 {t("profilo.pagina", {
                   n: paginaCorrente + 1,
                   t: totalePagine,
@@ -154,7 +154,7 @@ export default function ElencoPaginato({
                   setPagina((n) => Math.min(totalePagine - 1, n + 1))
                 }
                 disabled={paginaCorrente >= totalePagine - 1}
-                className="rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60 disabled:cursor-not-allowed disabled:opacity-30"
+                className="scritta-sistema-cornice px-4 py-2 text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 {t("profilo.succ")} →
               </button>

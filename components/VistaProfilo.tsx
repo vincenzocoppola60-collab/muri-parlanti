@@ -36,8 +36,10 @@ const area =
   "w-full resize-none rounded-2xl border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
 const bottone =
   "rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40";
+/* Foglio di carta bianco appuntato sul muro: niente piu' cornici scure su
+   un velo scuro, il muro stesso e' il primo livello e tutto ci sta sopra. */
 const card =
-  "mt-3 rounded-xl border border-amber-100/20 bg-stone-900/60 p-4 text-left shadow-xl backdrop-blur-sm";
+  "mt-3 rounded-lg border border-[#c9ae7f] bg-[#fffdf4] p-4 text-left shadow-xl";
 
 /** Interruttore ON/OFF della bacheca pubblica. */
 function Interruttore({
@@ -53,12 +55,12 @@ function Interruttore({
 }) {
   return (
     <div className="mt-4 flex items-center justify-between gap-3">
-      <span className="text-xs leading-snug text-stone-300">{etichetta}</span>
+      <span className="text-xs font-semibold leading-snug text-[#4a3b23]">{etichetta}</span>
       <div className="flex shrink-0 items-center gap-2">
         <span
           className={
             "text-[11px] font-bold uppercase tracking-wide " +
-            (attivo ? "text-amber-300" : "text-stone-500")
+            (attivo ? "text-amber-600" : "text-stone-500")
           }
         >
           {attivo ? "ON" : "OFF"}
@@ -104,7 +106,7 @@ function CorniceElenco({
   const { t } = useLingua();
   return (
     <div className={card}>
-      <h2 className="font-scritta text-xl text-amber-100">{titolo}</h2>
+      <h2 className="font-scritta text-2xl text-[#1c1917]">{titolo}</h2>
       {postit.length === 0 ? (
         <p className="mt-2 text-sm text-stone-400">{vuoto}</p>
       ) : (
@@ -117,7 +119,7 @@ function CorniceElenco({
       {totale > 0 && (
         <Link
           href={href}
-          className="mt-4 inline-block text-sm font-semibold text-amber-300 transition hover:text-amber-100"
+          className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
         >
           {t("profilo.leggiTutti")}
         </Link>
@@ -362,20 +364,14 @@ export default function VistaProfilo({
               {iniziale}
             </span>
           )}
-          <h1 className="mt-4 font-scritta text-4xl leading-tight text-amber-100 drop-shadow-md sm:text-5xl">
+          {/* Nome e biografia scritti direttamente sul muro, come lo schizzo. */}
+          <h1 className="scritta-sistema mt-4 break-words font-scritta text-5xl leading-tight sm:text-6xl">
             {p.nickname}
           </h1>
-          {/* Biografia: riquadro di carta con inchiostro nero e contorno ocra
-              (stesso trattamento del testo di presentazione in home). */}
           {p.bio && (
-            <div className="riquadro-leggibile mx-auto mt-4 max-w-md text-left">
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-600">
-                {t("profilo.bioTitolo")}
-              </p>
-              <p className="testo-leggibile mt-2 whitespace-pre-wrap font-scritta text-2xl leading-snug">
-                {p.bio}
-              </p>
-            </div>
+            <p className="scritta-sistema mx-auto mt-3 max-w-md whitespace-pre-wrap text-center font-scritta text-xl leading-snug sm:text-2xl">
+              {p.bio}
+            </p>
           )}
         </header>
 
@@ -431,10 +427,11 @@ export default function VistaProfilo({
         ✏️
       </button>
 
-      {/* Intestazione compatta: foto a sinistra con «Modifica profilo» sotto,
-          username e biografia a lato, centrati verticalmente. */}
-      <header className="flex items-center gap-3 pb-3 pt-6 sm:gap-4 sm:pt-8">
-        <div className="flex shrink-0 flex-col items-center gap-2">
+      {/* Il muro e' il primo livello: l'avatar si incolla sul muro in alto a
+          sinistra col tasto «Modifica profilo» appiccicato sotto; nome e
+          biografia sono scritti direttamente sul muro, al centro. */}
+      <header className="relative pb-2 pt-10 sm:pt-14">
+        <div className="flex w-24 shrink-0 flex-col items-center gap-2">
           <button
             type="button"
             onClick={() => inputFoto.current?.click()}
@@ -471,21 +468,22 @@ export default function VistaProfilo({
           className="hidden"
         />
 
-        {/* pr-14: tengo testo e biografia liberi dalla matita fissa in
-            alto a destra, cosi' nessuna riga le passa sotto. */}
-        <div className="min-w-0 flex-1 pr-14 text-left">
-          <h1 className="truncate font-scritta text-3xl leading-tight text-amber-100 drop-shadow-md sm:text-4xl">
+        {/* Nome e biografia scritti sul muro al centro: il blocco sale di
+            fianco all'avatar con un margine negativo calcolato sulla colonna
+            (foto 80/96px + tasto modifica sotto). */}
+        <div className="-mt-24 text-center sm:-mt-28">
+          <h1 className="scritta-sistema break-words font-scritta text-5xl leading-tight sm:text-6xl">
             {p.nickname}
           </h1>
           {p.bio ? (
-            <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm leading-snug text-stone-300">
+            <p className="scritta-sistema mx-auto mt-2 max-w-md whitespace-pre-wrap font-scritta text-xl leading-snug">
               {p.bio}
             </p>
           ) : (
             <button
               type="button"
               onClick={apriMenu}
-              className="scritta-sistema-cornice mt-1 px-3 py-1 text-xs"
+              className="scritta-sistema-cornice mt-2 px-3 py-1 text-xs"
             >
               {t("profilo.aggiungiBio")}
             </button>
@@ -495,10 +493,8 @@ export default function VistaProfilo({
 
       {(msg || err) && (
         <p
-          className={
-            "text-center text-sm font-semibold " +
-            (err ? "text-red-300" : "text-amber-300")
-          }
+          className="scritta-sistema-cornice mx-auto mt-2 w-fit px-3 py-1 text-xs"
+          style={err ? { color: "#991b1b" } : undefined}
         >
           {err ?? msg}
         </p>
@@ -506,14 +502,14 @@ export default function VistaProfilo({
 
       <section className="mx-auto max-w-md pb-24">
         {mancaMigrazione && (
-          <div className="mt-3 rounded-lg border border-red-300/30 bg-red-950/40 p-4 text-sm text-red-200">
+          <div className="mt-3 rounded-lg border border-red-800 bg-[#fffdf4] p-4 text-sm font-semibold text-red-800">
             {MESSAGGIO_MIGRAZIONE}
           </div>
         )}
 
         {/* I miei post-it. */}
         <div className={card}>
-          <h2 className="font-scritta text-xl text-amber-100">
+          <h2 className="font-scritta text-2xl text-[#1c1917]">
             {t("impost.mieiPostit")}
           </h2>
           {miei.length === 0 ? (
@@ -528,7 +524,7 @@ export default function VistaProfilo({
           {mioTotale > 0 && (
             <Link
               href={`/profilo/${p.id}/postit`}
-              className="mt-4 inline-block text-sm font-semibold text-amber-300 transition hover:text-amber-100"
+              className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
             >
               {t("profilo.leggiTutti")}
             </Link>
@@ -542,7 +538,7 @@ export default function VistaProfilo({
 
         {/* Post-it salvati. */}
         <div className={card}>
-          <h2 className="font-scritta text-xl text-amber-100">
+          <h2 className="font-scritta text-2xl text-[#1c1917]">
             {t("profilo.salvatiTitolo")}
           </h2>
           {salvatiPostit.length === 0 ? (
@@ -559,7 +555,7 @@ export default function VistaProfilo({
           {salvatiPostit.length > 0 && (
             <Link
               href={`/profilo/${p.id}/salvati`}
-              className="mt-4 inline-block text-sm font-semibold text-amber-300 transition hover:text-amber-100"
+              className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
             >
               {t("profilo.leggiTutti")}
             </Link>

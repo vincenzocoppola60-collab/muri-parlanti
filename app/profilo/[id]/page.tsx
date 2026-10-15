@@ -76,10 +76,6 @@ export default async function PaginaProfilo({
       {/* Sfondo del profilo visitato: per chi ha un account e il muro di
           quella persona, altrimenti resta lo sfondo predefinito. */}
       <SfondoMuro id={id} />
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/75 via-stone-900/45 to-stone-950/85"
-      />
 
       <VistaProfilo
         profilo={profilo}

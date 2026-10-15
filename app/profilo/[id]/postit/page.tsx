@@ -47,10 +47,6 @@ export default async function PaginaPostitProfilo({
   return (
     <main className="relative min-h-dvh">
       <SfondoMuro id={id} />
-      <div
-        aria-hidden
-        className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/75 via-stone-900/45 to-stone-950/85"
-      />
 
       <ElencoPaginato
         utenteId={id}
