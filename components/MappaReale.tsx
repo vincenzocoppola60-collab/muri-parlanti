@@ -14,14 +14,14 @@ export type PinMappa = {
 };
 
 /**
- * Tile geografici reali di CARTO Voyager (derivati da OpenStreetMap): stile
- * piatto e colorato con i nomi reali di strade e luoghi, gratuiti e senza
- * chiave API. Una tinta calda via CSS li aggancia all'aspetto pergamena.
+ * Tile geografici reali (strade, indirizzi, luoghi) di OpenStreetMap:
+ * gratuiti e senza chiave API. CARTO Voyager di nuovo richiede la chiave e
+ * serve il segnaposto "API key required" (mappa bianca): resta OSM e la
+ * tinta calda via CSS mantiene l'aspetto dell'app.
  */
-const URL_TILES =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const URL_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTRIBUZIONE =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> i contributori &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> i contributori';
 
 /** Vista di riserva (Napoli) quando non ci sono ancora posizioni. */
 const CENTRO_FALLBACK: L.LatLngTuple = [40.8518, 14.2681];
@@ -194,7 +194,7 @@ function calcolaMinZoom(mappa: L.Map): number {
 }
 
 /**
- * Mappa geografica reale (Leaflet + tile CARTO Voyager di OpenStreetMap):
+ * Mappa geografica reale (Leaflet + tile OpenStreetMap):
  * ogni muro visitato diventa un segnalibre rosso nella sua posizione esatta.
  * Limitata a Napoli e province (Campania): zoom e pan non portano mai fuori.
  * Zoomando in una zona compaiono i suoi luoghi tipici disegnati (chiese,
@@ -252,8 +252,6 @@ export default function MappaReale({
     L.tileLayer(URL_TILES, {
       attribution: ATTRIBUZIONE,
       maxZoom: 19,
-      subdomains: "abcd",
-      detectRetina: true,
     }).addTo(mappa);
 
     // Piano dedicato ai luoghi tipici: sopra i tile, sotto i segnalibri.

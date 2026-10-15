@@ -1217,11 +1217,9 @@ html.editor-aperto body {
   background: #f2e7cc;
   font: inherit;
 }
-/* Tile CARTO Voyager (OpenStreetMap): già colorati e a disegno, con i nomi
-   reali di strade e luoghi. Una tinta calda leggera li aggancia alla
-   pergamena dell'app senza coprirne i colori. */
+/* Tinta sepia sui tile geografici (OSM): dati reali ma colori caldi dell'app */
 .mappa-reale .leaflet-tile-pane {
-  filter: sepia(0.18) saturate(1.15) brightness(1.03) contrast(0.98);
+  filter: sepia(0.32) saturate(0.85) brightness(1.04) contrast(0.96);
 }
 /* Segnalibri rossi: niente cornice bianca di default di Leaflet */
 .mappa-pin,
