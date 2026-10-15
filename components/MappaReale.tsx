@@ -14,13 +14,13 @@ export type PinMappa = {
 };
 
 /**
- * Tile geografici reali (strade, indirizzi, luoghi) di CARTO Voyager su dati
- * OpenStreetMap: una tinta sepia via CSS mantiene l'aspetto caldo dell'app.
+ * Tile geografici reali (strade, indirizzi, luoghi) di OpenStreetMap:
+ * gratuiti e senza chiave API (CARTO ora li blocca servendo un segnaposto
+ * "API key required"). Una tinta sepia via CSS mantiene l'aspetto caldo dell'app.
  */
-const URL_TILES =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const URL_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTRIBUZIONE =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> i contributori';
 
 /** Vista di riserva (Napoli) quando non ci sono ancora posizioni. */
 const CENTRO_FALLBACK: L.LatLngTuple = [40.8518, 14.2681];
