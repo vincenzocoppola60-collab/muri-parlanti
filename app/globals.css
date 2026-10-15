@@ -1207,3 +1207,59 @@ html.editor-aperto body {
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
+
+
+/* ===== Mappa reale (Leaflet) dei muri visitati: dati veri, aspetto pergamena ===== */
+.mappa-reale {
+  isolation: isolate;
+}
+.mappa-reale .leaflet-container {
+  background: #f2e7cc;
+  font: inherit;
+}
+/* Tinta sepia sui tile geografici: dati reali ma colori caldi dell'app */
+.mappa-reale .leaflet-tile-pane {
+  filter: sepia(0.32) saturate(0.85) brightness(1.04) contrast(0.96);
+}
+/* Segnalibri rossi: niente cornice bianca di default di Leaflet */
+.mappa-pin,
+.mappa-pin-attivo {
+  background: transparent;
+  border: none;
+}
+.mappa-pin-attivo svg {
+  filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.55));
+}
+/* Etichetta col nome del muro selezionato: biglietto pergamena */
+.mappa-etichetta {
+  pointer-events: none;
+  background: #fffdf4;
+  color: #4a3b23;
+  border: 1px solid #c9ae7f;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 3px 9px;
+}
+.mappa-etichetta::before {
+  border-top-color: #c9ae7f;
+}
+/* Controlli (zoom + attribuzione) nello stile avorio dell'app */
+.mappa-reale .leaflet-control-zoom a {
+  background: #fef3c7;
+  color: #1c1917;
+  border-color: #c9ae7f;
+}
+.mappa-reale .leaflet-control-zoom a:hover {
+  background: #fde68a;
+}
+.mappa-reale .leaflet-control-attribution {
+  background: rgba(255, 253, 244, 0.85);
+  color: #6d5a35;
+  font-size: 9px;
+  padding: 1px 5px;
+}
+.mappa-reale .leaflet-control-attribution a {
+  color: #7c5f2d;
+}

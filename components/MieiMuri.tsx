@@ -212,12 +212,12 @@ export default function MieiMuri() {
         </Link>
       </div>
 
-      {/* Mappa stilizzata con i segnalibri dei muri visitati */}
+      {/* Mappa reale con i segnalibri dei muri visitati */}
       <div className="mt-4">
         <MappaMieiMuri
           pin={pin}
           selezionato={selezionato}
-          onSelect={(slug) => setSelezionato(slug)}
+          onSelect={gestisciTap}
         />
       </div>
 
