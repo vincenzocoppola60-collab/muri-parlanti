@@ -11,10 +11,11 @@ import { eAmministratore } from "@/lib/admin";
 import { CreditiCompatto } from "@/components/Crediti";
 
 /**
- * Menu a tendina laterale (hamburger in alto a sinistra).
- * Pensato per smartphone: pannello che scorre da sinistra, voci grandi
- * e toccabili, si chiude toccando il velo, il pulsante ✕ o con Esc.
- * Nascosto sulle pagine /qr (devono restare pulite per la stampa).
+ * Menu a tendina laterale (linguetta verticale sul bordo sinistro,
+ * a meta' schermo). Pensato per smartphone: pannello che scorre da
+ * sinistra, voci grandi e toccabili, si chiude toccando il velo, il
+ * pulsante ✕ o con Esc. Nascosto sulle pagine /qr (devono restare
+ * pulite per la stampa).
  */
 export default function MenuLaterale() {
   const pathname = usePathname();
@@ -120,12 +121,17 @@ export default function MenuLaterale() {
 
   return (
     <>
+      {/* Linguetta verticale discreta (al posto dell'hamburger): fissata
+          al bordo sinistro a meta' schermo, apre la sidebar senza spostare
+          il contenuto. Sui telefonini con area di sicurezza laterale (es.
+          in orizzontale con il notch) scivola dentro l'area utile restando
+          sempre attaccata al bordo visibile. */}
       <button
         type="button"
         onClick={() => setAperto(true)}
         aria-label={t("nav.apri")}
         aria-expanded={aperto}
-        className="fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-xl text-amber-100 shadow-lg backdrop-blur transition hover:scale-105 active:scale-95"
+        className="fixed left-[max(0px,env(safe-area-inset-left))] top-1/2 z-50 flex h-20 w-9 -translate-y-1/2 flex-col items-center justify-center rounded-r-full border border-l-0 border-amber-100/25 bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur transition hover:bg-stone-900 active:scale-95"
       >
         <span aria-hidden>☰</span>
       </button>
@@ -134,7 +140,7 @@ export default function MenuLaterale() {
       <div
         aria-hidden
         onClick={chiudi}
-        className={`fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm transition-opacity duration-300 ${
           aperto ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
@@ -142,7 +148,7 @@ export default function MenuLaterale() {
       <aside
         aria-label="Menu principale"
         aria-hidden={!aperto}
-        className={`fixed left-0 top-0 z-50 flex h-dvh w-72 max-w-[82vw] flex-col overflow-y-auto border-r border-amber-100/20 bg-stone-950/95 shadow-2xl backdrop-blur-md transition-transform duration-200 ${
+        className={`fixed left-0 top-0 z-50 flex h-dvh w-72 max-w-[82vw] flex-col overflow-y-auto border-r border-amber-100/20 bg-stone-950/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ${
           aperto ? "translate-x-0" : "-translate-x-full"
         }`}
       >

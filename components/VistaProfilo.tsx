@@ -13,7 +13,6 @@ import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import RitagliaAvatar from "@/components/RitagliaAvatar";
 import EditorMuro from "@/components/EditorMuro";
-import { EVENTO_MURO, urlMuroFirmato } from "@/lib/muriUtente";
 import PostItView from "@/components/PostIt";
 import {
   caricaAvatarBlob,
@@ -182,10 +181,10 @@ export default function VistaProfilo({
   const [nickDraft, setNickDraft] = useState("");
   const [bioDraft, setBioDraft] = useState("");
 
-  // Editor del muro personale (solo proprietario) + anteprima con URL firmato.
+  // Editor del muro personale (solo proprietario). Il muro in se' lo mostra
+  // gia' SfondoMuro come sfondo a tutto schermo della pagina (e si aggiorna
+  // da solo quando l'editor salva): qui serve solo il pulsante che lo apre.
   const [editorMuro, setEditorMuro] = useState(false);
-  const [urlMuro, setUrlMuro] = useState<string | null>(null);
-  const [versioneMuro, setVersioneMuro] = useState(0);
 
   // Avatar.
   const [fileDaRitagliare, setFileDaRitagliare] = useState<File | null>(null);
@@ -212,26 +211,6 @@ export default function VistaProfilo({
       attivo = false;
     };
   }, [proprietario, profilo.id]);
-
-  // Anteprima del muro personale: URL firmato, ricaricato quando l'editor
-  // annuncia un salvataggio (EVENTO_MURO) o cambia il bersaglio.
-  useEffect(() => {
-    if (!proprietario) return;
-    let attivo = true;
-    urlMuroFirmato(profilo.id)
-      .then((u) => attivo && setUrlMuro(u))
-      .catch(() => {});
-    return () => {
-      attivo = false;
-    };
-  }, [proprietario, profilo.id, versioneMuro]);
-
-  useEffect(() => {
-    if (!proprietario) return;
-    const alCambio = () => setVersioneMuro((v) => v + 1);
-    window.addEventListener(EVENTO_MURO, alCambio);
-    return () => window.removeEventListener(EVENTO_MURO, alCambio);
-  }, [proprietario]);
 
   // Chiude il menu di modifica con Escape, come le altre finestre dell'app.
   useEffect(() => {
@@ -434,9 +413,27 @@ export default function VistaProfilo({
   // Vista del proprio profilo (proprietario).
   return (
     <div className="px-4">
+      {/* Matita del muro personale: in alto a destra, appena sotto le icone
+          della barra alta (stesso stile e allineato al suo bordo destro,
+          con le aree di sicurezza rispettate). Apre l'editor esistente; il
+          muro in se' e' gia' lo sfondo della pagina via SfondoMuro. */}
+      <button
+        type="button"
+        onClick={() => {
+          setErr(null);
+          setMsg(null);
+          setEditorMuro(true);
+        }}
+        title={t("muro.personalizzaBreve")}
+        aria-label={t("muro.personalizzaBreve")}
+        className="fixed right-[max(1rem,env(safe-area-inset-right))] top-[calc(max(1rem,env(safe-area-inset-top))+3.5rem)] z-30 flex h-11 w-11 items-center justify-center rounded-full border border-amber-100/25 bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur transition hover:bg-stone-900 active:scale-95"
+      >
+        ✏️
+      </button>
+
       {/* Intestazione compatta: foto a sinistra con «Modifica profilo» sotto,
-          username e biografia a lato. */}
-      <header className="flex items-start gap-4 pb-2 pt-6 sm:pt-8">
+          username e biografia a lato, centrati verticalmente. */}
+      <header className="flex items-center gap-3 pb-3 pt-6 sm:gap-4 sm:pt-8">
         <div className="flex shrink-0 flex-col items-center gap-2">
           <button
             type="button"
@@ -474,7 +471,9 @@ export default function VistaProfilo({
           className="hidden"
         />
 
-        <div className="min-w-0 flex-1 pt-1 text-left">
+        {/* pr-14: tengo testo e biografia liberi dalla matita fissa in
+            alto a destra, cosi' nessuna riga le passa sotto. */}
+        <div className="min-w-0 flex-1 pr-14 text-left">
           <h1 className="truncate font-scritta text-3xl leading-tight text-amber-100 drop-shadow-md sm:text-4xl">
             {p.nickname}
           </h1>
@@ -511,33 +510,6 @@ export default function VistaProfilo({
             {MESSAGGIO_MIGRAZIONE}
           </div>
         )}
-
-        {/* Muro personale: grande anteprima subito sotto l'header, con la
-            matita nell'angolo in alto a destra che apre l'editor esistente. */}
-        <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-100/25 shadow-xl">
-          <div
-            aria-hidden
-            className="aspect-[3/4] w-full bg-cover bg-center"
-            style={{
-              backgroundImage: urlMuro
-                ? `url(${urlMuro})`
-                : "url(/images/brain.webp)",
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setErr(null);
-              setMsg(null);
-              setEditorMuro(true);
-            }}
-            title={t("muro.personalizzaBreve")}
-            aria-label={t("muro.personalizzaBreve")}
-            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur-sm transition hover:bg-stone-900 active:scale-95"
-          >
-            ✏️
-          </button>
-        </div>
 
         {/* I miei post-it. */}
         <div className={card}>
