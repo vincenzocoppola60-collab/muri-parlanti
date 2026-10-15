@@ -316,6 +316,9 @@ const IT: Parole = {
   "profilo.succ": "Successivi",
   "profilo.tornaAlProfilo": "← Torna al profilo",
   "profilo.nienteDaMostrare": "Qui non c’è niente da mostrare.",
+  "profilo.modificaProfilo": "Modifica profilo",
+  "profilo.aggiungiBio": "Aggiungi biografia",
+  "profilo.cambiaFoto": "Cambia foto",
 
   "ritaglia.titolo": "Inquadra la foto",
   "ritaglia.testo":
@@ -694,6 +697,7 @@ const IT: Parole = {
   "muro.sottotitolo":
     "Disegna lo sfondo del tuo muro: resta riservato a chi ha un account.",
   "muro.personalizza": "Personalizza il tuo muro",
+  "muro.personalizzaBreve": "Personalizza muro",
   "muro.notaSfondo": "Il disegno è privato: chi non ha un account non può vederlo.",
   "muro.tela": "Tela da disegno",
   "muro.colore": "Colore",
@@ -998,6 +1002,9 @@ const EN: Parole = {
   "profilo.succ": "Next",
   "profilo.tornaAlProfilo": "← Back to profile",
   "profilo.nienteDaMostrare": "There is nothing to show here.",
+  "profilo.modificaProfilo": "Edit profile",
+  "profilo.aggiungiBio": "Add biography",
+  "profilo.cambiaFoto": "Change photo",
 
   "ritaglia.titolo": "Frame the photo",
   "ritaglia.testo":
@@ -1295,6 +1302,7 @@ const EN: Parole = {
   "muro.sottotitolo":
     "Draw your wall background: it stays visible only to account holders.",
   "muro.personalizza": "Customise your wall",
+  "muro.personalizzaBreve": "Customise wall",
   "muro.notaSfondo":
     "The drawing is private: people without an account cannot see it.",
   "muro.tela": "Drawing sheet",
@@ -1603,6 +1611,9 @@ const ES: Parole = {
   "profilo.succ": "Siguientes",
   "profilo.tornaAlProfilo": "← Volver al perfil",
   "profilo.nienteDaMostrare": "Aquí no hay nada que mostrar.",
+  "profilo.modificaProfilo": "Editar perfil",
+  "profilo.aggiungiBio": "Añadir biografía",
+  "profilo.cambiaFoto": "Cambiar foto",
 
   "ritaglia.titolo": "Encuadra la foto",
   "ritaglia.testo":
@@ -1899,6 +1910,7 @@ const ES: Parole = {
   "muro.sottotitolo":
     "Dibuja el fondo de tu muro: solo lo ven quienes tienen cuenta.",
   "muro.personalizza": "Personaliza tu muro",
+  "muro.personalizzaBreve": "Personalizar muro",
   "muro.notaSfondo":
     "El dibujo es privado: quien no tiene cuenta no puede verlo.",
   "muro.tela": "Hoja de dibujo",
@@ -2207,6 +2219,9 @@ const FR: Parole = {
   "profilo.succ": "Suivants",
   "profilo.tornaAlProfilo": "← Retour au profil",
   "profilo.nienteDaMostrare": "Il n’y a rien à afficher ici.",
+  "profilo.modificaProfilo": "Modifier le profil",
+  "profilo.aggiungiBio": "Ajouter une biographie",
+  "profilo.cambiaFoto": "Changer la photo",
 
   "ritaglia.titolo": "Cadrez la photo",
   "ritaglia.testo":
@@ -2503,6 +2518,7 @@ const FR: Parole = {
   "muro.sottotitolo":
     "Dessine le fond de ton mur : il reste visible aux seuls titulaires d'un compte.",
   "muro.personalizza": "Personnalise ton mur",
+  "muro.personalizzaBreve": "Personnaliser le mur",
   "muro.notaSfondo":
     "Le dessin est privé : les personnes sans compte ne peuvent pas le voir.",
   "muro.tela": "Feuille de dessin",
@@ -2811,6 +2827,9 @@ const DE: Parole = {
   "profilo.succ": "Weiter",
   "profilo.tornaAlProfilo": "← Zurück zum Profil",
   "profilo.nienteDaMostrare": "Hier gibt es nichts zu sehen.",
+  "profilo.modificaProfilo": "Profil bearbeiten",
+  "profilo.aggiungiBio": "Biografie hinzufügen",
+  "profilo.cambiaFoto": "Foto ändern",
 
   "ritaglia.titolo": "Foto ausrichten",
   "ritaglia.testo":
@@ -3107,6 +3126,7 @@ const DE: Parole = {
   "muro.sottotitolo":
     "Zeichne den Hintergrund deiner Wand: er bleibt nur für Kontoinhaber sichtbar.",
   "muro.personalizza": "Wand gestalten",
+  "muro.personalizzaBreve": "Wand gestalten",
   "muro.notaSfondo":
     "Die Zeichnung ist privat: Wer kein Konto hat, kann sie nicht sehen.",
   "muro.tela": "Zeichenblatt",

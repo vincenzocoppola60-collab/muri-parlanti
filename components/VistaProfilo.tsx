@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import RitagliaAvatar from "@/components/RitagliaAvatar";
 import EditorMuro from "@/components/EditorMuro";
+import { EVENTO_MURO, urlMuroFirmato } from "@/lib/muriUtente";
 import PostItView from "@/components/PostIt";
 import {
   caricaAvatarBlob,
@@ -37,7 +38,7 @@ const area =
 const bottone =
   "rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40";
 const card =
-  "mt-6 rounded-xl border border-amber-100/20 bg-stone-900/60 p-5 text-left shadow-xl backdrop-blur-sm";
+  "mt-3 rounded-xl border border-amber-100/20 bg-stone-900/60 p-4 text-left shadow-xl backdrop-blur-sm";
 
 /** Interruttore ON/OFF della bacheca pubblica. */
 function Interruttore({
@@ -176,14 +177,15 @@ export default function VistaProfilo({
   const [mioTotale, setMioTotale] = useState(0);
   const [salvati, setSalvati] = useState<Preferito[]>([]);
 
-  // Editor inline.
-  const [editNick, setEditNick] = useState(false);
+  // Menu unico di modifica profilo (foto, username, bio).
+  const [menuAperto, setMenuAperto] = useState(false);
   const [nickDraft, setNickDraft] = useState("");
-  const [editBio, setEditBio] = useState(false);
   const [bioDraft, setBioDraft] = useState("");
 
-  // Editor del muro personale (solo proprietario).
+  // Editor del muro personale (solo proprietario) + anteprima con URL firmato.
   const [editorMuro, setEditorMuro] = useState(false);
+  const [urlMuro, setUrlMuro] = useState<string | null>(null);
+  const [versioneMuro, setVersioneMuro] = useState(0);
 
   // Avatar.
   const [fileDaRitagliare, setFileDaRitagliare] = useState<File | null>(null);
@@ -210,6 +212,36 @@ export default function VistaProfilo({
       attivo = false;
     };
   }, [proprietario, profilo.id]);
+
+  // Anteprima del muro personale: URL firmato, ricaricato quando l'editor
+  // annuncia un salvataggio (EVENTO_MURO) o cambia il bersaglio.
+  useEffect(() => {
+    if (!proprietario) return;
+    let attivo = true;
+    urlMuroFirmato(profilo.id)
+      .then((u) => attivo && setUrlMuro(u))
+      .catch(() => {});
+    return () => {
+      attivo = false;
+    };
+  }, [proprietario, profilo.id, versioneMuro]);
+
+  useEffect(() => {
+    if (!proprietario) return;
+    const alCambio = () => setVersioneMuro((v) => v + 1);
+    window.addEventListener(EVENTO_MURO, alCambio);
+    return () => window.removeEventListener(EVENTO_MURO, alCambio);
+  }, [proprietario]);
+
+  // Chiude il menu di modifica con Escape, come le altre finestre dell'app.
+  useEffect(() => {
+    if (!menuAperto) return;
+    const alTasto = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuAperto(false);
+    };
+    window.addEventListener("keydown", alTasto);
+    return () => window.removeEventListener("keydown", alTasto);
+  }, [menuAperto]);
 
   const avatar = urlAvatar(p);
   const iniziale = p.nickname.trim().charAt(0).toUpperCase() || "?";
@@ -243,14 +275,26 @@ export default function VistaProfilo({
     return false;
   }
 
+  function apriMenu() {
+    setNickDraft(p.nickname);
+    setBioDraft(p.bio ?? "");
+    setErr(null);
+    setMsg(null);
+    setMenuAperto(true);
+  }
+
+  function chiudiMenu() {
+    setMenuAperto(false);
+  }
+
   async function salvaNick() {
     const ok = await salva({ nickname: nickDraft });
-    if (ok) setEditNick(false);
+    if (ok) chiudiMenu();
   }
 
   async function salvaBio() {
     const ok = await salva({ bio: bioDraft });
-    if (ok) setEditBio(false);
+    if (ok) chiudiMenu();
   }
 
   function cambiaFoto(evento: ChangeEvent<HTMLInputElement>) {
@@ -259,6 +303,8 @@ export default function VistaProfilo({
     if (!file) return;
     setErr(null);
     setMsg(null);
+    // Il ritaglio (z-50) deve stare sopra tutto: chiudiamo il menu prima.
+    chiudiMenu();
     setFileDaRitagliare(file);
   }
 
@@ -388,30 +434,38 @@ export default function VistaProfilo({
   // Vista del proprio profilo (proprietario).
   return (
     <div className="px-4">
-      <header className="pb-2 pt-10 text-center sm:pt-14">
-        <button
-          type="button"
-          onClick={() => inputFoto.current?.click()}
-          disabled={caricandoAvatar}
-          aria-label={t("profilo.cliccaFoto")}
-          className="mx-auto mt-4 block disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatar}
-              alt={t("profilo.fotoAlt", { nome: p.nickname })}
-              className="h-24 w-24 rounded-full object-cover shadow-xl ring-2 ring-amber-300/60 transition hover:opacity-80"
-            />
-          ) : (
-            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-300 font-scritta text-4xl font-bold text-stone-900 shadow-xl transition hover:opacity-80">
-              {iniziale}
-            </span>
-          )}
-        </button>
-        <p className="scritta-sistema-cornice mt-3 px-3 py-1 text-xs">
-          {t("profilo.cliccaFoto")}
-        </p>
+      {/* Intestazione compatta: foto a sinistra con «Modifica profilo» sotto,
+          username e biografia a lato. */}
+      <header className="flex items-start gap-4 pb-2 pt-6 sm:pt-8">
+        <div className="flex shrink-0 flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={() => inputFoto.current?.click()}
+            disabled={caricandoAvatar}
+            aria-label={t("profilo.cliccaFoto")}
+            className="disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt={t("profilo.fotoAlt", { nome: p.nickname })}
+                className="h-20 w-20 rounded-full object-cover shadow-xl ring-2 ring-amber-300/60 transition hover:opacity-80 sm:h-24 sm:w-24"
+              />
+            ) : (
+              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-300 font-scritta text-4xl font-bold text-stone-900 shadow-xl transition hover:opacity-80 sm:h-24 sm:w-24">
+                {iniziale}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={apriMenu}
+            className="scritta-sistema-cornice px-3 py-1 text-xs"
+          >
+            {t("profilo.modificaProfilo")}
+          </button>
+        </div>
         <input
           ref={inputFoto}
           type="file"
@@ -420,140 +474,56 @@ export default function VistaProfilo({
           className="hidden"
         />
 
-        {/* Username/nome mostrato + tasto Modifica. */}
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <h1 className="font-scritta text-4xl leading-tight text-amber-100 drop-shadow-md sm:text-5xl">
+        <div className="min-w-0 flex-1 pt-1 text-left">
+          <h1 className="truncate font-scritta text-3xl leading-tight text-amber-100 drop-shadow-md sm:text-4xl">
             {p.nickname}
           </h1>
-          <button
-            type="button"
-            onClick={() => {
-              setNickDraft(p.nickname);
-              setEditNick(true);
-              setMsg(null);
-              setErr(null);
-            }}
-            className="shrink-0 rounded-full border border-amber-100/30 px-3 py-1 text-xs font-semibold text-amber-100 transition hover:bg-stone-950/60"
-          >
-            {t("profilo.modifica")}
-          </button>
-        </div>
-
-        {editNick && (
-          <div className="mx-auto mt-3 max-w-md rounded-xl border border-amber-100/25 bg-stone-900/70 p-4 text-left">
-            <label
-              htmlFor="nickEdit"
-              className="block text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70"
+          {p.bio ? (
+            <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm leading-snug text-stone-300">
+              {p.bio}
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={apriMenu}
+              className="scritta-sistema-cornice mt-1 px-3 py-1 text-xs"
             >
-              {t("impost.nomePost")}
-            </label>
-            <input
-              id="nickEdit"
-              type="text"
-              value={nickDraft}
-              onChange={(e) => setNickDraft(e.target.value)}
-              maxLength={MAX_NICK_PROFILO}
-              className={campo + " mt-2"}
-            />
-            <div className="mt-3 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setEditNick(false)}
-                className="rounded-full px-3 py-2 text-xs font-semibold text-stone-300 transition hover:bg-stone-950/60"
-              >
-                {t("comune.chiudi")}
-              </button>
-              <button
-                type="button"
-                onClick={salvaNick}
-                disabled={salvando}
-                className={bottone}
-              >
-                {t("profilo.aggiorna")}
-              </button>
-            </div>
+              {t("profilo.aggiungiBio")}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {(msg || err) && (
+        <p
+          className={
+            "text-center text-sm font-semibold " +
+            (err ? "text-red-300" : "text-amber-300")
+          }
+        >
+          {err ?? msg}
+        </p>
+      )}
+
+      <section className="mx-auto max-w-md pb-24">
+        {mancaMigrazione && (
+          <div className="mt-3 rounded-lg border border-red-300/30 bg-red-950/40 p-4 text-sm text-red-200">
+            {MESSAGGIO_MIGRAZIONE}
           </div>
         )}
 
-        {/* Cornice biografia. */}
-        <div className="mx-auto mt-4 max-w-md rounded-xl border border-amber-100/25 bg-stone-900/60 px-5 py-4 text-left shadow-lg backdrop-blur-sm">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70">
-            {t("profilo.bioTitolo")}
-          </p>
-          {editBio ? (
-            <>
-              <textarea
-                value={bioDraft}
-                onChange={(e) => setBioDraft(e.target.value)}
-                maxLength={MAX_BIO}
-                rows={3}
-                placeholder={t("impost.bioPh")}
-                className={area + " mt-2"}
-              />
-              <div className="mt-3 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditBio(false)}
-                  className="rounded-full px-3 py-2 text-xs font-semibold text-stone-300 transition hover:bg-stone-950/60"
-                >
-                  {t("comune.chiudi")}
-                </button>
-                <button
-                  type="button"
-                  onClick={salvaBio}
-                  disabled={salvando}
-                  className={bottone}
-                >
-                  {t("profilo.aggiorna")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {p.bio ? (
-                <p className="mt-2 whitespace-pre-wrap font-scritta text-2xl leading-snug text-amber-100">
-                  {p.bio}
-                </p>
-              ) : (
-                <p className="mt-2 text-sm text-stone-500">
-                  {t("impost.bioPh")}
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={() => {
-                  setBioDraft(p.bio ?? "");
-                  setEditBio(true);
-                  setMsg(null);
-                  setErr(null);
-                }}
-                className="mt-3 rounded-full border border-amber-100/30 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-stone-950/60"
-              >
-                {p.bio ? t("profilo.aggiornaBio") : t("profilo.scriviBio")}
-              </button>
-            </>
-          )}
-        </div>
-
-        {(msg || err) && (
-          <p
-            className={
-              "mt-3 text-center text-sm font-semibold " +
-              (err ? "text-red-300" : "text-amber-300")
-            }
-          >
-            {err ?? msg}
-          </p>
-        )}
-      </header>
-
-      <section className="mx-auto max-w-md pb-24">
-        {/* Muro personale: solo il proprietario puo' disegnarlo. */}
-        <div className={card}>
-          <h2 className="font-scritta text-xl text-amber-100">
-            {t("muro.titolo")}
-          </h2>
-          <p className="mt-2 text-sm text-stone-400">{t("muro.sottotitolo")}</p>
+        {/* Muro personale: grande anteprima subito sotto l'header, con la
+            matita nell'angolo in alto a destra che apre l'editor esistente. */}
+        <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-100/25 shadow-xl">
+          <div
+            aria-hidden
+            className="aspect-[3/4] w-full bg-cover bg-center"
+            style={{
+              backgroundImage: urlMuro
+                ? `url(${urlMuro})`
+                : "url(/images/brain.webp)",
+            }}
+          />
           <button
             type="button"
             onClick={() => {
@@ -561,20 +531,13 @@ export default function VistaProfilo({
               setMsg(null);
               setEditorMuro(true);
             }}
-            className={bottone + " mt-4"}
+            title={t("muro.personalizzaBreve")}
+            aria-label={t("muro.personalizzaBreve")}
+            className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-stone-950/70 text-lg text-amber-100 shadow-lg backdrop-blur-sm transition hover:bg-stone-900 active:scale-95"
           >
-            {t("muro.personalizza")}
+            ✏️
           </button>
-          <p className="mt-3 text-xs leading-snug text-stone-500">
-            {t("muro.notaSfondo")}
-          </p>
         </div>
-
-        {mancaMigrazione && (
-          <div className="mt-4 rounded-lg border border-red-300/30 bg-red-950/40 p-4 text-sm text-red-200">
-            {MESSAGGIO_MIGRAZIONE}
-          </div>
-        )}
 
         {/* I miei post-it. */}
         <div className={card}>
@@ -636,6 +599,106 @@ export default function VistaProfilo({
           />
         </div>
       </section>
+
+      {/* Menu unico di modifica profilo: foto, username e bio. */}
+      {menuAperto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={chiudiMenu}
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-stone-950/70 p-4 backdrop-blur-sm sm:items-center sm:p-6"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-amber-100/25 bg-stone-900 p-5 text-left shadow-2xl"
+          >
+            <h2 className="font-scritta text-2xl text-amber-100">
+              {t("profilo.modificaProfilo")}
+            </h2>
+
+            {/* Foto: tocca per scegliere l'immagine. */}
+            <button
+              type="button"
+              onClick={() => inputFoto.current?.click()}
+              disabled={caricandoAvatar}
+              className="mx-auto mt-4 block disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatar}
+                  alt={t("profilo.fotoAlt", { nome: p.nickname })}
+                  className="h-20 w-20 rounded-full object-cover shadow-xl ring-2 ring-amber-300/60 transition hover:opacity-80"
+                />
+              ) : (
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-300 font-scritta text-3xl font-bold text-stone-900 shadow-xl transition hover:opacity-80">
+                  {iniziale}
+                </span>
+              )}
+            </button>
+            <p className="mt-2 text-center text-xs text-stone-400">
+              {t("profilo.cambiaFoto")}
+            </p>
+
+            {/* Username. */}
+            <label
+              htmlFor="nickMenu"
+              className="mt-4 block text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70"
+            >
+              {t("impost.nomePost")}
+            </label>
+            <input
+              id="nickMenu"
+              type="text"
+              value={nickDraft}
+              onChange={(e) => setNickDraft(e.target.value)}
+              maxLength={MAX_NICK_PROFILO}
+              className={campo + " mt-2"}
+            />
+            <button
+              type="button"
+              onClick={salvaNick}
+              disabled={salvando}
+              className={bottone + " mt-2 w-full"}
+            >
+              {t("profilo.aggiorna")}
+            </button>
+
+            {/* Biografia. */}
+            <label
+              htmlFor="bioMenu"
+              className="mt-4 block text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200/70"
+            >
+              {t("profilo.bioTitolo")}
+            </label>
+            <textarea
+              id="bioMenu"
+              value={bioDraft}
+              onChange={(e) => setBioDraft(e.target.value)}
+              maxLength={MAX_BIO}
+              rows={3}
+              placeholder={t("impost.bioPh")}
+              className={area + " mt-2"}
+            />
+            <button
+              type="button"
+              onClick={salvaBio}
+              disabled={salvando}
+              className={bottone + " mt-2 w-full"}
+            >
+              {t("profilo.aggiorna")}
+            </button>
+
+            <button
+              type="button"
+              onClick={chiudiMenu}
+              className="mt-4 w-full rounded-full px-3 py-2 text-sm font-semibold text-stone-300 transition hover:bg-stone-950/60"
+            >
+              {t("comune.chiudi")}
+            </button>
+          </div>
+        </div>
+      )}
 
       {fileDaRitagliare && (
         <RitagliaAvatar
