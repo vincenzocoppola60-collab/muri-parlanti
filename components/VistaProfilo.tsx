@@ -6,6 +6,7 @@ import {
   useState,
   useSyncExternalStore,
   type ChangeEvent,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,10 +37,7 @@ const area =
   "w-full resize-none rounded-2xl border border-stone-600 bg-stone-950/60 px-4 py-2 text-base text-amber-50 outline-none placeholder:text-stone-500 focus:border-amber-300";
 const bottone =
   "rounded-full bg-amber-300 px-4 py-2 text-sm font-bold text-stone-900 shadow-lg transition hover:scale-[1.03] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40";
-/* Foglio di carta bianco appuntato sul muro: niente piu' cornici scure su
-   un velo scuro, il muro stesso e' il primo livello e tutto ci sta sopra. */
-const card =
-  "mt-3 rounded-lg border border-[#c9ae7f] bg-[#fffdf4] p-4 text-left shadow-xl";
+
 
 /** Interruttore ON/OFF della bacheca pubblica. */
 function Interruttore({
@@ -55,7 +53,7 @@ function Interruttore({
 }) {
   return (
     <div className="mt-4 flex items-center justify-between gap-3">
-      <span className="text-xs font-semibold leading-snug text-[#4a3b23]">{etichetta}</span>
+      <span className="scritta-sistema text-xs leading-snug">{etichetta}</span>
       <div className="flex shrink-0 items-center gap-2">
         <span
           className={
@@ -89,42 +87,150 @@ function Interruttore({
   );
 }
 
-/** Cornice di un elenco con anteprima e link alla schermata dedicata. */
+/** Finestra di ZOOM sul gruppo: gli stessi post-it avvicinati, pronti da
+    leggere uno a uno con le azioni che avevano gia' (il link "leggi tutti"
+    resta qui dentro). Entra e esce con una transizione fluida, senza
+    animazioni continue. */
+function ZoomGruppo({
+  titolo,
+  postit,
+  totale,
+  href,
+  onChiudi,
+}: {
+  titolo: string;
+  postit: PostIt[];
+  totale: number;
+  href: string;
+  onChiudi: () => void;
+}) {
+  const { t } = useLingua();
+  const [visibile, setVisibile] = useState(false);
+  // Un solo fotogramma dopo il mount: la classe "visibile" fa scattare la
+  // transizione CSS da piccolo/trasparente a formato pieno.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setVisibile(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onChiudi}
+      className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-stone-950/75 p-4 backdrop-blur-sm"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={
+          "w-full max-w-md rounded-2xl border border-amber-100/25 bg-stone-900 p-5 shadow-2xl transition-all duration-300 " +
+          (visibile ? "scale-100 opacity-100" : "scale-75 opacity-0")
+        }
+      >
+        <h3 className="font-scritta text-2xl text-amber-100">{titolo}</h3>
+        <div className="mt-3 grid grid-cols-3 items-start gap-2.5">
+          {postit.map((p) => (
+            <PostItView key={p.id} postit={p} />
+          ))}
+        </div>
+        {totale > 0 && (
+          <Link
+            href={href}
+            className="mt-4 inline-block font-scritta text-lg font-bold text-amber-300 transition hover:text-amber-100"
+          >
+            {t("profilo.leggiTutti")}
+          </Link>
+        )}
+        <button
+          type="button"
+          onClick={onChiudi}
+          className="mt-2 w-full rounded-full px-3 py-2 text-sm font-semibold text-stone-300 transition hover:bg-stone-950/60"
+        >
+          {t("comune.chiudi")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Gruppo di post-it APPESI DIRETTAMENTE AL MURO: niente scheda-contenitore,
+ * solo il titolo scritto sulla parete e il mucchio di fogli con rotazioni
+ * leggere e nastro adesivo. Un tocco sul gruppo apre lo ZOOM che avvicina i
+ * post-it per esplorarli e leggerli (le azioni di ogni singolo post-it
+ * restano quelle esistenti, dentro la finestra di zoom).
+ * `salvati` distingue visivamente la zona dei post-it salvati (cuoricino e
+ * nastro rosa) da quella dei pubblicati.
+ */
 function CorniceElenco({
   titolo,
   postit,
   totale,
   href,
   vuoto,
+  salvati,
+  comandi,
 }: {
   titolo: string;
   postit: PostIt[];
   totale: number;
   href: string;
   vuoto: string;
+  salvati?: boolean;
+  comandi?: ReactNode;
 }) {
   const { t } = useLingua();
+  const [zoom, setZoom] = useState(false);
   return (
-    <div className={card}>
-      <h2 className="font-scritta text-2xl text-[#1c1917]">{titolo}</h2>
+    <section className="mt-8">
+      <h2 className="scritta-sistema font-scritta text-2xl leading-tight">
+        {titolo}
+        {salvati && <span aria-hidden> ❤️</span>}
+      </h2>
       {postit.length === 0 ? (
-        <p className="mt-2 text-sm text-stone-400">{vuoto}</p>
+        <p className="scritta-sistema mt-2 text-sm">{vuoto}</p>
       ) : (
-        <div className="mt-3 grid grid-cols-3 items-start gap-2.5">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={titolo}
+          onClick={() => setZoom(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setZoom(true);
+            }
+          }}
+          className={
+            "gruppo-postit mt-3 grid w-full cursor-zoom-in grid-cols-3 items-start gap-2.5 focus:outline-none " +
+            (salvati ? "gruppo-salvati" : "")
+          }
+        >
           {postit.slice(0, 5).map((p) => (
-            <PostItView key={p.id} postit={p} />
+            <div key={p.id} className="postit-appeso">
+              <PostItView postit={p} />
+            </div>
           ))}
         </div>
       )}
-      {totale > 0 && (
+      {totale > 0 && postit.length > 0 && (
         <Link
           href={href}
-          className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
+          className="scritta-sistema mt-3 inline-block font-scritta text-lg font-bold"
         >
           {t("profilo.leggiTutti")}
         </Link>
       )}
-    </div>
+      {comandi}
+      {zoom && postit.length > 0 && (
+        <ZoomGruppo
+          titolo={titolo}
+          postit={postit.slice(0, 5)}
+          totale={totale}
+          href={href}
+          onChiudi={() => setZoom(false)}
+        />
+      )}
+    </section>
   );
 }
 
@@ -507,65 +613,38 @@ export default function VistaProfilo({
           </div>
         )}
 
-        {/* I miei post-it. */}
-        <div className={card}>
-          <h2 className="font-scritta text-2xl text-[#1c1917]">
-            {t("impost.mieiPostit")}
-          </h2>
-          {miei.length === 0 ? (
-            <p className="mt-2 text-sm text-stone-400">{t("profiloPub.vuoto")}</p>
-          ) : (
-            <div className="mt-3 grid grid-cols-3 items-start gap-2.5">
-              {miei.slice(0, 5).map((postit) => (
-                <PostItView key={postit.id} postit={postit} />
-              ))}
-            </div>
-          )}
-          {mioTotale > 0 && (
-            <Link
-              href={`/profilo/${p.id}/postit`}
-              className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
-            >
-              {t("profilo.leggiTutti")}
-            </Link>
-          )}
-          <Interruttore
-            attivo={mostraPostit}
-            onCambia={alternaPostit}
-            etichetta={t("profilo.togglePostit")}
-          />
-        </div>
+        {/* I miei post-it: mucchio appeso al muro, zoom al tocco. */}
+        <CorniceElenco
+          titolo={t("impost.mieiPostit")}
+          postit={miei}
+          totale={mioTotale}
+          href={`/profilo/${p.id}/postit`}
+          vuoto={t("profiloPub.vuoto")}
+          comandi={
+            <Interruttore
+              attivo={mostraPostit}
+              onCambia={alternaPostit}
+              etichetta={t("profilo.togglePostit")}
+            />
+          }
+        />
 
-        {/* Post-it salvati. */}
-        <div className={card}>
-          <h2 className="font-scritta text-2xl text-[#1c1917]">
-            {t("profilo.salvatiTitolo")}
-          </h2>
-          {salvatiPostit.length === 0 ? (
-            <p className="mt-2 text-sm text-stone-400">
-              {t("profilo.nienteDaMostrare")}
-            </p>
-          ) : (
-            <div className="mt-3 grid grid-cols-3 items-start gap-2.5">
-              {salvatiPostit.slice(0, 5).map((postit) => (
-                <PostItView key={postit.id} postit={postit} />
-              ))}
-            </div>
-          )}
-          {salvatiPostit.length > 0 && (
-            <Link
-              href={`/profilo/${p.id}/salvati`}
-              className="mt-4 inline-block font-scritta text-lg font-bold text-amber-600 transition hover:text-amber-800"
-            >
-              {t("profilo.leggiTutti")}
-            </Link>
-          )}
-          <Interruttore
-            attivo={mostraSalvati}
-            onCambia={alternaSalvati}
-            etichetta={t("profilo.toggleSalvati")}
-          />
-        </div>
+        {/* Post-it salvati: stessa parete, zona riconoscibile col cuoricino. */}
+        <CorniceElenco
+          titolo={t("profilo.salvatiTitolo")}
+          postit={salvatiPostit}
+          totale={salvatiPostit.length}
+          href={`/profilo/${p.id}/salvati`}
+          vuoto={t("profilo.nienteDaMostrare")}
+          salvati
+          comandi={
+            <Interruttore
+              attivo={mostraSalvati}
+              onCambia={alternaSalvati}
+              etichetta={t("profilo.toggleSalvati")}
+            />
+          }
+        />
       </section>
 
       {/* Menu unico di modifica profilo: foto, username e bio. */}
