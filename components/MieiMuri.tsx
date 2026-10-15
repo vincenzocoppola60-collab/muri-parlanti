@@ -255,7 +255,7 @@ export default function MieiMuri() {
                   🧱
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-scritta text-lg leading-tight text-amber-100">
+                  <span className="block break-words font-scritta text-lg leading-tight text-amber-100">
                     {m.nome}
                   </span>
                   <span className="mt-0.5 block truncate text-[11px] text-stone-400">
