@@ -18,7 +18,7 @@ export default function PaginaMieiMuri() {
         className="fixed inset-0 -z-10 bg-gradient-to-b from-stone-950/80 via-stone-900/55 to-stone-950/90"
       />
 
-      <header className="px-4 pb-2 pt-10 text-center sm:pt-14">
+      <header className="sotto-barra-alta px-4 pb-2 text-center">
         <Link
           href="/"
           className="scritta-sistema mb-3 inline-block text-[11px] uppercase tracking-[0.25em] hover:underline"

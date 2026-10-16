@@ -151,7 +151,7 @@ const IT: Parole = {
   "muro.zoomAllontana": "Allontana",
   "muro.tornaIndietro": "Torna indietro",
   "muro.suggerimento":
-    "Trascina il muro per girarlo, pizzica o usa la rotella per lo zoom. Tocca una zona per avvicinarti.",
+    "Tocca un’area del muro per sfogliare i post-it.",
   "editor.titolo": "Il tuo pensiero",
   "editor.placeholder": "Scrivi il tuo pensiero per questo muro...",
   "editor.firma": "Nome con cui firmi il pensiero",
@@ -845,7 +845,7 @@ const EN: Parole = {
   "muro.zoomAllontana": "Zoom out",
   "muro.tornaIndietro": "Go back",
   "muro.suggerimento":
-    "Drag to move around the wall, pinch or scroll to zoom. Tap a zone to get closer.",
+    "Tap an area of the wall to browse the notes.",
   "editor.titolo": "Your thought",
   "editor.placeholder": "Write your thought for this wall...",
   "editor.firma": "Name you sign the thought with",
@@ -1458,7 +1458,7 @@ const ES: Parole = {
   "muro.zoomAllontana": "Alejar",
   "muro.tornaIndietro": "Volver atrás",
   "muro.suggerimento":
-    "Arrastra para recorrer la pared, pellizca o usa la rueda para hacer zoom. Toca una zona para acercarte.",
+    "Toca un área de la pared para hojear los post-it.",
   "editor.titolo": "Tu pensamiento",
   "editor.placeholder": "Escribe tu pensamiento para este muro...",
   "editor.firma": "Nombre con el que firmas el pensamiento",
@@ -2072,7 +2072,7 @@ const FR: Parole = {
   "muro.zoomAllontana": "Dézoomer",
   "muro.tornaIndietro": "Revenir en arrière",
   "muro.suggerimento":
-    "Fais glisser pour te déplacer sur le mur, pince ou utilise la molette pour zoomer. Touche une zone pour t'approcher.",
+    "Touche une zone du mur pour feuilleter les post-it.",
   "editor.titolo": "Votre pensée",
   "editor.placeholder": "Écrivez votre pensée pour ce mur...",
   "editor.firma": "Nom avec lequel vous signez la pensée",
@@ -2686,7 +2686,7 @@ const DE: Parole = {
   "muro.zoomAllontana": "Verkleinern",
   "muro.tornaIndietro": "Zurück",
   "muro.suggerimento":
-    "Ziehe die Wand, um dich umzusehen, zoome mit zwei Fingern oder dem Mausrad. Tippe auf eine Zone, um näherzukommen.",
+    "Tippe auf einen Bereich der Wand, um die Zettel durchzublättern.",
   "editor.titolo": "Dein Gedanke",
   "editor.placeholder": "Schreibe deinen Gedanken für diese Wand...",
   "editor.firma": "Name, mit dem du den Gedanken unterschreibst",

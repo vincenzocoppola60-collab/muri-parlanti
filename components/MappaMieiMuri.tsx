@@ -9,7 +9,7 @@ export type { PinMappa };
 const MappaReale = dynamic(() => import("./MappaReale"), {
   ssr: false,
   loading: () => (
-    <div className="aspect-[4/3] w-full animate-pulse rounded-xl border border-amber-100/25 bg-stone-900/60" />
+    <div className="aspect-[16/9] w-full animate-pulse rounded-xl border border-amber-100/25 bg-stone-900/60 sm:aspect-[4/3]" />
   ),
 });
 

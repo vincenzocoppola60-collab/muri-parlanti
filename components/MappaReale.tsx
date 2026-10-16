@@ -363,7 +363,7 @@ export default function MappaReale({
     <div className="mappa-reale relative overflow-hidden rounded-xl border border-amber-100/25 shadow-inner">
       <div
         ref={contenitoreRef}
-        className="aspect-[4/3] w-full"
+        className="aspect-[16/9] w-full sm:aspect-[4/3]"
         role="img"
         aria-label={t("muri.titolo")}
       />

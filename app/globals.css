@@ -98,16 +98,16 @@ html[data-tema="disegnato"] body {
 }
 
 /* Il muro disegnato sostituisce brain.webp: nasconde foto e velo scuro.
-   La regola vale per gli SFONDI di pagina; il muro esplorabile del profilo
-   (.muro-superficie) e' escluso: usa la stessa carta predefinita ma e' la
-   parete vera e propria, quindi deve restare visibile in ogni tema. */
-html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-superficie) {
+   La regola vale per gli SFONDI di pagina; la parete del muro esplorabile
+   (.muro-parete, components/MuroEsplorabile.tsx) e' esclusa: e' la parete
+   vera e propria del profilo, quindi deve restare visibile in ogni tema. */
+html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-parete) {
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
 }
 
-html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-superficie) + div[aria-hidden] {
+html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-parete) + div[aria-hidden] {
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
@@ -184,6 +184,37 @@ html.anteprima-admin .font-scritta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  /* Il riquadro della barra e' "trasparente" ai tocchi: solo i pulsanti
+     catturano il tap, cosi' non ruba i click alle schede che scorrono sotto. */
+  pointer-events: none;
+  /* Scendendo con la pagina la barra si ritira (vedi --nascosta) e risale
+     appena si torna a scorrere verso l'alto: non copre mai i pulsanti del
+     contenuto, ma resta sempre a portata di dito. */
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+  will-change: transform, opacity;
+}
+.barra-alta > * {
+  pointer-events: auto;
+}
+
+/* Barra ritirata: esce verso l'alto (oltre la safe area) restando nel DOM,
+   poi rientra risalendo. Niente tocchi quando e' fuori schermo. */
+.barra-alta--nascosta {
+  transform: translateY(calc(-100% - max(1rem, env(safe-area-inset-top))));
+  opacity: 0;
+  pointer-events: none;
+}
+.barra-alta--nascosta > * {
+  pointer-events: none;
+}
+
+/* Spazio riservato in cima al contenuto quando c'e' la barra fissa: tiene
+   conto della safe area del telefono e dell'altezza della barra, cosi' titoli,
+   mappa e pulsanti non finiscono mai sotto le icone. */
+.sotto-barra-alta {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 4.75rem);
 }
 
 ::selection {
@@ -1220,6 +1251,15 @@ html.editor-aperto body {
   background: #f2e7cc;
   font: inherit;
 }
+/* Gesti sulla mappa: lo scorrimento verticale resta alla pagina (pan-y),
+   cosi' il dito sulla mappa non blocca la lettura. Il trascinamento laterale
+   resta a Leaflet e i marker restano cliccabili (il tap non e' un pan).
+   Specificita' piu' alta di .leaflet-container.leaflet-touch-drag. */
+.mappa-reale .leaflet-container.leaflet-touch-drag,
+.mappa-reale .leaflet-container.leaflet-touch-zoom,
+.mappa-reale .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+  touch-action: pan-y;
+}
 /* Tinta sepia sui tile geografici (OSM): dati reali ma colori caldi dell'app */
 .mappa-reale .leaflet-tile-pane {
   filter: sepia(0.32) saturate(0.85) brightness(1.04) contrast(0.96);
@@ -1294,79 +1334,422 @@ html.editor-aperto body {
   padding: 2px 7px;
 }
 
-/* ── Muro esplorabile (VistaProfilo) ──────────────────────────────────
-   La parete e' una superficie spaziale continua: una "camera" la trascina
-   e la ingrandisce con un'unica trasformazione, quindi niente salti ne'
-   riposizionamenti improvvisi. I controlli restano FISSI fuori dalla
-   parete; le zone si riconoscono dalla targa col titolo, i fogli sono
-   appesi con leggere rotazioni e ombre delicate. */
-.muro-vista {
-  position: relative;
-  width: 100%;
-  height: 100dvh;
+
+/* ============================================================
+   MURO ESPLORABILE (components/MuroEsplorabile.tsx)
+   ------------------------------------------------------------
+   La parete non e' una pagina: e' un AMBIENTE. Riempie lo schermo,
+   resta ferma e non si trascina. Una sola "camera" (una trasformazione
+   sul livello .muro-livello) avvicina la parete al punto dove vive il
+   gruppo toccato e poi la riporta indietro identica.
+   Livelli: parete -> panorama (profilo + due gruppi) -> vista del
+   gruppo (fogli a pagine) -> lettura del singolo foglio.
+   I colori vengono dalle variabili del tema (stone/amber), cosi' il
+   muro segue sia il tema scuro predefinito sia il tema "disegnato".
+   ============================================================ */
+
+/* La scena: occupa tutto lo schermo, non scorre e non rimbalza. */
+.muro-scena {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  cursor: grab;
-  background: #1c1917;
+  background: var(--color-stone-950);
   overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.muro-vista:active {
-  cursor: grabbing;
-}
-/* Prima che la camera sia pronta la parete resta invisibile. */
-.muro-vista.muro-attesa .muro-superficie {
-  visibility: hidden;
-}
-.muro-superficie {
+
+/* Il livello mosso dalla camera: parete + panorama insieme.
+   `transform-origin: 0 0` e' obbligatorio: la camera calcola lo
+   spostamento in pixel assumendo l'origine nell'angolo in alto a
+   sinistra del livello. */
+.muro-livello {
   position: absolute;
-  left: 0;
-  top: 0;
+  inset: 0;
   transform-origin: 0 0;
   will-change: transform;
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* La parete: il disegno dell'utente, sempre contenuto nello schermo. */
+.muro-parete {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-radius: 4px;
-  box-shadow: 0 0 48px rgba(0, 0, 0, 0.45);
 }
-.muro-zona {
+/* Velo leggerissimo sui bordi: alza il contrasto dei testi sulla parete
+   senza coprire il disegno originale. */
+.muro-parete::after {
+  content: "";
   position: absolute;
-  cursor: pointer;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    130% 90% at 50% 45%,
+    rgba(12, 10, 9, 0) 45%,
+    rgba(12, 10, 9, 0.28) 100%
+  );
 }
-.muro-insegna {
+
+/* Il panorama: profilo e gruppi scritti DIRETTAMENTE sulla parete. */
+.muro-panorama {
   position: absolute;
-  top: 0;
+  inset: 0;
+  transition: opacity 320ms ease;
+}
+/* Entrando in un gruppo il panorama si ritira e resta la sola parete:
+   la camera sta gia' portando quella zona al centro dello schermo. */
+.muro-panorama-indietro {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Intestazione: foto, nome, bio come elementi appesi al muro. */
+.muro-testa {
+  position: absolute;
   left: 50%;
+  top: clamp(4.5rem, 11vh, 7.5rem);
   transform: translateX(-50%);
+  width: min(92%, 42rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+}
+
+/* ── I GRUPPI: punti fisici della parete, non schede ────────────────
+   Un'area tracciata a mano (bordo irregolare, tratteggio) con sopra
+   l'insegna col titolo e sotto le miniature dei fogli appesi.
+
+   La POSIZIONE sta qui e non in uno stile in linea, cosi' il @media per la
+   parete stretta puo' impilare i due gruppi. Le stesse coordinate esistono in
+   PUNTO_GRUPPO / PUNTO_GRUPPO_STRETTO nel componente, con lo stesso punto di
+   rottura di 640px: se cambia una, va cambiata anche l'altra. */
+.muro-zona-miei {
+  left: 32%;
+  top: 64%;
+}
+.muro-zona-salvati {
+  left: 68%;
+  top: 64%;
+}
+
+/* Parete stretta: affiancati i due gruppi si sovrapporrebbero (misurato su
+   390px: l'area «salvati» invadeva quella «miei» di 82px e usciva dallo
+   schermo). Impilati restano due punti distinti e riconoscibili. */
+@media (max-width: 639px) {
+  .muro-zona-miei {
+    left: 50%;
+    top: 44%;
+  }
+  .muro-zona-salvati {
+    left: 50%;
+    top: 74%;
+  }
+}
+
+.muro-gruppo {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: min(72vw, 22rem);
+  padding: 1.55rem 0.9rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px dashed color-mix(in oklab, var(--color-amber-100) 45%, transparent);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background: color-mix(in oklab, var(--color-stone-950) 18%, transparent);
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    scale 0.25s ease;
+}
+@media (hover: hover) {
+  .muro-gruppo:hover {
+    background: color-mix(in oklab, var(--color-stone-950) 34%, transparent);
+    border-color: color-mix(in oklab, var(--color-amber-100) 80%, transparent);
+    scale: 1.02;
+  }
+}
+.muro-gruppo:active {
+  scale: 0.98;
+}
+.muro-gruppo-salvati {
+  border-color: color-mix(in oklab, #fb7185 55%, transparent);
+}
+.muro-gruppo-vuoto {
+  cursor: default;
+  opacity: 0.65;
+  border-style: dotted;
+}
+.muro-gruppo-vuoto-testo {
+  max-width: 12rem;
+  padding: 0.25rem 0 0.35rem;
+}
+
+/* L'insegna col titolo del gruppo: biglietto scuro appoggiato sul
+   bordo superiore dell'area tracciata. */
+.muro-insegna {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.45rem;
   max-width: 100%;
-  padding: 4px 12px;
-  background: rgba(28, 25, 23, 0.78);
-  color: #fef3c7;
-  border: 1px solid rgba(254, 243, 199, 0.35);
+  margin-top: -1.5rem;
+  padding: 0.2rem 0.7rem;
+  background: color-mix(in oklab, var(--color-stone-950) 82%, transparent);
+  color: var(--color-amber-100);
+  border: 1px solid color-mix(in oklab, var(--color-amber-100) 45%, transparent);
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   white-space: nowrap;
 }
-.muro-zona-salvati .muro-insegna {
-  border-color: rgba(253, 164, 175, 0.55);
+.muro-gruppo-salvati .muro-insegna {
+  border-color: color-mix(in oklab, #fb7185 60%, transparent);
 }
-.muro-slotto {
+
+/* Miniature dei fogli dentro il gruppo: due per riga sul telefono,
+   quattro in fila su schermi larghi. Sono solo un ricordo della zona. */
+.muro-mini {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.4rem;
+}
+.muro-mini-foglio {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 2px;
+  rotate: var(--rot, 0deg);
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+}
+/* Il foglio vero viene disegnato a larghezza reale e rimpicciolito:
+   le miniature restano identiche ai post-it grandi. */
+.muro-mini-foglio > .postit {
+  --rot: 0deg;
   position: absolute;
-  cursor: pointer;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.28));
+  left: 0;
+  top: 0;
+  width: 190px;
+  transform: scale(0.2526);
+  transform-origin: 0 0;
+  pointer-events: none;
 }
+@media (min-width: 640px) {
+  .muro-mini {
+    grid-template-columns: repeat(4, auto);
+    gap: 0.625rem;
+  }
+  .muro-mini-foglio {
+    width: 64px;
+    height: 64px;
+  }
+  .muro-mini-foglio > .postit {
+    transform: scale(0.3368);
+  }
+}
+
+/* Suggerimento in fondo alla panoramica (.scritta-sistema da' il colore). */
 .muro-suggerimento {
   position: absolute;
   left: 50%;
-  bottom: 22px;
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   width: max-content;
   max-width: 92%;
   text-align: center;
-  color: #57534e;
+}
+
+/* ── VISTA DEL GRUPPO: i fogli appesi al muro, sfogliabili a pagine ── */
+.muro-gruppo-vista {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 4.75rem)
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    calc(env(safe-area-inset-bottom, 0px) + 0.85rem)
+    max(0.75rem, env(safe-area-inset-left, 0px));
+  animation: muro-avvicina 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Barra dei comandi del gruppo: pillola discreta, sopra i fogli. */
+.muro-gruppo-testa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.35rem 0.55rem;
+  background: color-mix(in oklab, var(--color-stone-950) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-amber-100) 28%, transparent);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+.muro-gruppo-titolo {
+  min-width: 0;
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-amber-100);
+}
+
+/* Corpo: i fogli, centrati nella zona verso cui la camera si e' mossa. */
+.muro-gruppo-corpo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0.25rem 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Griglia dei fogli: 2 colonne x 2 righe per pagina. Il distacco minimo e'
+   1.1rem: un foglio e' INCLINATO, quindi il suo riquadro ruotato sborda di
+   qualche pixel oltre la cella e con un distacco piu' stretto i fogli di due
+   righe finivano per toccarsi (misurato: 12px di distacco, 3px di
+   sovrapposizione reale). */
+.muro-griglia {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.1rem, 3vw, 2.25rem);
+  width: min(100%, 40rem);
+  animation: muro-avvicina 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Un foglio appeso: inclinazione fissa e deterministica, ombra propria. */
+.muro-griglia-foglio {
+  rotate: var(--rot, 0deg);
+  transition:
+    rotate 0.2s ease,
+    scale 0.2s ease,
+    box-shadow 0.2s ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.32));
+  cursor: pointer;
+}
+.muro-griglia-foglio > .postit {
+  --rot: 0deg;
+}
+@media (hover: hover) {
+  .muro-griglia-foglio:hover {
+    rotate: 0deg;
+    scale: 1.02;
+  }
+}
+.muro-griglia-foglio:active {
+  scale: 0.985;
+}
+.muro-griglia-foglio:focus-visible,
+.muro-gruppo:focus-visible,
+.muro-lettura button:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 4px;
+}
+
+/* Comandi di pagina, in basso, centrati e discreti. Restano su UNA riga
+   (`white-space: nowrap` e ritocchi di misura sul telefono): prima su 360px
+   andavano a capo e la barra diventava alta 70px con «Pagina 1 di» / «10»
+   spezzato in due. */
+.muro-gruppo-pagine {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.3rem 0.5rem;
+  background: color-mix(in oklab, var(--color-stone-950) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-amber-100) 28%, transparent);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+.muro-gruppo-pagine span {
+  color: var(--color-amber-100);
+}
+
+/* ── LETTURA DEL SINGOLO FOGLIO ────────────────────────────────────── */
+.muro-lettura {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: color-mix(in oklab, var(--color-stone-950) 78%, transparent);
+  backdrop-filter: blur(4px);
+  animation: muro-avvicina 260ms ease both;
+}
+.muro-lettura-foglio {
+  width: min(92vw, 22rem);
+  max-height: 72vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* ── Animazioni ────────────────────────────────────────────────────── */
+@keyframes muro-avvicina {
+  from {
+    opacity: 0;
+    scale: 1.05;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Su una parete stretta l'inclinazione dimezzata: il riquadro ruotato sborda
+   meno e i fogli non si sfiorano piu' tra le righe. Sta PRIMA del blocco
+   prefers-reduced-motion, che deve poter azzerare del tutto la rotazione. */
+@media (max-width: 639px) {
+  .muro-griglia-foglio {
+    rotate: calc(var(--rot, 0deg) * 0.5);
+  }
+}
+
+/* Chi preferisce meno animazioni: i livelli restano, spariscono i movimenti. */
+@media (prefers-reduced-motion: reduce) {
+  .muro-livello,
+  .muro-panorama {
+    transition: none;
+  }
+  .muro-gruppo-vista,
+  .muro-griglia,
+  .muro-lettura {
+    animation: none;
+  }
+  .muro-gruppo,
+  .muro-griglia-foglio,
+  .muro-mini-foglio {
+    transition: none;
+  }
+  .muro-griglia-foglio,
+  .muro-mini-foglio {
+    rotate: 0deg;
+  }
 }

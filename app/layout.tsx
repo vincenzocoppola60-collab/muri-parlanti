@@ -32,9 +32,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import MenuLaterale from "@/components/MenuLaterale";
-import SelettoreLingua from "@/components/SelettoreLingua";
-import TastoHome from "@/components/TastoHome";
-import CampanellaNotifiche from "@/components/CampanellaNotifiche";
+import BarraAlta from "@/components/BarraAlta";
 import RegistraServiceWorker from "@/components/RegistraServiceWorker";
 import IntroApp from "@/components/IntroApp";
 import AnteprimaAdmin from "@/components/AnteprimaAdmin";
@@ -272,11 +270,7 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <MenuLaterale />
-            <div className="barra-alta">
-              <CampanellaNotifiche />
-              <TastoHome />
-              <SelettoreLingua />
-            </div>
+            <BarraAlta />
             {children}
             <RegistraServiceWorker />
             <AnteprimaAdmin />

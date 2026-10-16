@@ -28,6 +28,10 @@ const PER_PAGINA = 6;
 /** Finestra (ms) entro cui due tap sullo stesso muro valgono doppio tap. */
 const FINESTRA_DOPPIO_TAP = 300;
 
+/** Riquadro della scheda, condiviso da scheda vera e cella-segnaposto. */
+const CLASSI_SCHEDA =
+  "flex h-full w-full items-start gap-2 rounded-xl border px-2.5 py-2.5 text-left";
+
 export default function MieiMuri() {
   const { t } = useLingua();
   const { utente, caricamento } = useAuth();
@@ -154,6 +158,17 @@ export default function MieiMuri() {
     paginaCorrente * PER_PAGINA + PER_PAGINA
   );
 
+  // Celle sempre in numero fisso quando c'è più di una pagina: quelle vuote
+  // (segnaposto invisibili) tengono la griglia alta uguale, così cambiare
+  // pagina non sposta la posizione di lettura né le frecce.
+  const celle = useMemo<(MuroVisibile | null)[]>(() => {
+    const elenco: (MuroVisibile | null)[] = [...inPagina];
+    if (pagine > 1) {
+      while (elenco.length < PER_PAGINA) elenco.push(null);
+    }
+    return elenco;
+  }, [inPagina, pagine]);
+
   /**
    * Un tap seleziona il muro e lo mostra sulla mappa; due tap ravvicinati
    * sullo stesso muro lo aprono. Se il secondo tap arriva su un altro muro
@@ -221,28 +236,17 @@ export default function MieiMuri() {
         />
       </div>
 
-      {/* Nomi dei muri: griglia 2x3 con frecce ai lati (nessuno scroll) */}
-      <div className="mt-4 flex items-center gap-2">
-        {pagine > 1 && (
-          <button
-            type="button"
-            onClick={() => setPagina((p) => Math.max(0, p - 1))}
-            disabled={paginaCorrente === 0}
-            aria-label={t("muri.paginaPrecedente")}
-            className="flex-none rounded-full bg-amber-300/90 px-3 py-4 text-xl font-bold leading-none text-stone-900 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ‹
-          </button>
-        )}
-
-        <ul className="grid min-w-0 flex-1 grid-cols-2 gap-2">
-          {inPagina.map((m) => (
-            <li key={m.slug}>
+      {/* Nomi dei muri: una colonna su schermi stretti, due quando c'è spazio.
+          Le celle vuote (invisibili) mantengono la stessa altezza tra le pagine. */}
+      <ul className="mt-4 grid auto-rows-fr grid-cols-1 gap-2 min-[480px]:grid-cols-2">
+        {celle.map((m, i) => (
+          <li key={m ? m.slug : `vuoto-${i}`} className="min-w-0">
+            {m ? (
               <button
                 type="button"
                 onClick={() => gestisciTap(m.slug)}
                 aria-pressed={selezionato === m.slug}
-                className={`flex w-full items-center gap-2 rounded-xl border px-2.5 py-2.5 text-left transition ${
+                className={`${CLASSI_SCHEDA} ${
                   selezionato === m.slug
                     ? "border-amber-300/80 bg-amber-300/10"
                     : "border-amber-100/15 bg-stone-950/40 hover:border-amber-100/50 hover:bg-stone-950/70"
@@ -254,33 +258,70 @@ export default function MieiMuri() {
                 >
                   🧱
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block break-words font-scritta text-lg leading-tight text-amber-100">
+                <span className="flex min-w-0 flex-1 flex-col">
+                  {/* Il nome va a capo solo tra le parole e ha spazio per due
+                      righe; una parola più lunga della scheda viene spezzata
+                      per non sfondare il riquadro. */}
+                  <span className="block min-h-[2.5em] break-words font-scritta text-lg leading-tight text-amber-100">
                     {m.nome}
                   </span>
-                  <span className="mt-0.5 block truncate text-[11px] text-stone-400">
+                  {/* Fino a due righe prima del troncamento: niente frammenti
+                      tipo «Dal tuo…». */}
+                  <span className="mt-1 block line-clamp-2 text-[11px] leading-snug text-stone-400">
                     {m.locale
                       ? t("muri.suQuestoTelefono")
                       : t("muri.dalTuAccount")}
                   </span>
                 </span>
               </button>
-            </li>
-          ))}
-        </ul>
+            ) : (
+              <div
+                aria-hidden
+                className={`${CLASSI_SCHEDA} invisible border-transparent`}
+              >
+                <span className="h-9 w-9 flex-none rounded-lg" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="block min-h-[2.5em] font-scritta text-lg leading-tight">
+                    &nbsp;
+                  </span>
+                  <span className="mt-1 block text-[11px] leading-snug">
+                    &nbsp;
+                  </span>
+                </span>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
 
-        {pagine > 1 && (
+      {/* Frecce sotto la griglia, centrate: non rubano spazio alle schede e
+          restano sempre raggiungibili. L'altezza fissa delle celle fa sì che
+          cambiare pagina non sposti la lettura. */}
+      {pagine > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setPagina((p) => Math.max(0, p - 1))}
+            disabled={paginaCorrente === 0}
+            aria-label={t("muri.paginaPrecedente")}
+            className="rounded-full bg-amber-300/90 px-4 py-2 text-xl leading-none text-stone-900 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ‹
+          </button>
+          <span className="scritta-sistema tabular-nums text-xs text-stone-300">
+            {paginaCorrente + 1} / {pagine}
+          </span>
           <button
             type="button"
             onClick={() => setPagina((p) => Math.min(pagine - 1, p + 1))}
             disabled={paginaCorrente >= pagine - 1}
             aria-label={t("muri.paginaSuccessiva")}
-            className="flex-none rounded-full bg-amber-300/90 px-3 py-4 text-xl font-bold leading-none text-stone-900 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+            className="rounded-full bg-amber-300/90 px-4 py-2 text-xl leading-none text-stone-900 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             ›
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
