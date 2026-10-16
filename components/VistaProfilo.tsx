@@ -6,15 +6,13 @@ import {
   useState,
   useSyncExternalStore,
   type ChangeEvent,
-  type ReactNode,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLingua } from "@/lib/i18n";
 import RitagliaAvatar from "@/components/RitagliaAvatar";
 import EditorMuro from "@/components/EditorMuro";
-import PostItView from "@/components/PostIt";
+import MuroEsplorabile, { type ZonaMuro } from "@/components/MuroEsplorabile";
 import {
   caricaAvatarBlob,
   caricaMieiPostit,
@@ -52,7 +50,7 @@ function Interruttore({
   etichetta: string;
 }) {
   return (
-    <div className="mt-4 flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3">
       <span className="scritta-sistema text-xs leading-snug">{etichetta}</span>
       <div className="flex shrink-0 items-center gap-2">
         <span
@@ -87,164 +85,21 @@ function Interruttore({
   );
 }
 
-/** Finestra di ZOOM sul gruppo: gli stessi post-it avvicinati, pronti da
-    leggere uno a uno con le azioni che avevano gia' (il link "leggi tutti"
-    resta qui dentro). Entra e esce con una transizione fluida, senza
-    animazioni continue. */
-function ZoomGruppo({
-  titolo,
-  postit,
-  totale,
-  href,
-  onChiudi,
-}: {
-  titolo: string;
-  postit: PostIt[];
-  totale: number;
-  href: string;
-  onChiudi: () => void;
-}) {
-  const { t } = useLingua();
-  const [visibile, setVisibile] = useState(false);
-  // Un solo fotogramma dopo il mount: la classe "visibile" fa scattare la
-  // transizione CSS da piccolo/trasparente a formato pieno.
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setVisibile(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      onClick={onChiudi}
-      className="fixed inset-0 z-[55] flex items-start justify-center overflow-y-auto bg-stone-950/75 p-4 backdrop-blur-sm"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={
-          "w-full max-w-md rounded-2xl border border-amber-100/25 bg-stone-900 p-5 shadow-2xl transition-all duration-300 " +
-          (visibile ? "scale-100 opacity-100" : "scale-75 opacity-0")
-        }
-      >
-        <h3 className="font-scritta text-2xl text-amber-100">{titolo}</h3>
-        <div className="mt-3 grid grid-cols-3 items-start gap-2.5">
-          {postit.map((p) => (
-            <PostItView key={p.id} postit={p} />
-          ))}
-        </div>
-        {totale > 0 && (
-          <Link
-            href={href}
-            className="mt-4 inline-block font-scritta text-lg font-bold text-amber-300 transition hover:text-amber-100"
-          >
-            {t("profilo.leggiTutti")}
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={onChiudi}
-          className="mt-2 w-full rounded-full px-3 py-2 text-sm font-semibold text-stone-300 transition hover:bg-stone-950/60"
-        >
-          {t("comune.chiudi")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Gruppo di post-it APPESI DIRETTAMENTE AL MURO: niente scheda-contenitore,
- * solo il titolo scritto sulla parete e il mucchio di fogli con rotazioni
- * leggere e nastro adesivo. Un tocco sul gruppo apre lo ZOOM che avvicina i
- * post-it per esplorarli e leggerli (le azioni di ogni singolo post-it
- * restano quelle esistenti, dentro la finestra di zoom).
- * `salvati` distingue visivamente la zona dei post-it salvati (cuoricino e
- * nastro rosa) da quella dei pubblicati.
- */
-function CorniceElenco({
-  titolo,
-  postit,
-  totale,
-  href,
-  vuoto,
-  salvati,
-  comandi,
-}: {
-  titolo: string;
-  postit: PostIt[];
-  totale: number;
-  href: string;
-  vuoto: string;
-  salvati?: boolean;
-  comandi?: ReactNode;
-}) {
-  const { t } = useLingua();
-  const [zoom, setZoom] = useState(false);
-  return (
-    <section className="mt-8">
-      <h2 className="scritta-sistema font-scritta text-2xl leading-tight">
-        {titolo}
-        {salvati && <span aria-hidden> ❤️</span>}
-      </h2>
-      {postit.length === 0 ? (
-        <p className="scritta-sistema mt-2 text-sm">{vuoto}</p>
-      ) : (
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={titolo}
-          onClick={() => setZoom(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setZoom(true);
-            }
-          }}
-          className={
-            "gruppo-postit mt-3 grid w-full cursor-zoom-in grid-cols-3 items-start gap-2.5 focus:outline-none " +
-            (salvati ? "gruppo-salvati" : "")
-          }
-        >
-          {postit.slice(0, 5).map((p) => (
-            <div key={p.id} className="postit-appeso">
-              <PostItView postit={p} />
-            </div>
-          ))}
-        </div>
-      )}
-      {totale > 0 && postit.length > 0 && (
-        <Link
-          href={href}
-          className="scritta-sistema mt-3 inline-block font-scritta text-lg font-bold"
-        >
-          {t("profilo.leggiTutti")}
-        </Link>
-      )}
-      {comandi}
-      {zoom && postit.length > 0 && (
-        <ZoomGruppo
-          titolo={titolo}
-          postit={postit.slice(0, 5)}
-          totale={totale}
-          href={href}
-          onChiudi={() => setZoom(false)}
-        />
-      )}
-    </section>
-  );
-}
-
 /**
  * Vista del profilo /profilo/[id], condivisa tra PROPRIETARIO e VISITATORE.
  *
+ * Tutto il profilo vive su un MURO ESPLORABILE (MuroEsplorabile): una parete
+ * spaziale che si trascina e si ingrandisce, mostrata per intero all'apertura
+ * con nome, biografia e le due zone di post-it distribuite sulla parete.
+ *
  * Prima del mount disegna la vista pubblica (identica a quella del server, per
  * non avere divergenze di idratazione); subito dopo, se l'account collegato e'
- * il proprietario, passa alla vista di gestione: foto cliccabile, username con
- * "Modifica", bio con "Aggiorna/Scrivi", le card "I miei post-it" e "Post-it
- * salvati" con i rispettivi interruttori ON/OFF della bacheca pubblica.
+ * il proprietario, passa alla vista di gestione: foto cliccabile scritta sulla
+ * parete, tasto "Modifica profilo" sulla parete, gli interruttori ON/OFF della
+ * bacheca pubblica resi FISSI fuori dal muro e il matita che apre l'editor.
  *
  * Il VISITATORE vede solo cio' che gli interruttori lasciano visibile: quando
- * un elenco e' spento, la sua cornice NON compare affatto (nessun segnaposto
+ * una zona e' spenta, NON compare affatto sulla parete (nessun segnaposto
  * tipo "profilo privato").
  */
 export default function VistaProfilo({
@@ -453,68 +308,75 @@ export default function VistaProfilo({
     creato_il: s.creato_il,
   }));
 
+  // Zone della parete. Per il proprietario entrambe esistono sempre (sono i
+  // suoi interruttori a decidere cosa vedono gli altri); per il visitatore
+  // solo quelle lasciate visibili, e mai zone vuote (nessun segnaposto).
+  const zoneProprietario: ZonaMuro[] = [
+    {
+      chiave: "miei",
+      titolo: t("impost.mieiPostit"),
+      postit: miei,
+      totale: mioTotale,
+      href: `/profilo/${p.id}/postit`,
+      vuoto: t("profiloPub.vuoto"),
+    },
+    {
+      chiave: "salvati",
+      titolo: t("profilo.salvatiTitolo"),
+      postit: salvatiPostit,
+      totale: salvatiPostit.length,
+      href: `/profilo/${p.id}/salvati`,
+      vuoto: t("profilo.nienteDaMostrare"),
+      salvati: true,
+    },
+  ];
+
+  const zoneVisitatore: ZonaMuro[] = [];
+  if (mostraPostit && totalePostit > 0) {
+    zoneVisitatore.push({
+      chiave: "miei",
+      titolo: t("profilo.elencoMiei", { nome: p.nickname }),
+      postit: postitPreview,
+      totale: totalePostit,
+      href: `/profilo/${p.id}/postit`,
+      vuoto: t("profiloPub.vuoto"),
+    });
+  }
+  if (mostraSalvati && totaleSalvati > 0) {
+    zoneVisitatore.push({
+      chiave: "salvati",
+      titolo: t("profilo.elencoSalvati", { nome: p.nickname }),
+      postit: salvatiPreview.map((s) => ({
+        id: s.id,
+        testo: s.testo,
+        nickname: s.nickname,
+        luogo: s.luogo,
+        creato_il: s.creato_il,
+      })),
+      totale: totaleSalvati,
+      href: `/profilo/${p.id}/salvati`,
+      vuoto: t("profilo.nienteDaMostrare"),
+      salvati: true,
+    });
+  }
+
   // In attesa di sapere chi sta guardando: vista pubblica.
   if (!proprietario) {
     return (
-      <div className="px-4">
-        <header className="pb-2 pt-10 text-center sm:pt-14">
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatar}
-              alt={t("profilo.fotoAlt", { nome: p.nickname })}
-              className="mx-auto mt-4 h-24 w-24 rounded-full object-cover shadow-xl ring-2 ring-amber-300/60"
-            />
-          ) : (
-            <span className="mx-auto mt-4 flex h-24 w-24 items-center justify-center rounded-full bg-amber-300 font-scritta text-4xl font-bold text-stone-900 shadow-xl">
-              {iniziale}
-            </span>
-          )}
-          {/* Nome e biografia scritti direttamente sul muro, come lo schizzo. */}
-          <h1 className="scritta-sistema mt-4 break-words font-scritta text-5xl leading-tight sm:text-6xl">
-            {p.nickname}
-          </h1>
-          {p.bio && (
-            <p className="scritta-sistema mx-auto mt-3 max-w-md whitespace-pre-wrap text-center font-scritta text-xl leading-snug sm:text-2xl">
-              {p.bio}
-            </p>
-          )}
-        </header>
-
-        <div className="mx-auto max-w-md pb-24">
-          {/* Al visitatore non mostriamo cornici vuote: niente segnaposto. */}
-          {mostraPostit && totalePostit > 0 && (
-            <CorniceElenco
-              titolo={t("profilo.elencoMiei", { nome: p.nickname })}
-              postit={postitPreview}
-              totale={totalePostit}
-              href={`/profilo/${p.id}/postit`}
-              vuoto={t("profiloPub.vuoto")}
-            />
-          )}
-          {mostraSalvati && totaleSalvati > 0 && (
-            <CorniceElenco
-              titolo={t("profilo.elencoSalvati", { nome: p.nickname })}
-              postit={salvatiPreview.map((s) => ({
-                id: s.id,
-                testo: s.testo,
-                nickname: s.nickname,
-                luogo: s.luogo,
-                creato_il: s.creato_il,
-              }))}
-              totale={totaleSalvati}
-              href={`/profilo/${p.id}/salvati`}
-              vuoto={t("profilo.nienteDaMostrare")}
-            />
-          )}
-        </div>
-      </div>
+      <MuroEsplorabile
+        idMuro={p.id}
+        nickname={p.nickname}
+        bio={p.bio}
+        avatar={avatar}
+        altFoto={t("profilo.fotoAlt", { nome: p.nickname })}
+        zone={zoneVisitatore}
+      />
     );
   }
 
   // Vista del proprio profilo (proprietario).
   return (
-    <div className="px-4">
+    <>
       {/* Matita del muro personale: in alto a destra, appena sotto le icone
           della barra alta (stesso stile e allineato al suo bordo destro,
           con le aree di sicurezza rispettate). Apre l'editor esistente; il
@@ -533,119 +395,75 @@ export default function VistaProfilo({
         ✏️
       </button>
 
-      {/* Il muro e' il primo livello: l'avatar si incolla sul muro in alto a
-          sinistra col tasto «Modifica profilo» appiccicato sotto; nome e
-          biografia sono scritti direttamente sul muro, al centro. */}
-      <header className="relative pb-2 pt-10 sm:pt-14">
-        <div className="flex w-24 shrink-0 flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={() => inputFoto.current?.click()}
-            disabled={caricandoAvatar}
-            aria-label={t("profilo.cliccaFoto")}
-            className="disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatar}
-                alt={t("profilo.fotoAlt", { nome: p.nickname })}
-                className="h-20 w-20 rounded-full object-cover shadow-xl ring-2 ring-amber-300/60 transition hover:opacity-80 sm:h-24 sm:w-24"
-              />
-            ) : (
-              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-300 font-scritta text-4xl font-bold text-stone-900 shadow-xl transition hover:opacity-80 sm:h-24 sm:w-24">
-                {iniziale}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={apriMenu}
-            className="scritta-sistema-cornice px-3 py-1 text-xs"
-          >
-            {t("profilo.modificaProfilo")}
-          </button>
-        </div>
-        <input
-          ref={inputFoto}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          onChange={cambiaFoto}
-          className="hidden"
-        />
-
-        {/* Nome e biografia scritti sul muro al centro: il blocco sale di
-            fianco all'avatar con un margine negativo calcolato sulla colonna
-            (foto 80/96px + tasto modifica sotto). */}
-        <div className="-mt-24 text-center sm:-mt-28">
-          <h1 className="scritta-sistema break-words font-scritta text-5xl leading-tight sm:text-6xl">
-            {p.nickname}
-          </h1>
-          {p.bio ? (
-            <p className="scritta-sistema mx-auto mt-2 max-w-md whitespace-pre-wrap font-scritta text-xl leading-snug">
-              {p.bio}
-            </p>
-          ) : (
+      {/* L'input nascosto della foto resta qui: l'avatar sulla parete (gestito
+          da MuroEsplorabile) lo attiva. Tutto il resto della vista e' il muro
+          esplorabile: parete, nome, bio, zone di post-it e interruttori FISSI
+          fuori dalla parete. */}
+      <input
+        ref={inputFoto}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={cambiaFoto}
+        className="hidden"
+      />
+      <MuroEsplorabile
+        idMuro={p.id}
+        nickname={p.nickname}
+        bio={p.bio}
+        avatar={avatar}
+        altFoto={t("profilo.fotoAlt", { nome: p.nickname })}
+        onAvatar={() => inputFoto.current?.click()}
+        sottoAvatar={
+          <>
             <button
               type="button"
               onClick={apriMenu}
-              className="scritta-sistema-cornice mt-2 px-3 py-1 text-xs"
+              className="scritta-sistema-cornice px-3 py-1 text-xs"
             >
-              {t("profilo.aggiungiBio")}
+              {t("profilo.modificaProfilo")}
             </button>
-          )}
-        </div>
-      </header>
-
-      {(msg || err) && (
-        <p
-          className="scritta-sistema-cornice mx-auto mt-2 w-fit px-3 py-1 text-xs"
-          style={err ? { color: "#991b1b" } : undefined}
-        >
-          {err ?? msg}
-        </p>
-      )}
-
-      <section className="mx-auto max-w-md pb-24">
-        {mancaMigrazione && (
-          <div className="mt-3 rounded-lg border border-red-800 bg-[#fffdf4] p-4 text-sm font-semibold text-red-800">
-            {MESSAGGIO_MIGRAZIONE}
-          </div>
-        )}
-
-        {/* I miei post-it: mucchio appeso al muro, zoom al tocco. */}
-        <CorniceElenco
-          titolo={t("impost.mieiPostit")}
-          postit={miei}
-          totale={mioTotale}
-          href={`/profilo/${p.id}/postit`}
-          vuoto={t("profiloPub.vuoto")}
-          comandi={
+            {!p.bio && (
+              <button
+                type="button"
+                onClick={apriMenu}
+                className="scritta-sistema-cornice px-3 py-1 text-xs"
+              >
+                {t("profilo.aggiungiBio")}
+              </button>
+            )}
+          </>
+        }
+        zone={zoneProprietario}
+        comandiFissi={
+          <div className="flex flex-col gap-3">
+            {mancaMigrazione && (
+              <p className="rounded-lg border border-red-800 bg-[#fffdf4] p-2 text-[11px] font-semibold leading-snug text-red-800">
+                {MESSAGGIO_MIGRAZIONE}
+              </p>
+            )}
             <Interruttore
               attivo={mostraPostit}
               onCambia={alternaPostit}
               etichetta={t("profilo.togglePostit")}
             />
-          }
-        />
-
-        {/* Post-it salvati: stessa parete, zona riconoscibile col cuoricino. */}
-        <CorniceElenco
-          titolo={t("profilo.salvatiTitolo")}
-          postit={salvatiPostit}
-          totale={salvatiPostit.length}
-          href={`/profilo/${p.id}/salvati`}
-          vuoto={t("profilo.nienteDaMostrare")}
-          salvati
-          comandi={
             <Interruttore
               attivo={mostraSalvati}
               onCambia={alternaSalvati}
               etichetta={t("profilo.toggleSalvati")}
             />
-          }
-        />
-      </section>
+          </div>
+        }
+      />
+
+      {/* Messaggi: pillola FISSA in alto al centro, non si muove col muro. */}
+      {(msg || err) && (
+        <p
+          className="scritta-sistema-cornice fixed left-1/2 top-[calc(max(1rem,env(safe-area-inset-top))+3.75rem)] z-40 w-max max-w-[86vw] -translate-x-1/2 px-3 py-1 text-center text-xs"
+          style={err ? { color: "#991b1b" } : undefined}
+        >
+          {err ?? msg}
+        </p>
+      )}
 
       {/* Menu unico di modifica profilo: foto, username e bio. */}
       {menuAperto && (
@@ -763,6 +581,6 @@ export default function VistaProfilo({
       )}
 
       {caricamento && null}
-    </div>
+    </>
   );
 }

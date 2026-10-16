@@ -97,14 +97,17 @@ html[data-tema="disegnato"] body {
   color: #2c261f;
 }
 
-/* Il muro disegnato sostituisce brain.webp: nasconde foto e velo scuro. */
-html[data-tema="disegnato"] [style*="brain.webp"] {
+/* Il muro disegnato sostituisce brain.webp: nasconde foto e velo scuro.
+   La regola vale per gli SFONDI di pagina; il muro esplorabile del profilo
+   (.muro-superficie) e' escluso: usa la stessa carta predefinita ma e' la
+   parete vera e propria, quindi deve restare visibile in ogni tema. */
+html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-superficie) {
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
 }
 
-html[data-tema="disegnato"] [style*="brain.webp"] + div[aria-hidden] {
+html[data-tema="disegnato"] [style*="brain.webp"]:not(.muro-superficie) + div[aria-hidden] {
   background-image: none !important;
   background-color: transparent !important;
   opacity: 0 !important;
@@ -1289,35 +1292,81 @@ html.editor-aperto body {
   font-size: 11px;
   line-height: 1.25;
   padding: 2px 7px;
-}/* ── Gruppi di post-it appesi al muro (VistaProfilo) ─────────────────────
-   Niente schede-contenitore: il mucchio sta direttamente sulla parete,
-   con rotazioni leggere e un nastro adesivo su ogni foglio. La zona dei
-   salvati si distingue col cuoricino nel titolo e il nastro rosa. */
-.gruppo-postit .postit-appeso {
+}
+
+/* ── Muro esplorabile (VistaProfilo) ──────────────────────────────────
+   La parete e' una superficie spaziale continua: una "camera" la trascina
+   e la ingrandisce con un'unica trasformazione, quindi niente salti ne'
+   riposizionamenti improvvisi. I controlli restano FISSI fuori dalla
+   parete; le zone si riconoscono dalla targa col titolo, i fogli sono
+   appesi con leggere rotazioni e ombre delicate. */
+.muro-vista {
   position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  background: #1c1917;
+  overscroll-behavior: none;
 }
-.gruppo-postit .postit-appeso:nth-child(3n + 1) {
-  transform: rotate(-2.5deg);
+.muro-vista:active {
+  cursor: grabbing;
 }
-.gruppo-postit .postit-appeso:nth-child(3n + 2) {
-  transform: rotate(1.8deg);
+/* Prima che la camera sia pronta la parete resta invisibile. */
+.muro-vista.muro-attesa .muro-superficie {
+  visibility: hidden;
 }
-.gruppo-postit .postit-appeso:nth-child(3n) {
-  transform: rotate(-1.2deg);
-}
-.postit-appeso::before {
-  content: "";
+.muro-superficie {
   position: absolute;
-  top: -6px;
-  left: 50%;
-  z-index: 5;
-  width: 34px;
-  height: 13px;
-  transform: translateX(-50%) rotate(-2deg);
-  background: rgba(255, 246, 199, 0.8);
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  box-shadow: 0 0 48px rgba(0, 0, 0, 0.45);
 }
-.gruppo-salvati .postit-appeso::before {
-  background: rgba(254, 205, 205, 0.85);
+.muro-zona {
+  position: absolute;
+  cursor: pointer;
+}
+.muro-insegna {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 12px;
+  background: rgba(28, 25, 23, 0.78);
+  color: #fef3c7;
+  border: 1px solid rgba(254, 243, 199, 0.35);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+.muro-zona-salvati .muro-insegna {
+  border-color: rgba(253, 164, 175, 0.55);
+}
+.muro-slotto {
+  position: absolute;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.28));
+}
+.muro-suggerimento {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 92%;
+  text-align: center;
+  color: #57534e;
 }
